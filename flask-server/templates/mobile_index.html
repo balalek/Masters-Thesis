@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flask-SocketIO Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+</head>
+<body>
+    <h1>Flask-SocketIO Mobile</h1>
+    <input type="text" id="message-input" placeholder="Enter a message">
+    <button onclick="sendMessage()">Send</button>
+    <div id="message-container"></div>
+
+    <script>
+        var socket = io();
+
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+
+        socket.on('receive_message', function(data) {
+            var messageContainer = document.getElementById('message-container');
+            messageContainer.innerHTML += '<p>' + data + '</p>';
+        });
+
+        function sendMessage() {
+            var messageInput = document.getElementById('message-input');
+            var message = messageInput.value;
+            socket.emit('send_message', message);
+            messageInput.value = '';
+        }
+    </script>
+</body>
+</html>
