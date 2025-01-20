@@ -1,62 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import io from 'socket.io-client';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getSocket } from '../../../utils/socket';
 
-let socket;
-
-const getSocket = () => {
-  if (!socket) {
-    socket = io(`http://${window.location.hostname}:5000`, {
-      transports: ['websocket'],
-      cors: { origin: "*" }
-    });
-  }
-  return socket;
-};
-
-const MobileJoinQuizRoom = () => {
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
+function MobileJoinQuizRoom() {
+  const [playerName, setPlayerName] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const socket = getSocket();
 
-    socket.on('connect', () => {
-      console.log('Connected to server');
-    });
-
-    socket.on('receive_message', (data) => {
-      setMessages((prevMessages) => [...prevMessages, data]);
+    socket.on('game_started', (data) => {
+      navigate('/mobile-game', { state: { playerName } });
     });
 
     return () => {
-      socket.off('connect');
-      socket.off('receive_message');
+      socket.off('game_started');
     };
-  }, []);
+  }, [navigate, playerName]);
 
-  const sendMessage = () => {
-    const socket = getSocket();
-    socket.emit('send_message', message);
-    setMessage('');
+  const handleJoinGame = () => {
+    if (!playerName.trim()) return;
+
+    fetch('http://localhost:5000/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ player_name: playerName }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data.error) {
+          const socket = getSocket();
+          socket.emit('join', { player_name: playerName });
+        } else {
+          console.error(data.error);
+        }
+      })
+      .catch((error) => console.error('Error joining game:', error));
   };
 
   return (
     <div>
-      <h1>Join Quiz Room</h1>
+      <h1>Join the Quiz</h1>
       <input
         type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="Enter a message"
+        placeholder="Enter Your Name"
+        value={playerName}
+        onChange={(e) => setPlayerName(e.target.value)}
       />
-      <button onClick={sendMessage}>Send</button>
-      <div>
-        {messages.map((msg, index) => (
-          <p key={index}>{msg}</p>
-        ))}
-      </div>
+      <button onClick={handleJoinGame}>Join Game</button>
     </div>
   );
-};
+}
 
 export default MobileJoinQuizRoom;

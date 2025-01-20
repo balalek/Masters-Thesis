@@ -1,5 +1,5 @@
-from flask import Flask, send_from_directory, request, session
-from flask_socketio import SocketIO, emit
+from flask import Flask, jsonify, send_from_directory, request, session
+from flask_socketio import SocketIO, emit, join_room
 from flask_cors import CORS
 from pathlib import Path
 import webbrowser
@@ -17,6 +17,14 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# Globální herní stav
+game_state = {
+    "players": {},  # Seznam hráčů a jejich skóre
+    "current_question": None,  # Index aktuální otázky
+    "questions": [],  # Seznam otázek
+    "answers_received": 0  # Počet přijatých odpovědí
+}
+
 @app.route('/')
 def index():
     return send_from_directory(app.static_folder, 'index.html')
@@ -28,6 +36,80 @@ def serve_static(path):
         return send_from_directory(app.static_folder, path)
     else:
         return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/join', methods=['POST'])
+def join():
+    # Připojení hráče
+    player_name = request.json['player_name']
+    if player_name in game_state['players']:
+        return jsonify({"error": "Player already exists"}), 400
+    game_state['players'][player_name] = 0  # Inicializace skóre hráče
+    socketio.emit('player_joined', {"player_name": player_name})  # Informování ostatních hráčů
+    return jsonify({"message": "Player joined"}), 200
+
+@app.route('/start_game', methods=['POST'])
+def start_game():
+    # Zahájení hry
+    game_state['questions'] = [
+        {"question": "What is 2 + 2?", "options": ["3", "4", "5", "8"], "answer": 1},
+        {"question": "What is the capital of France?", "options": ["Berlin", "London", "Paris", "Rome"], "answer": 2},
+        {"question": "What is the square root of 16?", "options": ["3", "4", "5", "6"], "answer": 1}
+    ]
+    game_state['current_question'] = 0  # Nastavení první otázky
+    game_state['answers_received'] = 0  # Reset počtu přijatých odpovědí
+    first_question = game_state['questions'][game_state['current_question']]
+    print('Emitting game_started event with questions:', game_state['questions'])  # Add this line
+    #socketio.emit('game_started', {"questions": game_state['questions']})  # Oznámení o startu hry
+    socketio.emit('game_started', {"question": first_question})  # Oznámení o startu hry
+    return jsonify({"message": "Game started"}), 200
+
+@socketio.on('submit_answer')
+def submit_answer(data):
+    # Odeslání odpovědi hráče
+    player_name = data['player_name']
+    answer = data['answer']
+    current_question = game_state['current_question']
+    if current_question is None:
+        emit('error', {"error": "Game not started"})
+        return
+    correct_answer = game_state['questions'][current_question]['answer']  # Správná odpověď
+    if answer == correct_answer:
+        game_state['players'][player_name] += 20  # Přidání bodů za správnou odpověď
+    game_state['answers_received'] += 1  # Zvýšení počtu přijatých odpovědí
+    emit('answer_submitted', {"player_name": player_name, "correct": answer == correct_answer})  # Informování místnosti
+
+    # Check if all players have answered
+    if game_state['answers_received'] == len(game_state['players']):
+        socketio.emit('all_answers_received', {"scores": game_state['players']})  # Oznámení o přijetí všech odpovědí
+
+@app.route('/next_question', methods=['POST'])
+def next_question():
+    # Nastavení další otázky
+    if game_state['current_question'] is None or game_state['current_question'] + 1 >= len(game_state['questions']):
+        return jsonify({"error": "No more questions"}), 400
+    game_state['current_question'] += 1  # Posun na další otázku
+    game_state['answers_received'] = 0  # Reset počtu přijatých odpovědí
+    next_question = game_state['questions'][game_state['current_question']]
+    is_last_question = game_state['current_question'] + 1 == len(game_state['questions'])
+    print('current quiestion:', game_state['current_question'] + 1)
+    print('all questions (len):', len(game_state['questions']))
+    print('is_last_question:', is_last_question)
+    socketio.emit('next_question', {"question": next_question, "is_last_question": is_last_question})  # Oznámení o nové otázce
+    return jsonify({"question": next_question, "is_last_question": is_last_question}), 200
+
+@app.route('/get_scores', methods=['GET'])
+def get_scores():
+    # Získání skóre všech hráčů
+    return jsonify({"scores": game_state['players']}), 200
+
+@app.route('/reset_game', methods=['POST'])
+def reset_game():
+    # Reset game state
+    game_state['players'] = {}
+    game_state['current_question'] = None
+    game_state['questions'] = []
+    game_state['answers_received'] = 0
+    return jsonify({"message": "Game state reset"}), 200
 
 @socketio.on('connect')
 def handle_connect():
