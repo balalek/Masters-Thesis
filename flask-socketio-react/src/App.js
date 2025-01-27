@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider, CssBaseline, useMediaQuery } from '@mui/material';
+import { lightTheme, darkTheme } from './themes';
 import DesktopHomePage from './pages/desktop/homePage/DesktopHomePage';
 import MobileJoinQuizRoom from './pages/mobile/joinQuizRoom/MobileJoinQuizRoom';
 import RoomPage from './pages/desktop/room/RoomPage';
@@ -9,19 +11,25 @@ import ScorePage from './pages/desktop/scorePage/ScorePage';
 import './App.css';
 
 function App() {
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const theme = prefersDarkMode ? darkTheme : lightTheme;
+
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<DesktopHomePage />} />
-          <Route path="/play" element={<MobileJoinQuizRoom />} />
-          <Route path="/mobile-game" element={<MobileGamePage />} />
-          <Route path="/room" element={<RoomPage />} />
-          <Route path="/game" element={<GamePage />} />
-          <Route path="/scores" element={<ScorePage />} />
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <div className="App">
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<DesktopHomePage />} />
+            <Route path="/play" element={<MobileJoinQuizRoom />} />
+            <Route path="/mobile-game" element={<MobileGamePage />} />
+            <Route path="/room" element={<RoomPage />} />
+            <Route path="/game" element={<GamePage />} />
+            <Route path="/scores" element={<ScorePage />} />
+          </Routes>
+        </BrowserRouter>
+      </div>
+    </ThemeProvider>
   );
 }
 

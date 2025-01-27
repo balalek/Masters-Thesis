@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getSocket } from '../../../utils/socket';
+import { Box, Button } from '@mui/material';
+import StarIcon from '@mui/icons-material/StarBorderOutlined';
+import SquareIcon from '@mui/icons-material/SquareOutlined';
+import PentagonIcon from '@mui/icons-material/PentagonOutlined'; // Triangle icon
+import CircleIcon from '@mui/icons-material/CircleOutlined';
+import CorrectAnswer from '../../../components/mobile/CorrectAnswer';
+import IncorrectAnswer from '../../../components/mobile/IncorrectAnswer';
+import Loading from '../../../components/mobile/Loading';
 
 const MobileGamePage = () => {
   const location = useLocation();
@@ -8,6 +16,8 @@ const MobileGamePage = () => {
     options: ["Option 1", "Option 2", "Option 3", "Option 4"]
   });
   const [loading, setLoading] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
   const playerName = location.state?.playerName || 'Unknown Player';
 
   useEffect(() => {
@@ -17,10 +27,23 @@ const MobileGamePage = () => {
       console.log('next_question event received in MobileGamePage:', data); // Debugging log
       setQuestion(data.question);
       setLoading(false);
+      setShowResult(false);
+    });
+
+    socket.on('answer_correctness', (data) => {
+      console.log('answer_correctness event received in MobileGamePage:', data); // Debugging log
+      setIsCorrect(data.correct);
+    });
+
+    socket.on('all_answers_received', () => {
+      console.log('all_answers_received event received in MobileGamePage'); // Debugging log
+      setShowResult(true);
     });
 
     return () => {
       socket.off('next_question');
+      socket.off('answer_correctness');
+      socket.off('all_answers_received');
     };
   }, []);
 
@@ -31,28 +54,47 @@ const MobileGamePage = () => {
     setLoading(true);
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (showResult) {
+    return isCorrect ? <CorrectAnswer /> : <IncorrectAnswer />;
+  }
+
+  if (loading) return <Loading />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>
-      {question.options.map((option, index) => (
-        <button
-          key={index}
-          onClick={() => handleAnswer(index)}
-          style={{
-            width: '80%',
-            height: '20%',
-            fontSize: '1.5em',
-            margin: '10px',
-            backgroundColor: '#f0f0f0',
-            border: '2px solid #ccc',
-            borderRadius: '10px',
-          }}
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-around', gap: 2, height: '50%' }}>
+        <Button
+          variant="contained"
+          sx={{ backgroundColor: '#14A64A', color: 'white', flex: '1 1 45%', fontSize: '2.5em', justifyContent: 'center' }}
+          onClick={() => handleAnswer(0)}
         >
-          {option}
-        </button>
-      ))}
-    </div>
+          <StarIcon sx={{ fontSize: '3em', color: 'white' }} />
+        </Button>
+        <Button
+          variant="contained"
+          sx={{ backgroundColor: '#186CF6', color: 'white', flex: '1 1 45%', fontSize: '2.5em', justifyContent: 'center' }}
+          onClick={() => handleAnswer(1)}
+        >
+          <SquareIcon sx={{ fontSize: '3em', color: 'white' }} />
+        </Button>
+      </Box>
+      <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-around', gap: 2, height: '50%' }}>
+        <Button
+          variant="contained"
+          sx={{ backgroundColor: '#EF4444', color: 'white', flex: '1 1 45%', fontSize: '2.5em', justifyContent: 'center' }}
+          onClick={() => handleAnswer(2)}
+        >
+          <PentagonIcon sx={{ fontSize: '3em', color: 'white' }} />
+        </Button>
+        <Button
+          variant="contained"
+          sx={{ backgroundColor: '#EAB308', color: 'white', flex: '1 1 45%', fontSize: '2.5em', justifyContent: 'center' }}
+          onClick={() => handleAnswer(3)}
+        >
+          <CircleIcon sx={{ fontSize: '3em', color: 'white' }} />
+        </Button>
+      </Box>
+    </Box>
   );
 };
 
