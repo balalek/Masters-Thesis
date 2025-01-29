@@ -18,6 +18,8 @@ const MobileGamePage = () => {
   const [loading, setLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [pointsEarned, setPointsEarned] = useState(0);
+  const [totalPoints, setTotalPoints] = useState(0);
   const playerName = location.state?.playerName || 'Unknown Player';
 
   useEffect(() => {
@@ -33,6 +35,8 @@ const MobileGamePage = () => {
     socket.on('answer_correctness', (data) => {
       console.log('answer_correctness event received in MobileGamePage:', data); // Debugging log
       setIsCorrect(data.correct);
+      setPointsEarned(data.points_earned);
+      setTotalPoints(data.total_points);
     });
 
     socket.on('all_answers_received', () => {
@@ -55,7 +59,9 @@ const MobileGamePage = () => {
   };
 
   if (showResult) {
-    return isCorrect ? <CorrectAnswer /> : <IncorrectAnswer />;
+    return isCorrect ? 
+      <CorrectAnswer points_earned={pointsEarned} total_points={totalPoints} /> : 
+      <IncorrectAnswer points_earned={pointsEarned} total_points={totalPoints} />;
   }
 
   if (loading) return <Loading />;

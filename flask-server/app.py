@@ -117,23 +117,31 @@ def start_game():
 
 @socketio.on('submit_answer')
 def submit_answer(data):
-    # Odeslání odpovědi hráče
     player_name = data['player_name']
     answer = data['answer']
     current_question = game_state['current_question']
+    points_for_correct = 50  # Keep existing points value
+    
     if current_question is None:
         emit('error', {"error": "Game not started"})
         return
-    correct_answer = game_state['questions'][current_question]['answer']  # Správná odpověď
+        
+    correct_answer = game_state['questions'][current_question]['answer']
+    points_earned = points_for_correct if answer == correct_answer else 0
+    
     if answer == correct_answer:
-        game_state['players'][player_name] += 20  # Přidání bodů za správnou odpověď
-    game_state['answers_received'] += 1  # Zvýšení počtu přijatých odpovědí
-    game_state['answer_counts'][answer] += 1  # Increment the count for the chosen answer
-    # Inform main PC that someone submitted, no data needed
+        game_state['players'][player_name]['score'] += points_for_correct  # Fix: access the score in the dictionary
+    
+    game_state['answers_received'] += 1
+    game_state['answer_counts'][answer] += 1
+    
     socketio.emit('answer_submitted')
-    # Emit correctness to the specific player
-    emit('answer_correctness', {"correct": answer == correct_answer}, room=player_name)
-    # Check if all players have answered
+    emit('answer_correctness', {
+        "correct": answer == correct_answer,
+        "points_earned": points_earned,
+        "total_points": game_state['players'][player_name]['score']
+    }, room=player_name)
+    
     if game_state['answers_received'] == len(game_state['players']):
         socketio.emit('all_answers_received', {
             "scores": game_state['players'],
