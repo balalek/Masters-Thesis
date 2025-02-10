@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getSocket } from '../../../utils/socket';
-import { Box, Button } from '@mui/material';
-import StarIcon from '@mui/icons-material/StarBorderOutlined';
-import SquareIcon from '@mui/icons-material/SquareOutlined';
-import PentagonIcon from '@mui/icons-material/PentagonOutlined'; // Triangle icon
-import CircleIcon from '@mui/icons-material/CircleOutlined';
+import { Box } from '@mui/material';
 import CorrectAnswer from '../../../components/mobile/CorrectAnswer';
 import IncorrectAnswer from '../../../components/mobile/IncorrectAnswer';
 import Loading from '../../../components/mobile/Loading';
+import MobileFinalScore from '../../../components/mobile/MobileFinalScore';
+import ABCDQuizMobile from '../../../components/mobile/quizTypes/ABCDQuizMobile';
+import TrueFalseQuizMobile from '../../../components/mobile/quizTypes/TrueFalseQuizMobile';
 
 const MobileGamePage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [question, setQuestion] = useState({
     options: ["Option 1", "Option 2", "Option 3", "Option 4"]
   });
@@ -20,43 +20,73 @@ const MobileGamePage = () => {
   const [isCorrect, setIsCorrect] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [showFinalScore, setShowFinalScore] = useState(false);
+  const [finalScoreData, setFinalScoreData] = useState(null);
   const playerName = location.state?.playerName || 'Unknown Player';
 
   useEffect(() => {
     const socket = getSocket();
 
     socket.on('next_question', (data) => {
-      console.log('next_question event received in MobileGamePage:', data); // Debugging log
+      console.log('next_question event received in MobileGamePage:', data);
       setQuestion(data.question);
       setLoading(false);
       setShowResult(false);
     });
 
     socket.on('answer_correctness', (data) => {
-      console.log('answer_correctness event received in MobileGamePage:', data); // Debugging log
+      console.log('answer_correctness event received in MobileGamePage:', data);
       setIsCorrect(data.correct);
       setPointsEarned(data.points_earned);
       setTotalPoints(data.total_points);
     });
 
     socket.on('all_answers_received', () => {
-      console.log('all_answers_received event received in MobileGamePage'); // Debugging log
+      console.log('all_answers_received event received in MobileGamePage');
       setShowResult(true);
+    });
+
+    socket.on('navigate_to_final_score', (data) => {
+      console.log('Received final score data:', data);
+      setFinalScoreData(data);
+      setShowFinalScore(true);
+    });
+
+    socket.on('game_reset', () => {
+      navigate('/play', { 
+        state: { 
+          playerName: playerName,
+          playerColor: finalScoreData?.color 
+        } 
+      });
     });
 
     return () => {
       socket.off('next_question');
       socket.off('answer_correctness');
       socket.off('all_answers_received');
+      socket.off('navigate_to_final_score');
+      socket.off('game_reset');
     };
-  }, []);
+  }, [navigate, playerName, finalScoreData]);
 
   const handleAnswer = (index) => {
     const socket = getSocket();
-    console.log('Submitting answer:', { player_name: playerName, answer: index }); // Debugging log
+    console.log('Submitting answer:', { player_name: playerName, answer: index });
     socket.emit('submit_answer', { player_name: playerName, answer: index });
     setLoading(true);
   };
+
+  if (showFinalScore && finalScoreData) {
+    return (
+<MobileFinalScore
+        playerName={finalScoreData.playerName}
+        score={finalScoreData.score}
+        placement={finalScoreData.placement}
+        color={finalScoreData.color}
+      />
+    );
+  }
 
   if (showResult) {
     return isCorrect ? 
@@ -66,40 +96,19 @@ const MobileGamePage = () => {
 
   if (loading) return <Loading />;
 
+  const renderQuizType = () => {
+    switch (question?.type) {
+      case 'TRUE_FALSE':
+        return <TrueFalseQuizMobile onAnswer={handleAnswer} />;
+      case 'ABCD':
+      default:
+        return <ABCDQuizMobile onAnswer={handleAnswer} />;
+    }
+  };
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
-      <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-around', gap: 2, height: '50%' }}>
-        <Button
-          variant="contained"
-          sx={{ backgroundColor: '#14A64A', color: 'white', flex: '1 1 45%', fontSize: '2.5em', justifyContent: 'center' }}
-          onClick={() => handleAnswer(0)}
-        >
-          <StarIcon sx={{ fontSize: '3em', color: 'white' }} />
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ backgroundColor: '#186CF6', color: 'white', flex: '1 1 45%', fontSize: '2.5em', justifyContent: 'center' }}
-          onClick={() => handleAnswer(1)}
-        >
-          <SquareIcon sx={{ fontSize: '3em', color: 'white' }} />
-        </Button>
-      </Box>
-      <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-around', gap: 2, height: '50%' }}>
-        <Button
-          variant="contained"
-          sx={{ backgroundColor: '#EF4444', color: 'white', flex: '1 1 45%', fontSize: '2.5em', justifyContent: 'center' }}
-          onClick={() => handleAnswer(2)}
-        >
-          <PentagonIcon sx={{ fontSize: '3em', color: 'white' }} />
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ backgroundColor: '#EAB308', color: 'white', flex: '1 1 45%', fontSize: '2.5em', justifyContent: 'center' }}
-          onClick={() => handleAnswer(3)}
-        >
-          <CircleIcon sx={{ fontSize: '3em', color: 'white' }} />
-        </Button>
-      </Box>
+    <Box sx={{ height: '100vh' }}>
+      {renderQuizType()}
     </Box>
   );
 };

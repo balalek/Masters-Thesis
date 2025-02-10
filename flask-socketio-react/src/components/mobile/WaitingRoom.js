@@ -33,7 +33,7 @@ function WaitingRoom({ playerName, playerColor }) {
         }}
         style={{ backgroundColor: playerColor }}
       >
-        {playerName[0]}
+        {playerName[0].toUpperCase()}
       </Avatar>
       <Typography variant="h5" component="h2">
         {playerName}

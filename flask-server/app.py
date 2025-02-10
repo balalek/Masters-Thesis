@@ -30,6 +30,9 @@ AVAILABLE_COLORS = [
     "#616161",  # Grey
 ]
 
+# Maximum number of players
+MAX_PLAYERS = 10
+
 app = Flask(__name__, static_folder='static', static_url_path='')
 app.config['SECRET_KEY'] = 'your_secret_key'
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -43,6 +46,7 @@ game_state = {
     "questions": [],  # Seznam otázek
     "answers_received": 0,  # Počet přijatých odpovědí
     "answer_counts": [0, 0, 0, 0],  # Initialize answer counts
+    "is_quiz_active": False  # Add this new state
 }
 
 @app.route('/')
@@ -65,12 +69,21 @@ def get_available_colors():
 
 @app.route('/join', methods=['POST'])
 def join():
+    # Check if quiz is active before allowing join
+    if not game_state['is_quiz_active']:
+        return jsonify({"error": "Žádný kvíz není momentálně připraven"}), 400
+    
+    # Check if there is max players already
+    if len(game_state['players']) >= MAX_PLAYERS:
+        return jsonify({"error": "Kvíz již dosáhl maximálního počtu hráčů (%d)" % MAX_PLAYERS}), 400
+
     # Player joining the game
     player_name = request.json['player_name']
     player_color = request.json['color']
-    
+
+    # Check if player already exists
     if player_name in game_state['players']:
-        return jsonify({"error": "Player already exists"}), 400
+        return jsonify({"error": "Tato přezdívka je již zabraná"}), 400
         
     # Calculate available colors before adding new player
     used_colors = [player['color'] for player in game_state['players'].values()]
@@ -93,6 +106,11 @@ def join():
     
     return jsonify({"message": "Player joined", "colors": new_available_colors}), 200
 
+@app.route('/activate_quiz', methods=['POST'])
+def activate_quiz():
+    game_state['is_quiz_active'] = True
+    return jsonify({"message": "Quiz activated"}), 200
+
 @socketio.on('join_room')
 def handle_join_room(data):
     player_name = data['player_name']
@@ -101,11 +119,29 @@ def handle_join_room(data):
 
 @app.route('/start_game', methods=['POST'])
 def start_game():
+    # Check if there are at least 2 players
+    if len(game_state['players']) < 2:
+        return jsonify({"error": "Hra nemůže začít, dokud nejsou připojeni alespoň 2 hráči"}), 400
     # Zahájení hry
     game_state['questions'] = [
-        {"question": "Kolik je 2 + 2?", "options": ["3", "4", "5", "8"], "answer": 1},
-        {"question": "Jaké je hlavní město Francie?", "options": ["Berlín", "Londýn", "Paříž", "Řím"], "answer": 2},
-        {"question": "Kolik je odmocnina ze 16?", "options": ["3", "4", "5", "6"], "answer": 1}
+        {
+            "type": "ABCD",
+            "question": "Kolik je 2 + 2?", 
+            "options": ["3", "4", "5", "8"], 
+            "answer": 1
+        },
+        {
+            "type": "TRUE_FALSE",
+            "question": "Praha je hlavním městem České republiky", 
+            "options": ["Pravda", "Lež"],
+            "answer": 0  # true = 0, false = 1
+        },
+        {
+            "type": "ABCD",
+            "question": "Kolik je odmocnina ze 16?", 
+            "options": ["3", "4", "5", "6"], 
+            "answer": 1
+        }
     ]
     game_state['current_question'] = 0  # Nastavení první otázky
     game_state['answers_received'] = 0  # Reset počtu přijatých odpovědí
@@ -165,19 +201,35 @@ def next_question():
     socketio.emit('next_question', {"question": next_question, "is_last_question": is_last_question})  # Oznámení o nové otázce
     return jsonify({"question": next_question, "is_last_question": is_last_question}), 200
 
-@app.route('/get_scores', methods=['GET'])
-def get_scores():
-    # Získání skóre všech hráčů
-    return jsonify({"scores": game_state['players']}), 200
+@socketio.on('show_final_score')
+def handle_show_final_score():
+    # Sort players by score to determine placements
+    sorted_players = sorted(
+        game_state['players'].items(),
+        key=lambda x: x[1]['score'],
+        reverse=True
+    )
+    
+    # Create placements dictionary
+    for index, (player_name, data) in enumerate(sorted_players):
+        # Emit personal data to each player's room
+        emit('navigate_to_final_score', {
+            'playerName': player_name,
+            'score': data['score'],
+            'placement': index + 1,
+            'color': data['color']
+        }, room=player_name)
 
 @app.route('/reset_game', methods=['POST'])
 def reset_game():
     # Reset game state
+    game_state['is_quiz_active'] = False  # Add this line
     game_state['players'] = {}
     game_state['current_question'] = None
     game_state['questions'] = []
     game_state['answers_received'] = 0
     game_state['answer_counts'] = [0, 0, 0, 0]  # Reset answer counts
+    socketio.emit('game_reset')  # Add this line to notify all clients
     return jsonify({"message": "Game state reset"}), 200
 
 @socketio.on('connect')

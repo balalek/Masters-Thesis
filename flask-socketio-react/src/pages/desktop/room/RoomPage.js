@@ -10,6 +10,7 @@ const RoomPage = () => {
   const [selectedMode, setSelectedMode] = useState('freeforall'); // Default to 'freeforall' mode
   const [blueTeamCaptainIndex, setBlueTeamCaptainIndex] = useState(0);
   const [redTeamCaptainIndex, setRedTeamCaptainIndex] = useState(0);
+  const [startGameError, setStartGameError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,7 +30,39 @@ const RoomPage = () => {
     };
   }, [navigate]);
 
+  // Activate quiz when component mounts so players can join
+  useEffect(() => {
+    fetch(`http://${window.location.hostname}:5000/activate_quiz`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }, []);
+
+  /* TODO Uncomment this code after the app is done
+  // Enter fullscreen mode on component mount
+  useEffect(() => {
+    const enterFullscreen = async () => {
+      try {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+          await document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          await document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+          await document.documentElement.msRequestFullscreen();
+        }
+      } catch (error) {
+        console.warn('Failed to enter fullscreen:', error);
+      }
+    };
+
+    enterFullscreen();
+  }, []);
+  */
+
   const handleStartGame = () => {
+    setStartGameError(''); // Clear any previous error
     fetch(`http://${window.location.hostname}:5000/start_game`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -39,11 +72,14 @@ const RoomPage = () => {
         if (data.message === 'Game started') {
           const socket = getSocket();
           socket.emit('start_game');
-        } else {
-          console.error(data.error);
+        } else if (data.error) {
+          setStartGameError(data.error);
         }
       })
-      .catch((error) => console.error('Error starting game:', error));
+      .catch((error) => {
+        console.error('Error starting game:', error);
+        setStartGameError('Chyba při spouštění hry');
+      });
   };
 
   const handleStartGameOnAnotherScreen = () => {
@@ -55,17 +91,29 @@ const RoomPage = () => {
   };
 
   const handleCloseQuiz = () => {
-    fetch(`http://${window.location.hostname}:5000/reset_game`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        navigate('/');
+    // Exit fullscreen before closing
+    const exitFullscreen = async () => {
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        }
+      } catch (error) {
+        console.warn('Error exiting fullscreen:', error);
+      }
+    };
+
+    // First exit fullscreen, then reset game and navigate
+    exitFullscreen().then(() => {
+      fetch(`http://${window.location.hostname}:5000/reset_game`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       })
-      .catch((error) => {
-        console.error('Error resetting game:', error);
-      });
+        .then((response) => response.json())
+        .then(() => {
+          navigate('/');
+        })
+        .catch((error) => console.error('Error resetting game:', error));
+    });
   };
 
   const handleChangeBlueTeamCaptain = () => {
@@ -90,17 +138,41 @@ const RoomPage = () => {
   };
 
   const renderPlayers = (teamPlayers, captainIndex) => (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
       {teamPlayers.map((player, index) => (
-        <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Avatar sx={{ 
-            bgcolor: player.color,
-            color: 'white'
-          }}>
-            {player.name[0]}
+        <Box 
+          key={index} 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1,
+            width: '100%'
+          }}
+        >
+          <Avatar 
+            sx={{ 
+              bgcolor: player.color,
+              color: 'white',
+              flexShrink: 0 // Prevent avatar from shrinking
+            }}
+          >
+            {player.name[0].toUpperCase()}
           </Avatar>
-          <Typography>{player.name}</Typography>
-          {index === captainIndex && <CaptainIcon sx={{ color: 'gold' }} />}
+          <Typography 
+            sx={{ 
+              flex: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              minWidth: 0, // This is important for text truncation to work
+              textAlign: 'left' // Align text to the left
+            }}
+          >
+            {player.name}
+          </Typography>
+          {index === captainIndex && (
+            <CaptainIcon sx={{ color: 'gold', flexShrink: 0 }} />
+          )}
         </Box>
       ))}
     </Box>
@@ -200,7 +272,6 @@ const RoomPage = () => {
               <Box sx={{ 
                 display: 'flex', 
                 justifyContent: 'space-between',
-                gap: 4
               }}>
                 {/* Left column */}
                 <Box sx={{ flex: 1 }}>
@@ -210,7 +281,7 @@ const RoomPage = () => {
                         bgcolor: player.color,
                         color: 'white'
                       }}>
-                        {player.name[0]}
+                        {player.name[0].toUpperCase()}
                       </Avatar>
                       <Typography>{player.name}</Typography>
                     </Box>
@@ -386,26 +457,34 @@ const RoomPage = () => {
         mt: 'auto',
         pb: 3,
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
+        alignItems: 'center',
         gap: 2,
         backgroundColor: 'background.default',
       }}>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={handleStartGame}
-          sx={{ width: '300px' }}
-        >
-          Spustit zde
-        </Button>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={handleStartGameOnAnotherScreen}
-          sx={{ width: '300px' }}
-        >
-          Spustit na jiné obrazovce
-        </Button>
+        {startGameError && players.length < 2 && (
+          <Typography color="error" sx={{ mb: 1 }}>
+            {startGameError}
+          </Typography>
+        )}
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleStartGame}
+            sx={{ width: '300px' }}
+          >
+            Spustit zde
+          </Button>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleStartGameOnAnotherScreen}
+            sx={{ width: '300px' }}
+          >
+            Spustit na jiné obrazovce
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

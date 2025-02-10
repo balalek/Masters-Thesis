@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Add useLocation
 import { Box, TextField, Button, Typography, Container, Avatar } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import { getSocket } from '../../../utils/socket';
 import WaitingRoom from '../../../components/mobile/WaitingRoom';
 
 function MobileJoinQuizRoom() {
-  const [playerName, setPlayerName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(null);
+  const location = useLocation(); // Add this
+  const [playerName, setPlayerName] = useState(location.state?.playerName || '');
+  const [selectedColor, setSelectedColor] = useState(location.state?.playerColor || null);
   const [playerColor, setPlayerColor] = useState(null);  // Add new state for permanent color
   const [availableColors, setAvailableColors] = useState([]);
   const [nameError, setNameError] = useState('');
   const [isPlayerCreated, setIsPlayerCreated] = useState(false);
+  const [joinError, setJoinError] = useState('');
   const navigate = useNavigate();
   const socket = getSocket();
 
@@ -44,6 +46,14 @@ function MobileJoinQuizRoom() {
     }
   }, [availableColors, selectedColor, isPlayerCreated]);
 
+  useEffect(() => {
+    // If we have state data, auto-join the game
+    if (location.state?.playerName && location.state?.playerColor) {
+      // Select the color that is stored in the state
+      setSelectedColor(location.state.playerColor);
+    }
+  }, []);
+
   const handleJoinGame = () => {
     if (!playerName.trim() || !selectedColor) return;
 
@@ -57,15 +67,19 @@ function MobileJoinQuizRoom() {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (!data.error) {
-          setPlayerColor(selectedColor);  // Store the color permanently
+        if (data.error) {
+          setJoinError(data.error);
+        } else {
+          setJoinError('');
+          setPlayerColor(selectedColor);
           setIsPlayerCreated(true);
           socket.emit('join_room', { player_name: playerName });
-        } else {
-          console.error(data.error);
         }
       })
-      .catch((error) => console.error('Error joining game:', error));
+      .catch((error) => {
+        console.error('Error joining game:', error);
+        setJoinError('Nelze se připojit k serveru');
+      });
   };
 
   const handleNameChange = (e) => {
@@ -73,6 +87,7 @@ function MobileJoinQuizRoom() {
     setPlayerName(name);
     if (name.length < 3 || name.length > 16) {
       setNameError('Přezdívka musí mít 3 až 16 znaků');
+      setJoinError('');
     } else {
       setNameError('');
     }
@@ -107,8 +122,8 @@ function MobileJoinQuizRoom() {
               variant="outlined"
               value={playerName}
               onChange={handleNameChange}
-              error={!!nameError}
-              helperText={nameError}
+              error={!!nameError || !!joinError}
+              helperText={joinError || nameError}
               sx={{ minHeight: '80px', mb: -2 }}
             />
     

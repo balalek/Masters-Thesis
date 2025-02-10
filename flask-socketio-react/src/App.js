@@ -8,6 +8,7 @@ import RoomPage from './pages/desktop/room/RoomPage';
 import GamePage from './pages/desktop/game/GamePage';
 import MobileGamePage from './pages/mobile/game/MobileGamePage';
 import ScorePage from './pages/desktop/scorePage/ScorePage';
+import FinalScorePage from './pages/desktop/scorePage/FinalScorePage';
 import './App.css';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/room" element={<RoomPage />} />
             <Route path="/game" element={<GamePage />} />
             <Route path="/scores" element={<ScorePage />} />
+            <Route path="/final-score" element={<FinalScorePage />} />
           </Routes>
         </BrowserRouter>
       </div>
