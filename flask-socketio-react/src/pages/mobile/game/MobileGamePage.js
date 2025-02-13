@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getSocket } from '../../../utils/socket';
+import { getSocket, getServerTime } from '../../../utils/socket';
 import { Box } from '@mui/material';
 import CorrectAnswer from '../../../components/mobile/CorrectAnswer';
 import IncorrectAnswer from '../../../components/mobile/IncorrectAnswer';
@@ -23,6 +23,7 @@ const MobileGamePage = () => {
   const [showFinalScore, setShowFinalScore] = useState(false);
   const [finalScoreData, setFinalScoreData] = useState(null);
   const playerName = location.state?.playerName || 'Unknown Player';
+  const [showButtons, setShowButtons] = useState(true);  // Add this state
 
   useEffect(() => {
     const socket = getSocket();
@@ -30,8 +31,9 @@ const MobileGamePage = () => {
     socket.on('next_question', (data) => {
       console.log('next_question event received in MobileGamePage:', data);
       setQuestion(data.question);
-      setLoading(false);
+      setLoading(true);
       setShowResult(false);
+      setShowButtons(false);  // Hide buttons initially
     });
 
     socket.on('answer_correctness', (data) => {
@@ -41,9 +43,19 @@ const MobileGamePage = () => {
       setTotalPoints(data.total_points);
     });
 
-    socket.on('all_answers_received', () => {
+    socket.on('all_answers_received', (data) => {
       console.log('all_answers_received event received in MobileGamePage');
       setShowResult(true);
+      
+      // Calculate delay until buttons should show
+      const now = getServerTime();
+      const delay = data.show_buttons_at - now;
+      
+      // Schedule showing the buttons
+      setTimeout(() => {
+        setLoading(false);
+        setShowButtons(true);
+      }, delay);
     });
 
     socket.on('navigate_to_final_score', (data) => {
@@ -97,6 +109,10 @@ const MobileGamePage = () => {
   if (loading) return <Loading />;
 
   const renderQuizType = () => {
+    if (!showButtons) {
+      return null;  // or some placeholder content
+    }
+    
     switch (question?.type) {
       case 'TRUE_FALSE':
         return <TrueFalseQuizMobile onAnswer={handleAnswer} />;

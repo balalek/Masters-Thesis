@@ -1,15 +1,29 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Avatar } from '@mui/material';
-import { getSocket } from '../../utils/socket';
+import { getSocket, getServerTime } from '../../utils/socket';
+import Loading from './Loading';
 
 function WaitingRoom({ playerName, playerColor }) {
   const navigate = useNavigate();
   const socket = getSocket();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     socket.on('game_started', (data) => {
-      navigate('/mobile-game', { state: { playerName } });
+      setIsLoading(true);  // Show loading when game starts
+      const now = getServerTime();
+      const delay = Math.max(0, data.show_game_at - now);
+      
+      setTimeout(() => {
+        console.log('Navigating to game');
+        navigate('/mobile-game', { 
+          state: { 
+            playerName,
+            gameData: data 
+          } 
+        });
+      }, delay);
     });
 
     return () => {
@@ -17,12 +31,16 @@ function WaitingRoom({ playerName, playerColor }) {
     };
   }, [navigate, playerName]);
 
+  if (isLoading) return <Loading />;
+
   return (
     <Box sx={{ 
       display: 'flex', 
       flexDirection: 'column', 
       alignItems: 'center', 
-      gap: 2 
+      justifyContent: 'center',
+      height: '100vh',
+      gap: 4 
     }}>
       <Avatar 
         sx={{ 

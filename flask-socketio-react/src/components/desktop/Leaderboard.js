@@ -1,0 +1,180 @@
+import React, { useRef, useEffect } from 'react';
+import { Box, Typography, Container } from '@mui/material';
+
+const Leaderboard = ({ scores }) => {
+  const scrollableRef = useRef(null);
+
+  useEffect(() => {
+    const scrollContainer = scrollableRef.current;
+    if (!scrollContainer) return;
+
+    const duration = 3000;
+    let animationFrameId;
+    
+    const scroll = () => {
+      let startTime = null;
+      
+      const animate = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const progress = timestamp - startTime;
+        const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+        
+        if (progress < duration) {
+          // Smooth scroll down
+          const currentScroll = (progress / duration) * maxScroll;
+          scrollContainer.scrollTop = currentScroll;
+          animationFrameId = requestAnimationFrame(animate);
+        } else {
+          // Smooth scroll back to top
+          const scrollToTop = () => {
+            const startPosition = scrollContainer.scrollTop;
+            const startTime = Date.now();
+            const duration = 1000;
+
+            const animateToTop = () => {
+              const currentTime = Date.now();
+              const progress = (currentTime - startTime) / duration;
+
+              if (progress < 1) {
+                scrollContainer.scrollTop = startPosition * (1 - progress);
+                requestAnimationFrame(animateToTop);
+              } else {
+                scrollContainer.scrollTop = 0;
+              }
+            };
+
+            requestAnimationFrame(animateToTop);
+          };
+
+          scrollToTop();
+        }
+      };
+      
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    scroll();
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [scores]);
+
+  const sortedPlayers = Object.entries(scores)
+    .sort(([,a], [,b]) => b.score - a.score);
+  
+  const maxScore = Math.max(1, ...sortedPlayers.map(([,data]) => data.score));
+
+  const renderPlayer = (playerName, data, index) => (
+    <Box 
+      key={playerName} 
+      sx={{ 
+        display: 'grid',
+        gridTemplateColumns: '40px 250px 1fr 80px',
+        gap: 2,
+        alignItems: 'center',
+        padding: '4px 0'
+      }}
+    >
+      {/* Placement number */}
+      <Typography sx={{ 
+        fontSize: '1.5em',
+        fontWeight: 'bold',
+        color: 'grey.500',
+        textAlign: 'right'
+      }}>
+        {index + 1}.
+      </Typography>
+
+      {/* Player name */}
+      <Typography sx={{ 
+        fontWeight: 'bold', 
+        fontSize: '1.5em',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        paddingRight: 2,
+        textAlign: 'left',
+        width: '100%'
+      }}>
+        {playerName}
+      </Typography>
+
+      {/* Score bar */}
+      <Box sx={{ position: 'relative', height: '30px' }}>
+        <Box 
+          sx={{ 
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            height: '100%',
+            backgroundColor: data.color,
+            borderRadius: 1,
+            width: `${Math.max(5, (data.score / maxScore) * 100)}%`
+          }} 
+        />
+      </Box>
+
+      {/* Score number */}
+      <Typography sx={{ 
+        textAlign: 'right',
+        fontWeight: 'bold',
+        fontFamily: 'monospace',
+        fontSize: '1.5em'
+      }}>
+        {data.score}
+      </Typography>
+    </Box>
+  );
+
+  return (
+    <Container sx={{ 
+      border: '2px solid grey',
+      borderRadius: 2,
+      padding: 2,
+      width: '100% !important',
+      maxWidth: 'none !important',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
+      <Box 
+        ref={scrollableRef}
+        sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: 1.5,
+          overflowY: 'auto',
+          flex: 1,
+          pr: 3,
+          mr: -1,
+          ml: -2,
+          scrollBehavior: 'smooth',
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#f1f1f1',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#888',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: '#555',
+          }
+        }}
+      >
+        {sortedPlayers.map(([playerName, data], index) => 
+          renderPlayer(playerName, data, index)
+        )}
+      </Box>
+    </Container>
+  );
+};
+
+export default Leaderboard;

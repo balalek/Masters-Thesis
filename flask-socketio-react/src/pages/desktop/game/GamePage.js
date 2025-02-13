@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { getSocket } from '../../../utils/socket';
 import ABCDQuiz from '../../../components/desktop/quizTypes/ABCDQuiz';
 import TrueFalseQuiz from '../../../components/desktop/quizTypes/TrueFalseQuiz';
+import QuestionPreview from '../../../components/desktop/QuestionPreview';
 
 function GamePage() {
   const location = useLocation();
@@ -10,15 +11,29 @@ function GamePage() {
   const [answersCount, setAnswersCount] = useState(0);
   const [question, setQuestion] = useState(null);
   const [isLastQuestion, setIsLastQuestion] = useState(false);
+  const [showQuestionPreview, setShowQuestionPreview] = useState(true);
+  const { showGameAt } = location.state || {};
 
   useEffect(() => {
     const socket = getSocket();
 
     socket.on('all_answers_received', (data) => {
-      // Navigate to score page with scores and isLastQuestion
-      console.log('all_answers_received event received in GamePage:', data);
-      console.log('Navigating to scores with isLastQuestion:', isLastQuestion);
-      navigate('/scores', { state: { scores: data.scores, correctAnswer: data.correct_answer, answerCounts: data.answer_counts, isLastQuestion: isLastQuestion, question: question } });
+      console.log('Current question state:', {
+        question,
+        isLastQuestion,
+        nextData: data
+      });
+      
+      navigate('/scores', { 
+        state: { 
+          scores: data.scores, 
+          correctAnswer: data.correct_answer, 
+          answerCounts: data.answer_counts, 
+          isLastQuestion: isLastQuestion,  // This might be wrong
+          question: question,
+          showQuestionPreviewAt: data.show_question_preview_at 
+        } 
+      });
     });
 
     return () => {
@@ -45,6 +60,22 @@ function GamePage() {
       setIsLastQuestion(location.state.is_last_question);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    if (location.state) {
+      console.log('GamePage received state:', location.state);
+    }
+  }, [location.state]);
+
+  if (showQuestionPreview) {
+    return (
+      <QuestionPreview 
+        question={question?.question} 
+        onPreviewComplete={() => setShowQuestionPreview(false)} 
+        showAt={showGameAt}
+      />
+    );
+  }
 
   if (!question) return <div>Chybička se vloudila...</div>;
 

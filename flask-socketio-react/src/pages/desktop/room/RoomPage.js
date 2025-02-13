@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getSocket } from '../../../utils/socket';
 import { Box, Button, Typography, Container, Avatar } from '@mui/material';
 import CaptainIcon from '@mui/icons-material/Star';
 import { QRCodeSVG } from 'qrcode.react';
+import GameCountdown from '../../../components/desktop/GameCountdown';
 
 const RoomPage = () => {
   const [players, setPlayers] = useState([]);
@@ -11,7 +12,10 @@ const RoomPage = () => {
   const [blueTeamCaptainIndex, setBlueTeamCaptainIndex] = useState(0);
   const [redTeamCaptainIndex, setRedTeamCaptainIndex] = useState(0);
   const [startGameError, setStartGameError] = useState('');
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [gameData, setGameData] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const socket = getSocket();
@@ -21,7 +25,8 @@ const RoomPage = () => {
     });
 
     socket.on('game_started', (data) => {
-      navigate('/game', { state: { question: data.question, isLastQuestion: false } });
+      setGameData(data); // Store the game data
+      setShowCountdown(true); // Show countdown instead of immediate navigation
     });
 
     return () => {
@@ -71,7 +76,7 @@ const RoomPage = () => {
       .then((data) => {
         if (data.message === 'Game started') {
           const socket = getSocket();
-          socket.emit('start_game');
+          socket.emit('start_game'); // What is this for? TODO: Find out
         } else if (data.error) {
           setStartGameError(data.error);
         }
@@ -181,6 +186,23 @@ const RoomPage = () => {
   const { blueTeam, redTeam } = distributePlayers(players);
 
   const connectionUrl = `http://192.168.0.102:3000/play`;
+
+  const handleCountdownComplete = () => {
+    navigate('/game', { 
+      state: { 
+        question: gameData.question,
+        showGameAt: gameData.show_game_at, // Pass the timestamp to GamePage
+        isLastQuestion: false 
+      } 
+    });
+  };
+
+  if (showCountdown) {
+    return <GameCountdown 
+      onCountdownComplete={handleCountdownComplete}
+      showAt={gameData.show_first_question_preview}
+    />;
+  }
 
   return (
     <Box sx={{ 

@@ -1,9 +1,10 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, Container } from '@mui/material';
-import { getSocket } from '../../../utils/socket';
+import { Box, Button, Typography } from '@mui/material';
+import { getSocket, getServerTime } from '../../../utils/socket';
 import ABCDAnswers from '../../../components/desktop/answerTypes/ABCDAnswers';
 import TrueFalseAnswers from '../../../components/desktop/answerTypes/TrueFalseAnswers';
+import Leaderboard from '../../../components/desktop/Leaderboard';
 
 const ScorePage = () => {
   const location = useLocation();
@@ -13,68 +14,54 @@ const ScorePage = () => {
   const answerCounts = location.state?.answerCounts || [0, 0, 0, 0];
   const isLastQuestion = location.state?.isLastQuestion || false;
   const question = location.state?.question || { options: ["Option 1", "Option 2", "Option 3", "Option 4"] };
-  const scrollableRef = useRef(null);
+  const showQuestionPreviewAt = location.state?.showQuestionPreviewAt;
   const [countdown, setCountdown] = useState(null);
   const socket = getSocket();
-  
-  // Modified auto-scroll effect
+  const [timeRemaining, setTimeRemaining] = useState(5);
+
+  // Add logging for initial props
   useEffect(() => {
-    const scrollContainer = scrollableRef.current;
-    if (!scrollContainer) return;
+    console.log('ScorePage initial state:', {
+      isLastQuestion,
+      question,
+      showQuestionPreviewAt
+    });
+  }, []);
 
-    const duration = 3000; // 3 seconds for scrolling down
-    let animationFrameId;
-    
-    const scroll = () => {
-      let startTime = null;
-      
-      const animate = (timestamp) => {
-        if (!startTime) startTime = timestamp;
-        const progress = timestamp - startTime;
-        const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-        
-        if (progress < duration) {
-          // Smooth scroll down
-          const currentScroll = (progress / duration) * maxScroll;
-          scrollContainer.scrollTop = currentScroll;
-          animationFrameId = requestAnimationFrame(animate);
-        } else {
-          // Smooth scroll back to top over 1 second
-          const scrollToTop = () => {
-            const startPosition = scrollContainer.scrollTop;
-            const startTime = Date.now();
-            const duration = 1000; // 1 second to scroll back up
+  // Single timer effect that handles both countdown and navigation
+  useEffect(() => {
+    if (!isLastQuestion && showQuestionPreviewAt) {
+      const timer = setInterval(() => {
+        const now = getServerTime();
+        const remaining = Math.ceil((showQuestionPreviewAt - now) / 1000);
 
-            const animateToTop = () => {
-              const currentTime = Date.now();
-              const progress = (currentTime - startTime) / duration;
-
-              if (progress < 1) {
-                scrollContainer.scrollTop = startPosition * (1 - progress);
-                requestAnimationFrame(animateToTop);
-              } else {
-                scrollContainer.scrollTop = 0;
+        if (remaining <= 0) {
+          clearInterval(timer);
+          // Fetch and navigate immediately
+          fetch(`http://${window.location.hostname}:5000/next_question`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.question) {
+                navigate('/game', { 
+                  state: { 
+                    question: data.question,
+                    showGameAt: showQuestionPreviewAt + 5000,
+                    is_last_question: data.is_last_question 
+                  } 
+                });
               }
-            };
-
-            requestAnimationFrame(animateToTop);
-          };
-
-          scrollToTop();
+            });
+        } else {
+          setTimeRemaining(remaining);
         }
-      };
-      
-      animationFrameId = requestAnimationFrame(animate);
-    };
+      }, 100);
 
-    scroll(); // Start the initial scroll
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [scores]); // Re-run when scores change
+      return () => clearInterval(timer);
+    }
+  }, [navigate, isLastQuestion, showQuestionPreviewAt]);
 
   // Modify the countdown effect
   useEffect(() => {
@@ -104,25 +91,6 @@ const ScorePage = () => {
     }
   }, [isLastQuestion]);
 
-  const handleNextQuestion = () => {
-    fetch(`http://${window.location.hostname}:5000/next_question`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.question) {
-          console.log('ScorePage loaded with isLastQuestion:', data.is_last_question);
-          navigate('/game', { state: { question: data.question, is_last_question: data.is_last_question } });
-        } else {
-          console.error(data.error);
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching next question:', error);
-      });
-  };
-
   const handleCloseQuiz = () => {
     fetch(`http://${window.location.hostname}:5000/reset_game`, {
       method: 'POST',
@@ -135,123 +103,6 @@ const ScorePage = () => {
       .catch((error) => {
         console.error('Error resetting game:', error);
       });
-  };
-
-  const renderLeaderboard = () => {
-    const sortedPlayers = Object.entries(scores)
-      .sort(([,a], [,b]) => b.score - a.score);
-    
-    const maxScore = Math.max(1, ...sortedPlayers.map(([,data]) => data.score));
-
-    return (
-      <Container sx={{ 
-        border: '2px solid grey',
-        borderRadius: 2,
-        padding: 2,
-        width: '100% !important',
-        maxWidth: 'none !important',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden' // Hide overflow at container level
-      }}>
-        <Box 
-          ref={scrollableRef}
-          sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: 1.5,
-            overflowY: 'auto', // Enable vertical scrolling
-            flex: 1,
-            pr: 3,  // Add padding to the right to shift scrollbar
-            mr: -1, // Negative margin to compensate for padding
-            ml: -2, // Negative margin to compensate for padding
-            scrollBehavior: 'smooth', // Add smooth scrolling
-            '&::-webkit-scrollbar': {
-              width: '8px',
-            },
-            '&::-webkit-scrollbar-track': {
-              background: '#f1f1f1',
-              borderRadius: '4px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              background: '#888',
-              borderRadius: '4px',
-            },
-            '&::-webkit-scrollbar-thumb:hover': {
-              background: '#555',
-            }
-          }}
-        >
-          {sortedPlayers.map(([playerName, data], index) => (
-            <Box 
-              key={playerName} 
-              sx={{ 
-                display: 'grid',
-                gridTemplateColumns: '40px 250px 1fr 80px', // Fixed column widths
-                gap: 2,
-                alignItems: 'center',
-                padding: '4px 0'
-              }}
-            >
-              {/* Placement number */}
-              <Typography sx={{ 
-                fontSize: '1.5em',
-                fontWeight: 'bold',
-                color: 'grey.500',
-                textAlign: 'right'
-              }}>
-                {index + 1}.
-              </Typography>
-
-              {/* Player name */}
-              <Typography sx={{ 
-                fontWeight: 'bold', 
-                fontSize: '1.5em',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                paddingRight: 2,
-                textAlign: 'left',
-                width: '100%'
-              }}>
-                {playerName}
-              </Typography>
-
-              {/* Score bar container */}
-              <Box sx={{ 
-                position: 'relative',
-                height: '30px'
-              }}>
-                <Box 
-                  sx={{ 
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    height: '100%',
-                    backgroundColor: data.color,
-                    borderRadius: 1,
-                    width: `${Math.max(5, (data.score / maxScore) * 100)}%`
-                  }} 
-                />
-              </Box>
-
-              {/* Score number */}
-              <Typography 
-                sx={{ 
-                  textAlign: 'right',
-                  fontWeight: 'bold',
-                  fontFamily: 'monospace',
-                  fontSize: '1.5em'
-                }}
-              >
-                {data.score}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Container>
-    );
   };
 
   const renderAnswers = () => {
@@ -280,23 +131,41 @@ const ScorePage = () => {
       padding: 2,
       gap: 3
     }}>
-      {/* Header */}
+      {/* Header with timer */}
       <Box sx={{ 
         display: 'flex', 
-        justifyContent: 'center', 
+        justifyContent: 'space-between',
         alignItems: 'center',
-        position: 'relative'
+        position: 'relative',
       }}>
-        <Typography variant="h4" component="h1">
-          {isLastQuestion ? 'Poslední kolo dokončeno' : 'Výsledky kola'}
+        {/* Left - Timer (only show if not last question) */}
+        {!isLastQuestion && (
+          <Typography 
+            sx={{ 
+              fontSize: '3rem',
+              fontWeight: 'bold',
+              color: '#3B82F6',
+              mb: -2,
+              mt: -2,
+              ml: 1
+            }}
+          >
+            {timeRemaining}
+          </Typography>
+        )}
+
+        {/* Center - Title */}
+        <Typography variant="h4" component="h1" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          {isLastQuestion ? '' : 'Výsledky kola'}
         </Typography>
-        {!countdown && (  // Only show button when not counting down
+
+        {/* Remove Next button since navigation is automatic */}
+        {isLastQuestion && !countdown && (
           <Button
             variant="contained"
-            onClick={isLastQuestion ? handleCloseQuiz : handleNextQuestion}
-            sx={{ position: 'absolute', right: 0 }}
+            onClick={handleCloseQuiz}
           >
-            {isLastQuestion ? 'Ukončit kvíz' : 'Další kolo'}
+            Ukončit kvíz
           </Button>
         )}
       </Box>
@@ -307,15 +176,27 @@ const ScorePage = () => {
           <Box sx={{
             flex: 1,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
+            gap: 4
           }}>
-            <Typography variant="h2" sx={{ textAlign: 'center' }}>
-              Finální žebříček se zobrazí za {countdown}
+            <Typography variant="h2">
+              Výsledné umístění se zobrazí za
+            </Typography>
+            <Typography 
+              variant="h1" 
+              sx={{
+                fontSize: '12rem',
+                fontWeight: 'bold',
+                color: '#3B82F6'
+              }}
+            >
+              {countdown}
             </Typography>
           </Box>
         ) : (
-          renderLeaderboard()
+          <Leaderboard scores={scores} />
         )}
       </Box>
 
