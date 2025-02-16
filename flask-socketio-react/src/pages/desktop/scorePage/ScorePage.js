@@ -45,10 +45,15 @@ const ScorePage = () => {
             .then((response) => response.json())
             .then((data) => {
               if (data.question) {
+                const current_time = getServerTime();
+                const game_time = showQuestionPreviewAt + data.preview_time - current_time; // Time until game starts
+                const question_end_time = current_time + (data.question.length * 1000) + game_time;
+
                 navigate('/game', { 
                   state: { 
                     question: data.question,
-                    showGameAt: showQuestionPreviewAt + 5000,
+                    showGameAt: showQuestionPreviewAt + data.preview_time,
+                    question_end_time: question_end_time,
                     is_last_question: data.is_last_question 
                   } 
                 });
@@ -187,7 +192,7 @@ const ScorePage = () => {
             <Typography 
               variant="h1" 
               sx={{
-                fontSize: '12rem',
+                fontSize: '10rem',
                 fontWeight: 'bold',
                 color: '#3B82F6'
               }}

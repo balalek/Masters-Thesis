@@ -1,11 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import StarIcon from '@mui/icons-material/StarBorderOutlined';
 import SquareIcon from '@mui/icons-material/SquareOutlined';
 import PentagonIcon from '@mui/icons-material/PentagonOutlined';
 import CircleIcon from '@mui/icons-material/CircleOutlined';
+import { getServerTime } from '../../../utils/socket';
 
-const ABCDQuiz = ({ question, answersCount }) => {
+const ABCDQuiz = ({ question, answersCount, question_end_time }) => {
+  const [timeRemaining, setTimeRemaining] = useState(null);
+
+  useEffect(() => {
+    if (question_end_time) {
+      const timer = setInterval(() => {
+        const now = getServerTime();
+        const remaining = Math.ceil((question_end_time - now) / 1000);
+        
+        if (remaining <= 0) {
+          clearInterval(timer);
+          setTimeRemaining(0);
+        } else {
+          setTimeRemaining(remaining);
+        }
+      }, 100);
+
+      return () => clearInterval(timer);
+    }
+  }, [question_end_time]);
+
   return (
     <Box sx={{ 
       display: 'flex', 
@@ -36,7 +57,7 @@ const ABCDQuiz = ({ question, answersCount }) => {
           border: '2px solid #3B82F6'
         }}>
           <Typography variant="h2" sx={{ fontWeight: 'bold', color: '#3B82F6' }}>
-            20
+            {timeRemaining ?? '--'}
           </Typography>
         </Box>
 

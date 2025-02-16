@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getSocket } from '../../../utils/socket';
+import { getSocket, getServerTime } from '../../../utils/socket';
 import ABCDQuiz from '../../../components/desktop/quizTypes/ABCDQuiz';
 import TrueFalseQuiz from '../../../components/desktop/quizTypes/TrueFalseQuiz';
 import QuestionPreview from '../../../components/desktop/QuestionPreview';
@@ -18,12 +18,6 @@ function GamePage() {
     const socket = getSocket();
 
     socket.on('all_answers_received', (data) => {
-      console.log('Current question state:', {
-        question,
-        isLastQuestion,
-        nextData: data
-      });
-      
       navigate('/scores', { 
         state: { 
           scores: data.scores, 
@@ -67,6 +61,17 @@ function GamePage() {
     }
   }, [location.state]);
 
+  useEffect(() => {
+    if (location.state?.question_end_time) {
+      const timer = setTimeout(() => {
+        const socket = getSocket();
+        socket.emit('time_up');  // Emit time_up when timer ends
+      }, location.state.question_end_time - getServerTime());
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.state?.question_end_time]);
+
   if (showQuestionPreview) {
     return (
       <QuestionPreview 
@@ -82,10 +87,18 @@ function GamePage() {
   const renderQuizType = () => {
     switch (question?.type) {
       case 'TRUE_FALSE':
-        return <TrueFalseQuiz question={question} answersCount={answersCount} />;
+        return <TrueFalseQuiz 
+          question={question} 
+          answersCount={answersCount}
+          question_end_time={location.state?.question_end_time}
+        />;
       case 'ABCD':
       default:
-        return <ABCDQuiz question={question} answersCount={answersCount} />;
+        return <ABCDQuiz 
+          question={question} 
+          answersCount={answersCount}
+          question_end_time={location.state?.question_end_time}
+        />;
     }
   };
 

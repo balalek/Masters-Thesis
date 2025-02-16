@@ -19,3 +19,8 @@ AVAILABLE_COLORS = [
 
 # Maximum number of players
 MAX_PLAYERS = 10
+
+# Preview time in milliseconds
+PREVIEW_TIME = 3000  # 5 seconds in milliseconds
+START_GAME_TIME = 2000  # 5 seconds in milliseconds
+WAITING_TIME = 10

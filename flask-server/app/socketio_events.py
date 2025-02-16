@@ -2,6 +2,7 @@ from flask import request, session
 from flask_socketio import emit, join_room
 from . import socketio
 from .game_state import game_state
+from .constants import PREVIEW_TIME, WAITING_TIME
 from time import time
 
 @socketio.on('join_room')
@@ -38,12 +39,12 @@ def submit_answer(data):
     }, room=player_name)
     
     if game_state.answers_received == len(game_state.players):
-        show_buttons_at = int((time() + 10) * 1000)  # 10 seconds from now, in milliseconds
+        show_buttons_at = int((time() + WAITING_TIME) * 1000)  # 10 seconds from now, in milliseconds
         socketio.emit('all_answers_received', {
             "scores": game_state.players,
             "correct_answer": correct_answer,
             "answer_counts": game_state.answer_counts,
-            "show_question_preview_at": show_buttons_at - 5000,  # 5 seconds before showing buttons
+            "show_question_preview_at": show_buttons_at - PREVIEW_TIME,  # 5 seconds before showing buttons
             "show_buttons_at": show_buttons_at
         })
 
@@ -80,3 +81,17 @@ def handle_disconnect():
 def handle_message(data):
     print('Received message: ' + data)
     socketio.emit('receive_message', data)
+
+@socketio.on('time_up')
+def handle_time_up():
+    current_question = game_state.questions[game_state.current_question]
+    show_buttons_at = int((time() + WAITING_TIME) * 1000)
+
+    # Then emit the all_answers_received as before
+    socketio.emit('all_answers_received', {
+        "scores": game_state.players,
+        "correct_answer": current_question['answer'],
+        "answer_counts": game_state.answer_counts,
+        "show_question_preview_at": show_buttons_at - PREVIEW_TIME,
+        "show_buttons_at": show_buttons_at
+    })

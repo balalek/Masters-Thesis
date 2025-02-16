@@ -8,6 +8,7 @@ import Loading from '../../../components/mobile/Loading';
 import MobileFinalScore from '../../../components/mobile/MobileFinalScore';
 import ABCDQuizMobile from '../../../components/mobile/quizTypes/ABCDQuizMobile';
 import TrueFalseQuizMobile from '../../../components/mobile/quizTypes/TrueFalseQuizMobile';
+import TooLateAnswer from '../../../components/mobile/TooLateAnswer';  // Add this import
 
 const MobileGamePage = () => {
   const location = useLocation();
@@ -17,7 +18,7 @@ const MobileGamePage = () => {
   });
   const [loading, setLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(null);
   const [pointsEarned, setPointsEarned] = useState(0);
   const [totalPoints, setTotalPoints] = useState(0);
   const [showFinalScore, setShowFinalScore] = useState(false);
@@ -33,6 +34,7 @@ const MobileGamePage = () => {
       setQuestion(data.question);
       setLoading(true);
       setShowResult(false);
+      setIsCorrect(null);
       setShowButtons(false);  // Hide buttons initially
     });
 
@@ -101,6 +103,9 @@ const MobileGamePage = () => {
   }
 
   if (showResult) {
+    if (isCorrect === null) {
+      return <TooLateAnswer total_points={totalPoints} />;
+    }
     return isCorrect ? 
       <CorrectAnswer points_earned={pointsEarned} total_points={totalPoints} /> : 
       <IncorrectAnswer points_earned={pointsEarned} total_points={totalPoints} />;

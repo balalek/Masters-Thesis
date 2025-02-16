@@ -2,7 +2,7 @@ from flask import jsonify, send_from_directory, request
 from pathlib import Path
 from . import app, socketio
 from .game_state import game_state
-from .constants import AVAILABLE_COLORS, MAX_PLAYERS
+from .constants import AVAILABLE_COLORS, MAX_PLAYERS, PREVIEW_TIME, START_GAME_TIME
 from time import time
 
 @app.route('/')
@@ -69,7 +69,7 @@ def start_game():
             "type": "ABCD",
             "question": "Kolik je 2 + 2?", 
             "options": ["3", "4", "5", "8"],
-            "length": 10,  # 10 seconds to answer
+            "length": 8,  # 10 seconds to answer
             "answer": 1
         },
         {
@@ -83,7 +83,7 @@ def start_game():
             "type": "ABCD",
             "question": "Kolik je odmocnina ze 16?", 
             "options": ["3", "4", "5", "6"], 
-            "length": 10,
+            "length": 8,
             "answer": 1
         }
     ]
@@ -93,13 +93,13 @@ def start_game():
     game_state.answer_counts = [0, 0, 0, 0]
     
     current_time = int(time() * 1000)
-    game_start_time = current_time + 5000  # 5 seconds from now
+    game_start_time = current_time + START_GAME_TIME  # 5 seconds from now
     
     first_question = game_state.questions[game_state.current_question]
     socketio.emit('game_started', {
         "question": first_question,
         "show_first_question_preview": game_start_time,  # When countdown ends and preview starts
-        "show_game_at": game_start_time + 5000     # When preview ends and game starts
+        "show_game_at": game_start_time + PREVIEW_TIME     # When preview ends and game starts
     })
     return jsonify({"message": "Game started"}), 200
 
@@ -121,7 +121,8 @@ def next_question():
     })
     return jsonify({
         "question": next_question,
-        "is_last_question": is_last_question
+        "is_last_question": is_last_question,
+        "preview_time": PREVIEW_TIME
     }), 200
 
 @app.route('/reset_game', methods=['POST'])
