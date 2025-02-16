@@ -67,13 +67,23 @@ const RoomPage = () => {
   */
 
   const handleStartGame = () => {
-    setStartGameError(''); // Clear any previous error
+    setStartGameError('');
+    
+    const payload = {
+        isTeamMode: selectedMode === 'team',
+        teamAssignments: selectedMode === 'team' ? {
+            blue: blueTeam.map(player => player.name),
+            red: redTeam.map(player => player.name)
+        } : null
+    };
+
     fetch(`http://${window.location.hostname}:5000/start_game`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
     })
-      .then((response) => response.json())
-      .then((data) => {
+    .then((response) => response.json())
+    .then((data) => {
         if (data.message === 'Game started') {
           const socket = getSocket();
           socket.emit('start_game'); // What is this for? TODO: Find out

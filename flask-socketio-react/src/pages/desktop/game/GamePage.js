@@ -18,12 +18,13 @@ function GamePage() {
     const socket = getSocket();
 
     socket.on('all_answers_received', (data) => {
+      console.log('Received scores data:', data.scores); // Debug log
       navigate('/scores', { 
         state: { 
-          scores: data.scores, 
+          scores: data.scores,  // This now contains either team data or individual scores
           correctAnswer: data.correct_answer, 
           answerCounts: data.answer_counts, 
-          isLastQuestion: isLastQuestion,  // This might be wrong
+          isLastQuestion: isLastQuestion,
           question: question,
           showQuestionPreviewAt: data.show_question_preview_at 
         } 

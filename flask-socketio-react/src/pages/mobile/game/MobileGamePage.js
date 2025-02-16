@@ -24,7 +24,7 @@ const MobileGamePage = () => {
   const [showFinalScore, setShowFinalScore] = useState(false);
   const [finalScoreData, setFinalScoreData] = useState(null);
   const playerName = location.state?.playerName || 'Unknown Player';
-  const [showButtons, setShowButtons] = useState(true);  // Add this state
+  const [showButtons, setShowButtons] = useState(true);
 
   useEffect(() => {
     const socket = getSocket();
@@ -43,6 +43,7 @@ const MobileGamePage = () => {
       setIsCorrect(data.correct);
       setPointsEarned(data.points_earned);
       setTotalPoints(data.total_points);
+      setLoading(true);     // Add this line to prevent more answers
     });
 
     socket.on('all_answers_received', (data) => {
@@ -93,11 +94,11 @@ const MobileGamePage = () => {
 
   if (showFinalScore && finalScoreData) {
     return (
-<MobileFinalScore
-        playerName={finalScoreData.playerName}
-        score={finalScoreData.score}
-        placement={finalScoreData.placement}
-        color={finalScoreData.color}
+      <MobileFinalScore
+        {...finalScoreData}  // This spreads all the data from finalScoreData
+        isTeamMode={finalScoreData.is_team_mode}
+        teamName={finalScoreData.team_name}
+        teamScores={finalScoreData.team_scores || { blue: 0, red: 0 }}  // Add default value
       />
     );
   }

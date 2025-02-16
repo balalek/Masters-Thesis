@@ -11,16 +11,27 @@ const TeamMode = ({
   onChangeRedTeamCaptain 
 }) => {
   const renderTeamPlayers = (players, captainIndex) => (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
+    <Box sx={{ flex: 1 }}>
       {players.map((player, index) => (
-        <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-          <Avatar sx={{ bgcolor: player.color, color: 'white', flexShrink: 0 }}>
+        <Box key={index} sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 1,
+          mb: 2
+        }}>
+          <Avatar sx={{ 
+            bgcolor: player.color,
+            color: 'white'
+          }}>
             {player.name[0].toUpperCase()}
           </Avatar>
-          <Typography sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <Typography sx={{ 
+            flex: 1,
+            textAlign: 'left'
+          }}>
             {player.name}
           </Typography>
-          {index === captainIndex && <CaptainIcon sx={{ color: 'gold', flexShrink: 0 }} />}
+          {index === captainIndex && <CaptainIcon sx={{ color: 'gold', ml: 'auto' }} />}
         </Box>
       ))}
     </Box>

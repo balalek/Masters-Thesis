@@ -63,13 +63,26 @@ def activate_quiz():
 def start_game():
     if len(game_state.players) < 2:
         return jsonify({"error": "Hra nemůže začít, dokud nejsou připojeni alespoň 2 hráči"}), 400
-    
+
+    # Add team mode handling
+    game_state.is_team_mode = request.json.get('isTeamMode', False)
+    if game_state.is_team_mode:
+        team_assignments = request.json.get('teamAssignments', {})
+        game_state.blue_team = team_assignments.get('blue', [])
+        game_state.red_team = team_assignments.get('red', [])
+        game_state.team_scores = {'blue': 0, 'red': 0}
+        
+        print("\n=== Team Mode Debug ===")
+        print(f"Blue Team: {game_state.blue_team}")
+        print(f"Red Team: {game_state.red_team}")
+        print("=====================\n")
+
     game_state.questions = [
         {
             "type": "ABCD",
             "question": "Kolik je 2 + 2?", 
             "options": ["3", "4", "5", "8"],
-            "length": 8,  # 10 seconds to answer
+            "length": 8,  # 8 seconds to answer
             "answer": 1
         },
         {

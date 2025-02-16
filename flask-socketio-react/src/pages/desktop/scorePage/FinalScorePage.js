@@ -44,6 +44,151 @@ const FinalScorePage = () => {
     });
   };
 
+  if (scores.is_team_mode) {
+    const { teams, blue_team, red_team, individual } = scores;
+    const sortedTeams = [
+      { name: 'Modrý tým', color: '#186CF6', score: teams.blue, players: blue_team },
+      { name: 'Červený tým', color: '#EF4444', score: teams.red, players: red_team }
+    ].sort((a, b) => b.score - a.score);
+
+    const winningTeam = sortedTeams[0];
+    const isWinner = winningTeam.score > sortedTeams[1].score;
+
+    return (
+      <Box sx={{ 
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
+      }}>
+        {/* Header with centered title and close button */}
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          p: 3,
+          position: 'relative'
+        }}>
+          <Box sx={{ width: '100px' }} /> {/* Spacer for centering */}
+          <Typography variant="h2" sx={{ 
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontWeight: 'bold'
+          }}>
+            Finální výsledky
+          </Typography>
+          <Button 
+            variant="contained"
+            onClick={handleCloseQuiz}
+            sx={{ zIndex: 1 }}
+          >
+            Ukončit kvíz
+          </Button>
+        </Box>
+
+        {/* Teams Display */}
+        <Box sx={{ 
+          display: 'flex',
+          flex: 1,
+          alignItems: 'stretch',
+          gap: 4,
+          px: 8,
+          py: 4
+        }}>
+          {sortedTeams.map((team, index) => (
+            <Box key={team.name} sx={{ 
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              bgcolor: 'rgba(255,255,255,0.03)',
+              borderRadius: 4,
+              p: 4,
+              position: 'relative',
+              border: `3px solid ${team.color}`,
+              boxShadow: `0 0 20px ${team.color}20`
+            }}>
+              {/* Team Name - Now at top */}
+              <Typography variant="h2" sx={{ 
+                color: team.color,
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                mb: 2,
+              }}>
+                {index === 0 ? 'Vítězové' : 'Poražení'}
+              </Typography>
+
+              {/* Win/Lose Status - Now below team name */}
+              {isWinner && (
+                <Typography 
+                  variant="h4" 
+                  sx={{
+                    color: team.color,
+                    fontWeight: 'bold',
+                    letterSpacing: 2,
+                    mb: 2,
+                    mt: 2
+                  }}
+                >
+                  {team.name}
+                  
+                </Typography>
+              )}
+
+              {/* Score */}
+              <Typography variant="h1" sx={{ 
+                fontFamily: 'monospace',
+                fontSize: '5rem',
+                mb: 4,
+                color: team.color,
+                textShadow: `0 0 20px ${team.color}40`
+              }}>
+                {team.score}
+              </Typography>
+
+              {/* Players List with Avatars */}
+              <Box sx={{ 
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                alignItems: 'center',
+                width: '100%',
+                maxWidth: 400
+              }}>
+                <Typography variant="h6" sx={{ opacity: 0.7, mb: 1 }}>
+                  Členové týmu
+                </Typography>
+                {team.players.map(playerName => (
+                  <Box key={playerName} sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    width: '100%',
+                    p: 1,
+                    borderRadius: 2,
+                    bgcolor: 'rgba(255,255,255,0.03)'
+                  }}>
+                    <Avatar sx={{
+                      bgcolor: individual[playerName]?.color || team.color,
+                      width: 40,
+                      height: 40
+                    }}>
+                      {playerName.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Typography variant="h6">
+                      {playerName}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    );
+  }
+
   const sortedPlayers = Object.entries(scores)
     .sort(([,a], [,b]) => b.score - a.score);
 

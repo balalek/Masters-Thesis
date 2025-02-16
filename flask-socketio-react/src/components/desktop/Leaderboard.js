@@ -6,7 +6,7 @@ const Leaderboard = ({ scores }) => {
 
   useEffect(() => {
     const scrollContainer = scrollableRef.current;
-    if (!scrollContainer) return;
+    if (!scrollContainer || scores.is_team_mode) return;
 
     const duration = 3000;
     let animationFrameId;
@@ -61,6 +61,78 @@ const Leaderboard = ({ scores }) => {
       }
     };
   }, [scores]);
+
+  if (scores.is_team_mode) {
+    const { teams } = scores;
+    const maxScore = Math.max(1, teams.blue, teams.red);
+
+    return (
+      <Container sx={{ 
+        border: '2px solid grey',
+        borderRadius: 2,
+        padding: 2,
+        width: '100% !important',
+        maxWidth: 'none !important',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
+      }}>
+        <Box sx={{ 
+          display: 'flex',
+          width: '100%',
+          justifyContent: 'center',
+          gap: 8,
+          flex: 1,
+          alignItems: 'center'
+        }}>
+          {/* Blue team column */}
+          <Box sx={{ textAlign: 'center', width: '200px' }}>
+            <Typography variant="h3" sx={{ color: '#186CF6' }}>
+              {teams.blue}
+            </Typography>
+            <Box sx={{ position: 'relative', height: '200px', my: 2 }}>
+              <Box sx={{ 
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: `${Math.max(5, (teams.blue / maxScore) * 100)}%`,
+                backgroundColor: '#186CF6',
+                borderRadius: '8px 8px 0 0',
+                transition: 'height 0.5s ease-in-out'
+              }} />
+            </Box>
+            <Typography variant="h4" sx={{ color: '#186CF6' }}>
+              Modrý tým
+            </Typography>
+          </Box>
+
+          {/* Red team column */}
+          <Box sx={{ textAlign: 'center', width: '200px' }}>
+            <Typography variant="h3" sx={{ color: '#EF4444' }}>
+              {teams.red}
+            </Typography>
+            <Box sx={{ position: 'relative', height: '200px', my: 2 }}>
+              <Box sx={{ 
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: `${Math.max(5, (teams.red / maxScore) * 100)}%`,
+                backgroundColor: '#EF4444',
+                borderRadius: '8px 8px 0 0',
+                transition: 'height 0.5s ease-in-out'
+              }} />
+            </Box>
+            <Typography variant="h4" sx={{ color: '#EF4444' }}>
+              Červený tým
+            </Typography>
+          </Box>
+        </Box>
+      </Container>
+    );
+  }
 
   const sortedPlayers = Object.entries(scores)
     .sort(([,a], [,b]) => b.score - a.score);

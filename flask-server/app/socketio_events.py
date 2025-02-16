@@ -25,44 +25,93 @@ def submit_answer(data):
     correct_answer = game_state.questions[current_question]['answer']
     points_earned = points_for_correct if answer == correct_answer else 0
     
-    if answer == correct_answer:
-        game_state.players[player_name]['score'] += points_for_correct
+    if game_state.is_team_mode:
+        team = 'blue' if player_name in game_state.blue_team else 'red'
+        team_players = game_state.blue_team if team == 'blue' else game_state.red_team
+        
+        if answer == correct_answer:
+            game_state.team_scores[team] += points_for_correct
+            
+        # Send result to all team members (blocks them from answering)
+        for team_player in team_players:
+            emit('answer_correctness', {
+                "correct": answer == correct_answer,
+                "points_earned": points_earned,
+                "total_points": game_state.team_scores[team],
+                "is_team_score": True
+            }, room=team_player)
+    else:
+        # Original individual scoring logic
+        if answer == correct_answer:
+            game_state.players[player_name]['score'] += points_for_correct
+        
+        emit('answer_correctness', {
+            "correct": answer == correct_answer,
+            "points_earned": points_earned,
+            "total_points": game_state.players[player_name]['score'],
+            "is_team_score": False
+        }, room=player_name)
     
+    # Update counts for everyone
     game_state.answers_received += 1
     game_state.answer_counts[answer] += 1
-    
     socketio.emit('answer_submitted')
-    emit('answer_correctness', {
-        "correct": answer == correct_answer,
-        "points_earned": points_earned,
-        "total_points": game_state.players[player_name]['score']
-    }, room=player_name)
     
-    if game_state.answers_received == len(game_state.players):
-        show_buttons_at = int((time() + WAITING_TIME) * 1000)  # 10 seconds from now, in milliseconds
+    # Check if we should proceed to next stage
+    answers_needed = 2 if game_state.is_team_mode else len(game_state.players)
+    if game_state.answers_received == answers_needed:
+        show_buttons_at = int((time() + WAITING_TIME) * 1000)
+        
+        scores = (
+            {
+                'is_team_mode': True,
+                'teams': game_state.team_scores,
+                'blue_team': game_state.blue_team,
+                'red_team': game_state.red_team,
+                'individual': game_state.players
+            }
+            if game_state.is_team_mode
+            else game_state.players
+        )
+        
         socketio.emit('all_answers_received', {
-            "scores": game_state.players,
+            "scores": scores,
             "correct_answer": correct_answer,
             "answer_counts": game_state.answer_counts,
-            "show_question_preview_at": show_buttons_at - PREVIEW_TIME,  # 5 seconds before showing buttons
+            "show_question_preview_at": show_buttons_at - PREVIEW_TIME,
             "show_buttons_at": show_buttons_at
         })
 
 @socketio.on('show_final_score')
 def handle_show_final_score():
-    sorted_players = sorted(
-        game_state.players.items(),
-        key=lambda x: x[1]['score'],
-        reverse=True
-    )
-    
-    for index, (player_name, data) in enumerate(sorted_players):
-        emit('navigate_to_final_score', {
-            'playerName': player_name,
-            'score': data['score'],
-            'placement': index + 1,
-            'color': data['color']
-        }, room=player_name)
+    if game_state.is_team_mode:
+        # For team mode, find winning team and send team results
+        for player_name in game_state.players:
+            team_name = 'blue' if player_name in game_state.blue_team else 'red'
+            emit('navigate_to_final_score', {
+                'playerName': player_name,
+                'score': game_state.team_scores[team_name],
+                'team_name': team_name,
+                'is_team_mode': True,
+                'team_scores': game_state.team_scores,
+                'color': game_state.players[player_name]['color']
+            }, room=player_name)
+    else:
+        # Original individual scoring logic
+        sorted_players = sorted(
+            game_state.players.items(),
+            key=lambda x: x[1]['score'],
+            reverse=True
+        )
+        
+        for index, (player_name, data) in enumerate(sorted_players):
+            emit('navigate_to_final_score', {
+                'playerName': player_name,
+                'score': data['score'],
+                'placement': index + 1,
+                'color': data['color'],
+                'is_team_mode': False
+            }, room=player_name)
 
 @socketio.on('connect')
 def handle_connect():
@@ -87,9 +136,19 @@ def handle_time_up():
     current_question = game_state.questions[game_state.current_question]
     show_buttons_at = int((time() + WAITING_TIME) * 1000)
 
-    # Then emit the all_answers_received as before
+    if game_state.is_team_mode:
+        scores = {
+            'is_team_mode': True,
+            'teams': game_state.team_scores,
+            'blue_team': game_state.blue_team,
+            'red_team': game_state.red_team,
+            'individual': game_state.players
+        }
+    else:
+        scores = game_state.players
+
     socketio.emit('all_answers_received', {
-        "scores": game_state.players,
+        "scores": scores,
         "correct_answer": current_question['answer'],
         "answer_counts": game_state.answer_counts,
         "show_question_preview_at": show_buttons_at - PREVIEW_TIME,
