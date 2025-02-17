@@ -164,3 +164,7 @@ def handle_time_up():
         "show_question_preview_at": show_buttons_at - PREVIEW_TIME,
         "show_buttons_at": show_buttons_at
     })
+
+@socketio.on('remote_display_connected')
+def handle_remote_display_connected():
+    socketio.emit('remote_display_connected')

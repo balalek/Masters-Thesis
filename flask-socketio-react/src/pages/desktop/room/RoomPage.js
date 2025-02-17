@@ -6,6 +6,7 @@ import GameCountdown from '../../../components/desktop/GameCountdown';
 import PlayersList from '../../../components/desktop/room/PlayersList';
 import TeamMode from '../../../components/desktop/room/TeamMode';
 import ConnectionInfo from '../../../components/desktop/room/ConnectionInfo';
+import StartGameTooltip from '../../../components/desktop/room/StartGameTooltip';
 
 const RoomPage = () => {
   const [players, setPlayers] = useState([]); // Add back players state
@@ -17,6 +18,7 @@ const RoomPage = () => {
   const [startGameError, setStartGameError] = useState('');
   const [showCountdown, setShowCountdown] = useState(false);
   const [gameData, setGameData] = useState(null);
+  const [isRemoteDisplayConnected, setIsRemoteDisplayConnected] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,9 +51,15 @@ const RoomPage = () => {
       setShowCountdown(true); // Show countdown instead of immediate navigation
     });
 
+    // Listen for remote display connection event so we can enable the start game on different screen button
+    socket.on('remote_display_connected', () => {
+      setIsRemoteDisplayConnected(true);
+    });
+
     return () => {
       socket.off('player_joined');
       socket.off('game_started');
+      socket.off('remote_display_connected');
     };
   }, [navigate, selectedMode, blueTeam.length, redTeam.length]);
 
@@ -89,16 +97,6 @@ const RoomPage = () => {
   const handleStartGame = () => {
     setStartGameError('');
     
-    if (selectedMode === 'team') {
-      if (blueTeam.length === 0 || redTeam.length === 0) {
-        setStartGameError('V každém týmu musí být alespoň jeden hráč');
-        return;
-      }
-    } else if (players.length < 2) {
-      setStartGameError('Jsou potřeba alespoň dva hráči');
-      return;
-    }
-    
     const payload = {
       isTeamMode: selectedMode === 'team',
       teamAssignments: selectedMode === 'team' ? {
@@ -114,12 +112,7 @@ const RoomPage = () => {
     })
     .then((response) => response.json())
     .then((data) => {
-        if (data.message === 'Game started') {
-          const socket = getSocket();
-          socket.emit('start_game'); // What is this for? TODO: Find out
-        } else if (data.error) {
-          setStartGameError(data.error);
-        }
+        if (data.error) setStartGameError(data.error);
       })
       .catch((error) => {
         console.error('Error starting game:', error);
@@ -128,7 +121,30 @@ const RoomPage = () => {
   };
 
   const handleStartGameOnAnotherScreen = () => {
-   //TODO: Implement this function
+    // Use the same start game logic, but don't navigate
+    setStartGameError('');
+    
+    const payload = {
+      isTeamMode: selectedMode === 'team',
+      teamAssignments: selectedMode === 'team' ? {
+        blue: blueTeam.map(player => player.name),
+        red: redTeam.map(player => player.name)
+      } : null,
+      isRemote: true
+    };
+
+    fetch(`http://${window.location.hostname}:5000/start_game`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then((data) => {
+      if (data.error) setStartGameError(data.error);
+    })
+    .catch((error) => {
+      console.error('Error starting game:', error);
+      setStartGameError('Chyba při spouštění hry');
+    });
   }
 
   const handleModeChange = (mode) => {
@@ -216,7 +232,7 @@ const RoomPage = () => {
       
       // Update red team captain index if needed
       if (playerIndex <= redTeamCaptainIndex) {
-        // If removing player before or at captain position, shift captain index up
+        // If removing player before or at captain position, shift red team captain index up
         setRedTeamCaptainIndex(prev => Math.max(0, prev - 1));
       }
       
@@ -236,6 +252,7 @@ const RoomPage = () => {
   };
 
   const connectionUrl = `http://192.168.0.102:3000/play`;
+  const remoteGameUrl = `http://192.168.0.102:3000/remote`;
 
   const handleCountdownComplete = () => {
     const current_time = getServerTime();
@@ -295,6 +312,21 @@ const RoomPage = () => {
         </Button>
       </Box>
 
+      {/* Captain explanation text - only show in team mode */}
+      {selectedMode === 'team' && (
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            textAlign: 'center', 
+            mb: 2,
+            fontStyle: 'italic',
+            color: 'text.secondary'
+          }}
+        >
+          ⭐ Označuje kapitána týmu
+        </Typography>
+      )}
+
       {/* Main content with flexible spacing */}
       <Box sx={{ 
         flex: 1,
@@ -334,13 +366,21 @@ const RoomPage = () => {
           {startGameError && players.length < 2 && (
             <Typography color="error" sx={{ mb: 1 }}>{startGameError}</Typography>
           )}
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <Button variant="contained" onClick={handleStartGame} sx={{ width: '300px' }}>
               Spustit zde
             </Button>
-            <Button variant="contained" onClick={handleStartGameOnAnotherScreen} sx={{ width: '300px' }}>
-              Spustit na jiné obrazovce
-            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Button 
+                variant="contained" 
+                onClick={handleStartGameOnAnotherScreen} 
+                sx={{ width: '300px' }}
+                disabled={!isRemoteDisplayConnected}
+              >
+                Spustit na jiné obrazovce
+              </Button>
+              <StartGameTooltip gameUrl={remoteGameUrl || 'Loading...'} />
+            </Box>
           </Box>
         </Box>
       </Box>

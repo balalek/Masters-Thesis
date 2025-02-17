@@ -9,25 +9,29 @@ function WaitingRoom({ playerName, playerColor }) {
   const socket = getSocket();
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleGameStart = (data) => {
+    setIsLoading(true);  // Show loading when game starts
+    const now = getServerTime();
+    const delay = Math.max(0, data.show_game_at - now);
+    
+    setTimeout(() => {
+      console.log('Navigating to game');
+      navigate('/mobile-game', { 
+        state: { 
+          playerName,
+          gameData: data 
+        } 
+      });
+    }, delay);
+  };
+
   useEffect(() => {
-    socket.on('game_started', (data) => {
-      setIsLoading(true);  // Show loading when game starts
-      const now = getServerTime();
-      const delay = Math.max(0, data.show_game_at - now);
-      
-      setTimeout(() => {
-        console.log('Navigating to game');
-        navigate('/mobile-game', { 
-          state: { 
-            playerName,
-            gameData: data 
-          } 
-        });
-      }, delay);
-    });
+    socket.on('game_started', handleGameStart);
+    socket.on('game_started_remote', handleGameStart);
 
     return () => {
       socket.off('game_started');
+      socket.off('game_started_remote');
     };
   }, [navigate, playerName]);
 

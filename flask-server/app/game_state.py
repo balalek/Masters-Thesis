@@ -10,7 +10,8 @@ class GameState:
         self.blue_team = []
         self.red_team = []
         self.team_scores = {'blue': 0, 'red': 0}
-        self.question_start_time = None  # Add this line
+        self.question_start_time = None
+        self.is_remote = False
 
     def reset(self):
         self.__init__()

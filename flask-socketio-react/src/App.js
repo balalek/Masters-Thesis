@@ -9,6 +9,7 @@ import GamePage from './pages/desktop/game/GamePage';
 import MobileGamePage from './pages/mobile/game/MobileGamePage';
 import ScorePage from './pages/desktop/scorePage/ScorePage';
 import FinalScorePage from './pages/desktop/scorePage/FinalScorePage';
+import RemoteGamePage from './pages/desktop/game/RemoteGamePage';
 import './App.css';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
             <Route path="/game" element={<GamePage />} />
             <Route path="/scores" element={<ScorePage />} />
             <Route path="/final-score" element={<FinalScorePage />} />
+            <Route path="/remote" element={<RemoteGamePage />} />
           </Routes>
         </BrowserRouter>
       </div>

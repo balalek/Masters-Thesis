@@ -66,6 +66,7 @@ def start_game():
 
     # Add team mode handling
     game_state.is_team_mode = request.json.get('isTeamMode', False)
+    game_state.is_remote = request.json.get('isRemote', False)
     if game_state.is_team_mode:
         team_assignments = request.json.get('teamAssignments', {})
         game_state.blue_team = team_assignments.get('blue', [])
@@ -114,11 +115,19 @@ def start_game():
     
     first_question = game_state.questions[game_state.current_question]
     game_state.question_start_time = game_start_time  + PREVIEW_TIME # Set the start time for the first question
-    socketio.emit('game_started', {
-        "question": first_question,
-        "show_first_question_preview": game_start_time,  # When countdown ends and preview starts
-        "show_game_at": game_start_time + PREVIEW_TIME     # When preview ends and game starts
-    })
+
+    if game_state.is_remote:
+        socketio.emit('game_started_remote', {
+            "question": first_question,
+            "show_first_question_preview": game_start_time,  # When countdown ends and preview starts
+            "show_game_at": game_start_time + PREVIEW_TIME     # When preview ends and game starts
+        })
+    else:    
+        socketio.emit('game_started', {
+            "question": first_question,
+            "show_first_question_preview": game_start_time,  # When countdown ends and preview starts
+            "show_game_at": game_start_time + PREVIEW_TIME     # When preview ends and game starts
+        })
     return jsonify({"message": "Game started"}), 200
 
 @app.route('/next_question', methods=['POST'])
