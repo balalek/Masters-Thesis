@@ -71,6 +71,10 @@ def start_game():
         game_state.blue_team = team_assignments.get('blue', [])
         game_state.red_team = team_assignments.get('red', [])
         game_state.team_scores = {'blue': 0, 'red': 0}
+
+        # Check if there is at least one player in each team
+        if len(game_state.blue_team) == 0 or len(game_state.red_team) == 0:
+            return jsonify({"error": "V každém týmu musí být alespoň jeden hráč"}), 400
         
         print("\n=== Team Mode Debug ===")
         print(f"Blue Team: {game_state.blue_team}")
@@ -109,6 +113,7 @@ def start_game():
     game_start_time = current_time + START_GAME_TIME  # 5 seconds from now
     
     first_question = game_state.questions[game_state.current_question]
+    game_state.question_start_time = game_start_time  + PREVIEW_TIME # Set the start time for the first question
     socketio.emit('game_started', {
         "question": first_question,
         "show_first_question_preview": game_start_time,  # When countdown ends and preview starts

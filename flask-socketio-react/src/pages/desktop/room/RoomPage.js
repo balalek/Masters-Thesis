@@ -8,8 +8,10 @@ import TeamMode from '../../../components/desktop/room/TeamMode';
 import ConnectionInfo from '../../../components/desktop/room/ConnectionInfo';
 
 const RoomPage = () => {
-  const [players, setPlayers] = useState([]);
-  const [selectedMode, setSelectedMode] = useState('freeforall'); // Default to 'freeforall' mode
+  const [players, setPlayers] = useState([]); // Add back players state
+  const [blueTeam, setBlueTeam] = useState([]); // Store teams directly
+  const [redTeam, setRedTeam] = useState([]);
+  const [selectedMode, setSelectedMode] = useState('freeforall');
   const [blueTeamCaptainIndex, setBlueTeamCaptainIndex] = useState(0);
   const [redTeamCaptainIndex, setRedTeamCaptainIndex] = useState(0);
   const [startGameError, setStartGameError] = useState('');
@@ -21,7 +23,25 @@ const RoomPage = () => {
     const socket = getSocket();
 
     socket.on('player_joined', (data) => {
-      setPlayers((prevPlayers) => [...prevPlayers, { name: data.player_name, color: data.color }]);
+      const player = { name: data.player_name, color: data.color };
+      
+      if (selectedMode === 'team') {
+        // First player always goes to blue team
+        if (blueTeam.length === 0 && redTeam.length === 0) {
+          setBlueTeam(prev => [...prev, player]);
+        }
+        // Distribute to team with fewer players
+        else if (blueTeam.length > redTeam.length && redTeam.length < 5) {
+          setRedTeam(prev => [...prev, player]);
+        }
+        // If red team has more or equal players, add to blue (if not full)
+        else if (blueTeam.length < 5) {
+          setBlueTeam(prev => [...prev, player]);
+        }
+        // If both teams are full, player won't be added
+      } else {
+        setPlayers(prev => [...prev, player]);
+      }
     });
 
     socket.on('game_started', (data) => {
@@ -33,7 +53,7 @@ const RoomPage = () => {
       socket.off('player_joined');
       socket.off('game_started');
     };
-  }, [navigate]);
+  }, [navigate, selectedMode, blueTeam.length, redTeam.length]);
 
   // Activate quiz when component mounts so players can join
   useEffect(() => {
@@ -69,12 +89,22 @@ const RoomPage = () => {
   const handleStartGame = () => {
     setStartGameError('');
     
+    if (selectedMode === 'team') {
+      if (blueTeam.length === 0 || redTeam.length === 0) {
+        setStartGameError('V každém týmu musí být alespoň jeden hráč');
+        return;
+      }
+    } else if (players.length < 2) {
+      setStartGameError('Jsou potřeba alespoň dva hráči');
+      return;
+    }
+    
     const payload = {
-        isTeamMode: selectedMode === 'team',
-        teamAssignments: selectedMode === 'team' ? {
-            blue: blueTeam.map(player => player.name),
-            red: redTeam.map(player => player.name)
-        } : null
+      isTeamMode: selectedMode === 'team',
+      teamAssignments: selectedMode === 'team' ? {
+        blue: blueTeam.map(player => player.name),
+        red: redTeam.map(player => player.name)
+      } : null
     };
 
     fetch(`http://${window.location.hostname}:5000/start_game`, {
@@ -102,6 +132,28 @@ const RoomPage = () => {
   }
 
   const handleModeChange = (mode) => {
+    if (mode === 'team' && selectedMode === 'freeforall') {
+      // Initialize teams when switching to team mode
+      const initialTeams = players.reduce((acc, player) => {
+        if (acc.blue.length <= acc.red.length && acc.blue.length < 5) {
+          acc.blue.push(player);
+        } else if (acc.red.length < 5) {
+          acc.red.push(player);
+        }
+        return acc;
+      }, { blue: [], red: [] });
+      
+      setBlueTeam(initialTeams.blue);
+      setRedTeam(initialTeams.red);
+      setBlueTeamCaptainIndex(0); // Reset captain indices
+      setRedTeamCaptainIndex(0);
+      setPlayers([]); // Clear players array when in team mode
+    } else if (mode === 'freeforall') {
+      // When switching to free-for-all, combine teams into players array
+      setPlayers([...blueTeam, ...redTeam]);
+      setBlueTeam([]); // Clear teams when in free-for-all mode
+      setRedTeam([]);
+    }
     setSelectedMode(mode);
   };
 
@@ -139,20 +191,49 @@ const RoomPage = () => {
     setRedTeamCaptainIndex((prevIndex) => (prevIndex + 1) % Math.max(players.length - 5, 0));
   };
 
-  const distributePlayers = (players) => {
-    const blueTeam = [];
-    const redTeam = [];
-    players.forEach((player, index) => {
-      if (index % 2 === 0) {
-        blueTeam.push(player);
-      } else {
-        redTeam.push(player);
+  const handleSwitchTeam = (playerName, isFromBlueTeam) => {
+    if (isFromBlueTeam) {
+      if (redTeam.length >= 5) return; // Check target team capacity
+      if (blueTeam.length <= 1) return; // Ensure source team not empty
+      
+      const playerIndex = blueTeam.findIndex(p => p.name === playerName);
+      const player = blueTeam[playerIndex];
+      
+      // Update blue team captain index if needed
+      if (playerIndex <= blueTeamCaptainIndex) {
+        // If removing player before or at captain position, shift captain index up
+        setBlueTeamCaptainIndex(prev => Math.max(0, prev - 1));
       }
-    });
-    return { blueTeam, redTeam };
+      
+      setBlueTeam(prev => prev.filter(p => p.name !== playerName));
+      setRedTeam(prev => [...prev, player]);
+    } else {
+      if (blueTeam.length >= 5) return; // Check target team capacity
+      if (redTeam.length <= 1) return; // Ensure source team not empty
+      
+      const playerIndex = redTeam.findIndex(p => p.name === playerName);
+      const player = redTeam[playerIndex];
+      
+      // Update red team captain index if needed
+      if (playerIndex <= redTeamCaptainIndex) {
+        // If removing player before or at captain position, shift captain index up
+        setRedTeamCaptainIndex(prev => Math.max(0, prev - 1));
+      }
+      
+      setRedTeam(prev => prev.filter(p => p.name !== playerName));
+      setBlueTeam(prev => [...prev, player]);
+    }
   };
 
-  const { blueTeam, redTeam } = distributePlayers(players);
+  const handleSelectCaptain = (playerName, isBlueTeam) => {
+    if (isBlueTeam) {
+      const newIndex = blueTeam.findIndex(p => p.name === playerName);
+      if (newIndex !== -1) setBlueTeamCaptainIndex(newIndex);
+    } else {
+      const newIndex = redTeam.findIndex(p => p.name === playerName);
+      if (newIndex !== -1) setRedTeamCaptainIndex(newIndex);
+    }
+  };
 
   const connectionUrl = `http://192.168.0.102:3000/play`;
 
@@ -234,6 +315,8 @@ const RoomPage = () => {
               redTeamCaptainIndex={redTeamCaptainIndex}
               onChangeBlueTeamCaptain={handleChangeBlueTeamCaptain}
               onChangeRedTeamCaptain={handleChangeRedTeamCaptain}
+              onSwitchTeam={handleSwitchTeam}
+              onSelectCaptain={handleSelectCaptain} // Add this prop
             />
           )}
         </Box>

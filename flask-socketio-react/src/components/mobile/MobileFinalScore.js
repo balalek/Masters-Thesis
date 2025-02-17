@@ -23,6 +23,7 @@ const MobileFinalScore = ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
+        justifyContent: 'center',
         p: 4
       }}>
         {/* Winner/Draw/Loser Status */}

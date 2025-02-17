@@ -172,7 +172,8 @@ const FinalScorePage = () => {
                     <Avatar sx={{
                       bgcolor: individual[playerName]?.color || team.color,
                       width: 40,
-                      height: 40
+                      height: 40,
+                      color: 'white'
                     }}>
                       {playerName.charAt(0).toUpperCase()}
                     </Avatar>

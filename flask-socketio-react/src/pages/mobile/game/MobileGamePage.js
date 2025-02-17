@@ -87,8 +87,8 @@ const MobileGamePage = () => {
 
   const handleAnswer = (index) => {
     const socket = getSocket();
-    console.log('Submitting answer:', { player_name: playerName, answer: index });
-    socket.emit('submit_answer', { player_name: playerName, answer: index });
+    const answerTime = getServerTime();  // Get the current server time
+    socket.emit('submit_answer', { player_name: playerName, answer: index, answer_time: answerTime });
     setLoading(true);
   };
 
