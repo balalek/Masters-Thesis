@@ -154,9 +154,12 @@ def next_question():
 
 @app.route('/reset_game', methods=['POST'])
 def reset_game():
+    was_remote = game_state.is_remote  # Store the state before reset
     game_state.reset()
-    socketio.emit('game_reset')
-    return jsonify({"message": "Game state reset"}), 200
+    # After reset, emit the full color list since no players exist
+    socketio.emit('colors_updated', {"colors": AVAILABLE_COLORS})
+    socketio.emit('game_reset', {"was_remote": was_remote})
+    return jsonify({"message": "Game state reset", "was_remote": was_remote}), 200
 
 @app.route('/server_time', methods=['GET'])
 def get_server_time():

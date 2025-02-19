@@ -83,7 +83,8 @@ const ScorePage = () => {
                 state: { 
                   scores: scores,
                   correctAnswer: correctAnswer,
-                  question: question 
+                  question: question,
+                  isRemote: location.state?.isRemote  // Add this line
                 } 
               });
             });
@@ -96,6 +97,18 @@ const ScorePage = () => {
     }
   }, [isLastQuestion]);
 
+  useEffect(() => {
+      const socket = getSocket();
+  
+      socket.on('game_reset', (data) => {
+        navigate(data.was_remote ? '/remote' : '/');
+      });
+  
+      return () => {
+        socket.off('game_reset');
+      };
+    }, [navigate]);
+    
   const handleCloseQuiz = () => {
     fetch(`http://${window.location.hostname}:5000/reset_game`, {
       method: 'POST',
@@ -103,7 +116,7 @@ const ScorePage = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        navigate('/');
+        navigate(data.was_remote ? '/remote' : '/');
       })
       .catch((error) => {
         console.error('Error resetting game:', error);
@@ -165,7 +178,7 @@ const ScorePage = () => {
         </Typography>
 
         {/* Remove Next button since navigation is automatic */}
-        {isLastQuestion && !countdown && (
+        {isLastQuestion && !countdown && !location.state?.isRemote && (
           <Button
             variant="contained"
             onClick={handleCloseQuiz}

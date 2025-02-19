@@ -88,7 +88,8 @@ def submit_answer(data):
             "correct_answer": correct_answer,
             "answer_counts": game_state.answer_counts,
             "show_question_preview_at": show_buttons_at - PREVIEW_TIME,
-            "show_buttons_at": show_buttons_at
+            "show_buttons_at": show_buttons_at,
+            "is_remote": game_state.is_remote  # Add this line
         })
 
 @socketio.on('show_final_score')
@@ -162,9 +163,14 @@ def handle_time_up():
         "correct_answer": current_question['answer'],
         "answer_counts": game_state.answer_counts,
         "show_question_preview_at": show_buttons_at - PREVIEW_TIME,
-        "show_buttons_at": show_buttons_at
+        "show_buttons_at": show_buttons_at,
+        "is_remote": game_state.is_remote  # Add this line
     })
 
 @socketio.on('remote_display_connected')
 def handle_remote_display_connected():
     socketio.emit('remote_display_connected')
+
+@socketio.on('is_remote_connected')
+def handle_is_remote_connected():
+    socketio.emit('is_remote_connected')

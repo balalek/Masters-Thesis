@@ -20,6 +20,10 @@ const RemoteGamePage = () => {
       setShowCountdown(true);
     });
 
+    socket.on('is_remote_connected', () => {
+      socket.emit('remote_display_connected');
+    });
+
     return () => {
       socket.off('game_started_remote');
     };

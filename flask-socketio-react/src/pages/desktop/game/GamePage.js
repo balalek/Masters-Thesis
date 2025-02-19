@@ -26,7 +26,8 @@ function GamePage() {
           answerCounts: data.answer_counts, 
           isLastQuestion: isLastQuestion,
           question: question,
-          showQuestionPreviewAt: data.show_question_preview_at 
+          showQuestionPreviewAt: data.show_question_preview_at,
+          isRemote: data.is_remote  // Add this line
         } 
       });
     });
@@ -47,6 +48,18 @@ function GamePage() {
       socket.off('answer_submitted');
     }
   }, []);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    socket.on('game_reset', (data) => {
+      navigate(data.was_remote ? '/remote' : '/');
+    });
+
+    return () => {
+      socket.off('game_reset');
+    };
+  }, [navigate]);
 
   useEffect(() => {
     if (location.state && location.state.question) {

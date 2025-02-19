@@ -34,7 +34,18 @@ function MobileJoinQuizRoom() {
       setAvailableColors(data.colors);
     });
 
+    socket.on('game_reset', () => {
+      setIsPlayerCreated(false);
+      navigate('/play', { 
+        state: { 
+          playerName: playerName,
+          playerColor: playerColor
+        } 
+      });
+    });
+
     return () => {
+      socket.off('game_reset');
       socket.off('colors_updated');
     };
   }, [navigate, playerName]);
@@ -93,6 +104,11 @@ function MobileJoinQuizRoom() {
     }
   };
 
+  const handleReset = () => {
+    setIsPlayerCreated(false);
+    setSelectedColor(playerColor); // Add this line to keep the color selected
+  };
+
   return (
     <Container maxWidth="sm">
       <Box sx={{ 
@@ -104,7 +120,11 @@ function MobileJoinQuizRoom() {
         py: 4
       }}>
         {isPlayerCreated ? (
-          <WaitingRoom playerName={playerName} playerColor={playerColor} />
+          <WaitingRoom 
+            playerName={playerName} 
+            playerColor={playerColor}
+            onReset={handleReset}  // Add this prop
+          />
         ) : (
           <Box sx={{
             display: 'flex',

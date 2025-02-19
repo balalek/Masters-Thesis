@@ -19,10 +19,14 @@ const RoomPage = () => {
   const [showCountdown, setShowCountdown] = useState(false);
   const [gameData, setGameData] = useState(null);
   const [isRemoteDisplayConnected, setIsRemoteDisplayConnected] = useState(false);
+  const [isRemoteGame, setIsRemoteGame] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const socket = getSocket();
+
+    // ask if the remote display is connected
+    socket.emit('is_remote_connected');
 
     socket.on('player_joined', (data) => {
       const player = { name: data.player_name, color: data.color };
@@ -56,10 +60,15 @@ const RoomPage = () => {
       setIsRemoteDisplayConnected(true);
     });
 
+    socket.on('game_started_remote', () => {
+      setIsRemoteGame(true);
+    });
+
     return () => {
       socket.off('player_joined');
       socket.off('game_started');
       socket.off('remote_display_connected');
+      socket.off('game_started_remote');
     };
   }, [navigate, selectedMode, blueTeam.length, redTeam.length]);
 
@@ -276,6 +285,31 @@ const RoomPage = () => {
       onCountdownComplete={handleCountdownComplete}
       showAt={gameData.show_first_question_preview}
     />;
+  }
+
+  if (isRemoteGame) {
+    return (
+      <Box sx={{ 
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 4
+      }}>
+        <Typography variant="h4" sx={{ textAlign: 'center' }}>
+          Hra právě probíhá na jiné obrazovce
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="error" 
+          onClick={handleCloseQuiz}
+          size="large"
+        >
+          Ukončit kvíz
+        </Button>
+      </Box>
+    );
   }
 
   return (

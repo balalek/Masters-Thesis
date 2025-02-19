@@ -2,11 +2,13 @@ import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography, Container, Avatar } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import { getSocket } from '../../../utils/socket';
 
 const FinalScorePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const scores = location.state?.scores || {};
+  const isRemote = location.state?.isRemote;
 
   useEffect(() => {
     // Check if we have the required data
@@ -17,6 +19,18 @@ const FinalScorePage = () => {
     }
     console.log('FinalScorePage loaded with scores:', scores);
   }, [scores, navigate]);
+
+  useEffect(() => {
+      const socket = getSocket();
+  
+      socket.on('game_reset', (data) => {
+        navigate(data.was_remote ? '/remote' : '/');
+      });
+  
+      return () => {
+        socket.off('game_reset');
+      };
+    }, [navigate]);
 
   const handleCloseQuiz = () => {
     // Exit fullscreen before closing
@@ -78,13 +92,15 @@ const FinalScorePage = () => {
           }}>
             Finální výsledky
           </Typography>
-          <Button 
-            variant="contained"
-            onClick={handleCloseQuiz}
-            sx={{ zIndex: 1 }}
-          >
-            Ukončit kvíz
-          </Button>
+          {!isRemote && (
+            <Button 
+              variant="contained"
+              onClick={handleCloseQuiz}
+              sx={{ zIndex: 1 }}
+            >
+              Ukončit kvíz
+            </Button>
+          )}
         </Box>
 
         {/* Teams Display */}
@@ -220,13 +236,15 @@ const FinalScorePage = () => {
         <Typography variant="h3" component="h1" sx={{ textAlign: 'center' }}>
           Finální žebříček
         </Typography>
-        <Button 
-          variant="contained"
-          onClick={handleCloseQuiz}
-          sx={{ position: 'absolute', right: 0 }}
-        >
-          Ukončit kvíz
-        </Button>
+        {!isRemote && (
+          <Button 
+            variant="contained"
+            onClick={handleCloseQuiz}
+            sx={{ position: 'absolute', right: 0 }}
+          >
+            Ukončit kvíz
+          </Button>
+        )}
       </Box>
 
       {/* Top Players */}

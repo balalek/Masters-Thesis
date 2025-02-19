@@ -4,7 +4,7 @@ import { Box, Typography, Avatar } from '@mui/material';
 import { getSocket, getServerTime } from '../../utils/socket';
 import Loading from './Loading';
 
-function WaitingRoom({ playerName, playerColor }) {
+function WaitingRoom({ playerName, playerColor, onReset }) {  // Add onReset prop
   const navigate = useNavigate();
   const socket = getSocket();
   const [isLoading, setIsLoading] = useState(false);
@@ -28,12 +28,16 @@ function WaitingRoom({ playerName, playerColor }) {
   useEffect(() => {
     socket.on('game_started', handleGameStart);
     socket.on('game_started_remote', handleGameStart);
+    socket.on('game_reset', () => {
+      onReset();  // Call the reset function from parent
+    });
 
     return () => {
+      socket.off('game_reset');
       socket.off('game_started');
       socket.off('game_started_remote');
     };
-  }, [navigate, playerName]);
+  }, [navigate, playerName, onReset]);
 
   if (isLoading) return <Loading />;
 
