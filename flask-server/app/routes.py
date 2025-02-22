@@ -4,6 +4,7 @@ from . import app, socketio
 from .game_state import game_state
 from .constants import AVAILABLE_COLORS, MAX_PLAYERS, PREVIEW_TIME, START_GAME_TIME
 from time import time
+from .constants import QUIZ_VALIDATION, QUIZ_CATEGORIES
 
 @app.route('/')
 def index():
@@ -164,3 +165,35 @@ def reset_game():
 @app.route('/server_time', methods=['GET'])
 def get_server_time():
     return jsonify({"server_time": int(time() * 1000)})  # Return time in milliseconds
+
+@app.route('/check_question', methods=['POST'])
+def check_question():
+    data = request.json
+    question = data.get('questions', [{}])[0]  # Get the first (and only) question
+    
+    # Question text validation
+    if len(question['question']) > QUIZ_VALIDATION['QUESTION_MAX_LENGTH']:
+        return jsonify({
+            "error": f"Otázka nesmí být delší než {QUIZ_VALIDATION['QUESTION_MAX_LENGTH']} znaků"
+        }), 400
+
+    # Answers validation
+    for answer in question['answers']:
+        if len(answer) > QUIZ_VALIDATION['ANSWER_MAX_LENGTH']:
+            return jsonify({
+                "error": f"Odpověď nesmí být delší než {QUIZ_VALIDATION['ANSWER_MAX_LENGTH']} znaků"
+            }), 400
+
+    # Time limit validation
+    if not (QUIZ_VALIDATION['TIME_LIMIT_MIN'] <= question['timeLimit'] <= QUIZ_VALIDATION['TIME_LIMIT_MAX']):
+        return jsonify({
+            "error": f"Časový limit musí být mezi {QUIZ_VALIDATION['TIME_LIMIT_MIN']}-{QUIZ_VALIDATION['TIME_LIMIT_MAX']} vteřinami"
+        }), 400
+
+    # Category validation
+    if question['category'] not in QUIZ_CATEGORIES:
+        return jsonify({
+            "error": "Neplatná kategorie"
+        }), 400
+        
+    return jsonify({"message": "Question is valid"}), 200

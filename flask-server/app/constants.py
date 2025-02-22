@@ -24,3 +24,29 @@ MAX_PLAYERS = 10
 PREVIEW_TIME = 3000  # 5 seconds in milliseconds
 START_GAME_TIME = 2000  # 5 seconds in milliseconds
 WAITING_TIME = 10
+
+# Quiz validation constants
+QUIZ_VALIDATION = {
+    "QUESTION_MAX_LENGTH": 100,
+    "ANSWER_MAX_LENGTH": 50,
+    "TIME_LIMIT_MIN": 5,
+    "TIME_LIMIT_MAX": 90
+}
+
+QUIZ_CATEGORIES = [
+    'Historie',
+    'Zeměpis',
+    'Kultura',
+    'Věda a technologie',
+    'Sport',
+    'Filmy a seriály',
+    'Hudba',
+    'Příroda',
+    'Gastronomie',
+    'Móda',
+    'Slavné osobnosti',
+    'Literatura',
+    'Technika',
+    'Mýty a legendy',
+    'Různé'
+]

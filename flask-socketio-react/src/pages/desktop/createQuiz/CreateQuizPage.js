@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Box, TextField, Select, MenuItem, Typography, Button, Container } from '@mui/material';
 import QuestionForm from './components/QuestionForm';
 import QuestionPreview from './components/QuestionPreview';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 
 const scrollbarSx = {
   '&::-webkit-scrollbar': {
@@ -28,17 +37,37 @@ const CreateQuizPage = () => {
   const [selectedQuizType, setSelectedQuizType] = useState('abcd');
   const [isAbcd, setIsAbcd] = useState(true);
   const formRef = React.useRef(null);
+  const [editingQuestion, setEditingQuestion] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
+  );
 
   const handleAddQuestion = (question) => {
-    setQuestions([...questions, { ...question, id: Date.now() }]);
+    if (editingQuestion) {
+      // Update existing question
+      setQuestions(questions.map(q => 
+        q.id === editingQuestion.id ? { ...question, id: editingQuestion.id } : q
+      ));
+      setEditingQuestion(null);
+      if (formRef.current) {
+        formRef.current.resetForm();
+      }
+    } else {
+      // Add new question
+      setQuestions([...questions, { ...question, id: Date.now() }]);
+    }
   };
 
   const handleDeleteQuestion = (id) => {
     setQuestions(questions.filter(q => q.id !== id));
   };
 
-  const handleEditQuestion = (id, updatedQuestion) => {
-    setQuestions(questions.map(q => q.id === id ? { ...updatedQuestion, id } : q));
+  const handleEditQuestion = (questionToEdit) => {
+    setEditingQuestion(questionToEdit);
+    // Set form type based on question type
+    setIsAbcd(questionToEdit.answers.length === 4);
   };
 
   const handleMoveQuestion = (fromIndex, toIndex) => {
@@ -46,6 +75,24 @@ const CreateQuizPage = () => {
     const [removed] = updatedQuestions.splice(fromIndex, 1);
     updatedQuestions.splice(toIndex, 0, removed);
     setQuestions(updatedQuestions);
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      setQuestions((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
+        
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const handleDragStart = (event) => {
+    const { active } = event;
+    const { id } = active;
   };
 
   const toggleQuestionType = () => {
@@ -127,7 +174,7 @@ const CreateQuizPage = () => {
             <Button 
               variant="outlined" 
               onClick={toggleQuestionType}
-              sx={{ mb: 2, }}
+              sx={{ mb: 2 }}
             >
               Přepnout na {isAbcd ? 'Pravda/Lež' : 'ABCD'}
             </Button>
@@ -147,6 +194,7 @@ const CreateQuizPage = () => {
                 <QuestionForm 
                   ref={formRef}
                   onSubmit={handleAddQuestion}
+                  editQuestion={editingQuestion}
                   isAbcd={isAbcd}
                 />
               </Box>
@@ -190,12 +238,19 @@ const CreateQuizPage = () => {
               pr: 2,
               ...scrollbarSx
             }}>
-              <QuestionPreview
-                questions={questions}
-                onDelete={handleDeleteQuestion}
-                onEdit={handleEditQuestion}
-                onMove={handleMoveQuestion}
-              />
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                <QuestionPreview
+                  questions={questions || []}
+                  onDelete={handleDeleteQuestion}
+                  onEdit={handleEditQuestion}
+                  onMove={handleMoveQuestion}
+                />
+              </DndContext>
             </Box>
             <Box sx={{ pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
               <Button 
