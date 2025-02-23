@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import webbrowser
 import sys
+from bson import ObjectId
 
 def create_window(port):
     root = tk.Tk()
@@ -21,3 +22,13 @@ def create_window(port):
     ttk.Button(root, text="Ukončit", command=exit_app).pack(pady=5)
     
     return root
+
+def convert_mongo_doc(doc):
+    """Convert MongoDB document to JSON serializable format."""
+    if isinstance(doc, list):
+        return [convert_mongo_doc(item) for item in doc]
+    elif isinstance(doc, dict):
+        return {key: convert_mongo_doc(value) for key, value in doc.items()}
+    elif isinstance(doc, ObjectId):
+        return str(doc)
+    return doc

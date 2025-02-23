@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, TextField, Select, MenuItem, Typography, Button, Container } from '@mui/material';
+import { Box, TextField, Select, MenuItem, Typography, Button, Container, Snackbar, Alert } from '@mui/material';
 import QuestionForm from './components/QuestionForm';
 import QuestionPreview from './components/QuestionPreview';
 import {
@@ -12,6 +12,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { QUIZ_VALIDATION } from '../../../constants/quizValidation';
 
 const scrollbarSx = {
   '&::-webkit-scrollbar': {
@@ -38,6 +39,10 @@ const CreateQuizPage = () => {
   const [isAbcd, setIsAbcd] = useState(true);
   const formRef = React.useRef(null);
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [quizNameError, setQuizNameError] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [quizNameHelperText, setQuizNameHelperText] = useState('');
+  const [suggestedName, setSuggestedName] = useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -109,6 +114,73 @@ const CreateQuizPage = () => {
     navigate('/');
   };
 
+  const resetState = () => {
+    setQuizName('');
+    setQuestions([]);
+    setQuizNameError(false);
+    setEditingQuestion(null);
+    setQuizNameHelperText('');  // Reset helper text
+    setSuggestedName('');       // Reset suggested name
+    if (formRef.current) {
+      formRef.current.resetForm();
+    }
+  };
+
+  const handleCreateQuiz = async () => {
+    if (!quizName.trim()) {
+      setQuizNameError(true);
+      setQuizNameHelperText("Vyplňte název kvízu");
+      return;
+    }
+
+    if (questions.length === 0) {
+      alert('Přidejte alespoň jednu otázku');
+      return;
+    }
+
+    try {
+      const response = await fetch('/create_quiz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: quizName,
+          questions: questions
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 409 && data.errorType === 'DUPLICATE_NAME') {
+          setQuizNameError(true);
+          setSuggestedName(data.suggestedName);
+          setQuizNameHelperText(
+            <span>
+              Tento název kvízu již existuje. 
+              <Button 
+                size="small" 
+                onClick={() => setQuizName(data.suggestedName)}
+                sx={{ ml: 1 }}
+              >
+                Použít "{data.suggestedName}"
+              </Button>
+            </span>
+          );
+          return;
+        }
+        throw new Error(data.error || 'Failed to create quiz');
+      }
+
+      setOpenSnackbar(true);
+      resetState();
+    } catch (error) {
+      console.error('Error creating quiz:', error);
+      alert('Chyba při vytváření kvízu: ' + error.message);
+    }
+  };
+
   return (
     <Container 
       maxWidth="xl" 
@@ -141,7 +213,19 @@ const CreateQuizPage = () => {
             fullWidth
             placeholder="Název kvízu"
             value={quizName}
-            onChange={(e) => setQuizName(e.target.value)}
+            onChange={(e) => {
+              setQuizName(e.target.value);
+              setQuizNameError(false);
+              setQuizNameHelperText('');
+              setSuggestedName('');
+            }}
+            error={quizNameError || quizName.length > QUIZ_VALIDATION.QUIZ_NAME_MAX_LENGTH}
+            helperText={
+              quizNameHelperText || 
+              (quizName.length > QUIZ_VALIDATION.QUIZ_NAME_MAX_LENGTH 
+                ? `Název kvízu nesmí být delší než ${QUIZ_VALIDATION.QUIZ_NAME_MAX_LENGTH} znaků` 
+                : '')
+            }
           />
           <Button 
             variant="outlined" 
@@ -205,7 +289,7 @@ const CreateQuizPage = () => {
                   fullWidth
                   onClick={handleAddQuestionClick}
                 >
-                  Přidat otázku
+                  {editingQuestion ? 'Aktualizovat otázku' : 'Přidat otázku'}
                 </Button>
               </Box>
             </Box>
@@ -256,7 +340,8 @@ const CreateQuizPage = () => {
               <Button 
                 variant="contained" 
                 fullWidth 
-                onClick={() => {}}
+                onClick={handleCreateQuiz}
+                disabled={questions.length === 0}
               >
                 Vytvořit kvíz
               </Button>
@@ -264,6 +349,16 @@ const CreateQuizPage = () => {
           </Box>
         </Box>
       </Box>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity="success" sx={{ width: '100%' }}>
+          Kvíz byl úspěšně vytvořen!
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

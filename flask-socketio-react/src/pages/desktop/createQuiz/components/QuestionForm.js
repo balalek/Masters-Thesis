@@ -41,7 +41,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
     setFormData(prev => ({
       ...prev,
       isTrueFalse: !isAbcd,
-      answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Nepravda'],
+      answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Lež'],
       correctAnswer: 0
     }));
   }, [isAbcd]);
@@ -147,7 +147,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
   const resetForm = () => {
     setFormData({
       question: '',
-      answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Nepravda'],
+      answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Lež'],
       correctAnswer: 0,
       timeLimit: 30,
       category: '',
@@ -228,7 +228,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
             onChange={(e) => setFormData({ ...formData, correctAnswer: Number(e.target.value) })}
           >
             <FormControlLabel value={0} control={<Radio />} label="Pravda" />
-            <FormControlLabel value={1} control={<Radio />} label="Nepravda" />
+            <FormControlLabel value={1} control={<Radio />} label="Lež" />
           </RadioGroup>
         </FormControl>
       )}

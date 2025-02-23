@@ -4,7 +4,8 @@ export const QUIZ_VALIDATION = {
   TIME_LIMIT: {
     MIN: 5,
     MAX: 90
-  }
+  },
+  QUIZ_NAME_MAX_LENGTH: 200
 };
 
 export const QUIZ_CATEGORIES = [

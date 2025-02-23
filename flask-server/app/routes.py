@@ -5,6 +5,8 @@ from .game_state import game_state
 from .constants import AVAILABLE_COLORS, MAX_PLAYERS, PREVIEW_TIME, START_GAME_TIME
 from time import time
 from .constants import QUIZ_VALIDATION, QUIZ_CATEGORIES
+from .services.quiz_service import QuizService
+from .utils import convert_mongo_doc  # Add this import at the top
 
 @app.route('/')
 def index():
@@ -74,7 +76,6 @@ def start_game():
         game_state.red_team = team_assignments.get('red', [])
         game_state.team_scores = {'blue': 0, 'red': 0}
 
-        # Check if there is at least one player in each team
         if len(game_state.blue_team) == 0 or len(game_state.red_team) == 0:
             return jsonify({"error": "V každém týmu musí být alespoň jeden hráč"}), 400
         
@@ -83,30 +84,13 @@ def start_game():
         print(f"Red Team: {game_state.red_team}")
         print("=====================\n")
 
-    game_state.questions = [
-        {
-            "type": "ABCD",
-            "question": "Kolik je 2 + 2?", 
-            "options": ["3", "4", "5", "8"],
-            "length": 8,  # 8 seconds to answer
-            "answer": 1
-        },
-        {
-            "type": "TRUE_FALSE",
-            "question": "Praha je hlavním městem České republiky", 
-            "options": ["Pravda", "Lež"],
-            "length": 5,
-            "answer": 0  # true = 0, false = 1
-        },
-        {
-            "type": "ABCD",
-            "question": "Kolik je odmocnina ze 16?", 
-            "options": ["3", "4", "5", "6"], 
-            "length": 8,
-            "answer": 1
-        }
-    ]
-    
+    # Get quiz from MongoDB
+    quiz = QuizService.get_quiz("67bae9e6d37bd4d827944e72")
+    if not quiz:
+        return jsonify({"error": "Kvíz nebyl nalezen"}), 404
+        
+    # The questions are now already JSON-serializable thanks to the convert_mongo_doc function
+    game_state.questions = quiz["questions"]
     game_state.current_question = 0
     game_state.answers_received = 0
     game_state.answer_counts = [0, 0, 0, 0]
@@ -197,3 +181,47 @@ def check_question():
         }), 400
         
     return jsonify({"message": "Question is valid"}), 200
+
+@app.route('/create_quiz', methods=['POST'])
+def create_quiz():
+    data = request.json
+    quiz_name = data.get('name')
+    questions = data.get('questions', [])
+
+    if not quiz_name:
+        return jsonify({"error": "Zadejte název kvízu"}), 400
+    
+    if len(quiz_name) > QUIZ_VALIDATION['QUIZ_NAME_MAX_LENGTH']:
+        return jsonify({"error": f"Název kvízu nesmí být delší než {QUIZ_VALIDATION['QUIZ_NAME_MAX_LENGTH']} znaků"}), 400
+    
+    if not questions:
+        return jsonify({"error": "Vytvořte alespoň jednu otázku"}), 400
+
+    try:
+        quiz_id = QuizService.create_quiz(quiz_name, questions)
+        return jsonify({
+            "message": "Kvíz byl úspěšně vytvořen",
+            "quizId": str(quiz_id)
+        }), 201
+    except ValueError as e:
+        error_msg = str(e)
+        if error_msg.startswith("DUPLICATE_NAME:"):
+            suggested_name = error_msg.split(":", 1)[1]
+            return jsonify({
+                "error": "Tento název kvízu již existuje",
+                "errorType": "DUPLICATE_NAME",
+                "suggestedName": suggested_name
+            }), 409
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/quiz/<quiz_id>', methods=['GET'])
+def get_quiz(quiz_id):
+    try:
+        quiz = QuizService.get_quiz(quiz_id)
+        if not quiz:
+            return jsonify({"error": "Kvíz nebyl nalezen"}), 404
+        return jsonify(quiz), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
