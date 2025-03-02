@@ -1,5 +1,6 @@
 from bson import ObjectId
 from typing import List, Optional
+from datetime import datetime
 
 class QuestionMetadata:
     def __init__(self, times_used: int = 0, average_correct_rate: float = 0.0):
@@ -50,15 +51,21 @@ class Quiz:
         self,
         name: str,
         questions: List[dict],
-        _id: Optional[ObjectId] = None
+        type: str,
+        _id: Optional[ObjectId] = None,
+        creation_date: Optional[datetime] = None
     ):
         self._id = _id or ObjectId()
         self.name = name
         self.questions = questions  # List of {"questionId": ObjectId, "order": int}
+        self.type = type
+        self.creation_date = creation_date or datetime.now()
 
     def to_dict(self):
         return {
             "_id": self._id,
             "name": self.name,
-            "questions": self.questions
+            "questions": self.questions,
+            "type": self.type,
+            "creation_date": self.creation_date
         }

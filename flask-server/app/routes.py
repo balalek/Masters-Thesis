@@ -187,6 +187,7 @@ def create_quiz():
     data = request.json
     quiz_name = data.get('name')
     questions = data.get('questions', [])
+    quiz_type = data.get('type')
 
     if not quiz_name:
         return jsonify({"error": "Zadejte název kvízu"}), 400
@@ -198,23 +199,16 @@ def create_quiz():
         return jsonify({"error": "Vytvořte alespoň jednu otázku"}), 400
 
     try:
-        quiz_id = QuizService.create_quiz(quiz_name, questions)
+        quiz_id = QuizService.create_quiz(quiz_name, questions, quiz_type)
         return jsonify({
             "message": "Kvíz byl úspěšně vytvořen",
             "quizId": str(quiz_id)
         }), 201
     except ValueError as e:
-        error_msg = str(e)
-        if error_msg.startswith("DUPLICATE_NAME:"):
-            suggested_name = error_msg.split(":", 1)[1]
-            return jsonify({
-                "error": "Tento název kvízu již existuje",
-                "errorType": "DUPLICATE_NAME",
-                "suggestedName": suggested_name
-            }), 409
+        # Handle specific ValueError exceptions from the QuizService
         return jsonify({"error": str(e)}), 400
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Došlo k chybě při vytváření kvízu: {str(e)}"}), 500
 
 @app.route('/quiz/<quiz_id>', methods=['GET'])
 def get_quiz(quiz_id):

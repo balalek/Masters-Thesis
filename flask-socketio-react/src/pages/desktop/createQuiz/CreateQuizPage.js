@@ -12,7 +12,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { QUIZ_VALIDATION } from '../../../constants/quizValidation';
+import { QUIZ_VALIDATION, QUIZ_TYPES } from '../../../constants/quizValidation';
 
 const scrollbarSx = {
   '&::-webkit-scrollbar': {
@@ -35,14 +35,13 @@ const CreateQuizPage = () => {
   const navigate = useNavigate();
   const [quizName, setQuizName] = useState('');
   const [questions, setQuestions] = useState([]);
-  const [selectedQuizType, setSelectedQuizType] = useState('abcd');
+  const [selectedQuizType, setSelectedQuizType] = useState(QUIZ_TYPES.ABCD);
   const [isAbcd, setIsAbcd] = useState(true);
   const formRef = React.useRef(null);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [quizNameError, setQuizNameError] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [quizNameHelperText, setQuizNameHelperText] = useState('');
-  const [suggestedName, setSuggestedName] = useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -120,7 +119,6 @@ const CreateQuizPage = () => {
     setQuizNameError(false);
     setEditingQuestion(null);
     setQuizNameHelperText('');  // Reset helper text
-    setSuggestedName('');       // Reset suggested name
     if (formRef.current) {
       formRef.current.resetForm();
     }
@@ -146,31 +144,15 @@ const CreateQuizPage = () => {
         },
         body: JSON.stringify({
           name: quizName,
-          questions: questions
+          questions: questions,
+          type: selectedQuizType // Send the quiz type
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 409 && data.errorType === 'DUPLICATE_NAME') {
-          setQuizNameError(true);
-          setSuggestedName(data.suggestedName);
-          setQuizNameHelperText(
-            <span>
-              Tento název kvízu již existuje. 
-              <Button 
-                size="small" 
-                onClick={() => setQuizName(data.suggestedName)}
-                sx={{ ml: 1 }}
-              >
-                Použít "{data.suggestedName}"
-              </Button>
-            </span>
-          );
-          return;
-        }
-        throw new Error(data.error || 'Failed to create quiz');
+        throw new Error(data.error || 'Nepodařilo se vytvořit kvíz');
       }
 
       setOpenSnackbar(true);
@@ -206,7 +188,7 @@ const CreateQuizPage = () => {
             onChange={(e) => setSelectedQuizType(e.target.value)}
             sx={{ minWidth: 200 }}
           >
-            <MenuItem value="abcd">ABCD Kvíz</MenuItem>
+            <MenuItem value={QUIZ_TYPES.ABCD}>ABCD Kvíz</MenuItem>
             <MenuItem value="other" disabled>Další typy (Připravujeme)</MenuItem>
           </Select>
           <TextField
@@ -217,7 +199,6 @@ const CreateQuizPage = () => {
               setQuizName(e.target.value);
               setQuizNameError(false);
               setQuizNameHelperText('');
-              setSuggestedName('');
             }}
             error={quizNameError || quizName.length > QUIZ_VALIDATION.QUIZ_NAME_MAX_LENGTH}
             helperText={

@@ -12,7 +12,7 @@ import {
   FormHelperText,
   Alert
 } from '@mui/material';
-import { QUIZ_VALIDATION, QUIZ_CATEGORIES } from '../../../../constants/quizValidation';
+import { QUIZ_VALIDATION, QUIZ_CATEGORIES, QUESTION_TYPES } from '../../../../constants/quizValidation';
 
 const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref) => {
   const answerLetters = ['A', 'B', 'C', 'D'];
@@ -25,6 +25,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
       timeLimit: 30,
       category: '',
       isTrueFalse: !isAbcd,
+      type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
     }
   );
 
@@ -42,7 +43,8 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
       ...prev,
       isTrueFalse: !isAbcd,
       answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Lež'],
-      correctAnswer: 0
+      correctAnswer: 0,
+      type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
     }));
   }, [isAbcd]);
 
@@ -50,7 +52,8 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
     if (editQuestion) {
       setFormData({
         ...editQuestion,
-        isTrueFalse: editQuestion.answers.length === 2
+        isTrueFalse: editQuestion.answers.length === 2,
+        type: editQuestion.answers.length === 2 ? QUESTION_TYPES.TRUE_FALSE : QUESTION_TYPES.ABCD,
       });
     }
   }, [editQuestion]);
