@@ -2,11 +2,10 @@ from flask import jsonify, send_from_directory, request
 from pathlib import Path
 from . import app, socketio
 from .game_state import game_state
-from .constants import AVAILABLE_COLORS, MAX_PLAYERS, PREVIEW_TIME, START_GAME_TIME
+from .constants import AVAILABLE_COLORS, MAX_PLAYERS, PREVIEW_TIME, START_GAME_TIME, QUIZ_VALIDATION, QUIZ_CATEGORIES, is_online
 from time import time
-from .constants import QUIZ_VALIDATION, QUIZ_CATEGORIES
 from .services.quiz_service import QuizService
-from .utils import convert_mongo_doc  # Add this import at the top
+from .utils import convert_mongo_doc, get_device_id, check_internet_connection
 
 @app.route('/')
 def index():
@@ -84,12 +83,12 @@ def start_game():
         print(f"Red Team: {game_state.red_team}")
         print("=====================\n")
 
-    # Get quiz from MongoDB
+    # Get quiz from SQLite DB or MongoDB using the service
     quiz = QuizService.get_quiz("67bae9e6d37bd4d827944e72")
     if not quiz:
         return jsonify({"error": "Kvíz nebyl nalezen"}), 404
         
-    # The questions are now already JSON-serializable thanks to the convert_mongo_doc function
+    # The questions are already JSON-serializable
     game_state.questions = quiz["questions"]
     game_state.current_question = 0
     game_state.answers_received = 0
@@ -188,7 +187,8 @@ def create_quiz():
     quiz_name = data.get('name')
     questions = data.get('questions', [])
     quiz_type = data.get('type')
-
+    device_id = get_device_id()
+    
     if not quiz_name:
         return jsonify({"error": "Zadejte název kvízu"}), 400
     
@@ -199,13 +199,12 @@ def create_quiz():
         return jsonify({"error": "Vytvořte alespoň jednu otázku"}), 400
 
     try:
-        quiz_id = QuizService.create_quiz(quiz_name, questions, quiz_type)
+        quiz_id = QuizService.create_quiz(quiz_name, questions, quiz_type, device_id)
         return jsonify({
             "message": "Kvíz byl úspěšně vytvořen",
             "quizId": str(quiz_id)
         }), 201
     except ValueError as e:
-        # Handle specific ValueError exceptions from the QuizService
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": f"Došlo k chybě při vytváření kvízu: {str(e)}"}), 500
@@ -219,3 +218,12 @@ def get_quiz(quiz_id):
         return jsonify(quiz), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/online_status', methods=['GET'])
+def get_online_status():
+    """
+    Check and return the current online status.
+    Forces a check of the internet connection.
+    """
+    is_connected = check_internet_connection()
+    return jsonify({"is_online": is_connected}), 200

@@ -5,6 +5,12 @@ from flask_cors import CORS
 # Import MongoDB connection
 from .db import db
 
+# Import SQLite database
+from .sqlite_db import sqlite_db
+
+# Import global variable
+from .constants import is_online
+
 # Initialize Flask app with static folder configuration
 app = Flask(__name__, static_folder='../static', static_url_path='')
 app.config['SECRET_KEY'] = 'your_secret_key'

@@ -76,3 +76,6 @@ QUIZ_CATEGORIES = [
     'Mýty a legendy',
     'Různé'
 ]
+
+# Flag to indicate if the application is online or offline
+is_online = False  # Default to offline mode, will be updated by check_internet_connection
