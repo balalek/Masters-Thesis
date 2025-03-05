@@ -1,5 +1,5 @@
 from ..db import db
-from ..models import Question, Quiz
+from ..models import Question, Quiz, QuestionMetadata  # Add QuestionMetadata to imports
 from bson import ObjectId
 from typing import List
 from ..utils import convert_mongo_doc, get_device_id
@@ -32,17 +32,28 @@ class QuizService:
             question_type = q.get("type")
             if question_type not in QUESTION_TYPES.values():
                 raise ValueError(f"Neplatný typ otázky: {question_type}")
-                
+            
+            # For copied questions, only use content data, create fresh metadata
+            copy_of = None
+            if q.get("_id"):  # If question has _id, it's a copied question
+                original = db.questions.find_one({"_id": ObjectId(q["_id"])})
+                if original:
+                    copy_of = original.get("copy_of") or original["_id"]
+            
+            # Create new Question with fresh metadata but copied content
             question = Question(
                 question=q["question"],
                 type=question_type,
-                options=q["answers"],
-                answer=q["correctAnswer"],
-                length=q["timeLimit"],
+                options=q["answers"] if "answers" in q else q["options"],
+                answer=q["correctAnswer"] if "correctAnswer" in q else q["answer"],
+                length=q["timeLimit"] if "timeLimit" in q else q["length"],
                 category=q["category"],
                 part_of=quiz_id,
-                created_by=device_id  # Set the created_by field
+                created_by=device_id,
+                copy_of=copy_of,
+                metadata=QuestionMetadata()  # Fresh metadata for the new question
             )
+            
             result = db.questions.insert_one(question.to_dict())
             question_ids.append({"questionId": result.inserted_id, "order": idx})
             
@@ -134,3 +145,62 @@ class QuizService:
         if not quiz:
             return False
         return quiz.get("created_by") == device_id
+
+    @staticmethod
+    def get_existing_questions(device_id: str, filter_type: str = 'all', question_type: str = 'all', 
+                             search_query: str = '', page: int = 1, per_page: int = 20) -> dict:
+        """Get existing questions based on filters with pagination"""
+        # Start with basic query
+        query = {}
+
+        # Apply filter type
+        if filter_type == 'mine':
+            query['created_by'] = device_id
+        elif filter_type == 'others':
+            query['created_by'] = {'$ne': device_id}
+            # Get IDs of public quizzes
+            public_quiz_ids = [quiz['_id'] for quiz in db.quizzes.find({'is_public': True})]
+            if public_quiz_ids:
+                query['part_of'] = {'$in': public_quiz_ids}
+            else:
+                return []  # Return empty if no public quizzes found
+
+        # Apply question type filter if not 'all'
+        if question_type != 'all':
+            query['type'] = question_type
+            
+        # Apply search query if provided
+        if search_query:
+            query['question'] = {'$regex': search_query, '$options': 'i'}
+            
+        # Get total count before pagination
+        total_count = db.questions.count_documents(query)
+            
+        # Add pagination with proper sort
+        skip = (page - 1) * per_page
+        sort_criteria = [
+            ("metadata.timesUsed", -1),  # Sort by times used
+            ("_id", 1)  # Secondary sort by _id to ensure consistent ordering
+        ]
+        questions = list(db.questions.find(query).sort(sort_criteria).skip(skip).limit(per_page))
+        
+        # Process and enrich question data
+        result = []
+        for question in questions:
+            quiz = None
+            if question.get('part_of'):
+                quiz = db.quizzes.find_one({'_id': question['part_of']})
+                
+            question_data = convert_mongo_doc(question)
+            question_data['quizName'] = quiz['name'] if quiz else 'Unknown Quiz'
+            question_data['timesPlayed'] = question.get('metadata', {}).get('timesUsed', 0)
+            question_data['isMyQuestion'] = question.get('created_by') == device_id
+            result.append(question_data)
+
+        # Sort questions by timesPlayed in descending order
+        result.sort(key=lambda x: x['timesPlayed'], reverse=True)
+            
+        return {
+            "questions": result,
+            "total_count": total_count
+        }

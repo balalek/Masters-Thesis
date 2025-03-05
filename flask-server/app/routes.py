@@ -228,3 +228,31 @@ def get_online_status():
     """
     is_connected = check_internet_connection()
     return jsonify({"is_online": is_connected}), 200
+
+@app.route('/get_existing_questions', methods=['GET'])
+def get_existing_questions():
+    try:
+        device_id = get_device_id()
+        filter_type = request.args.get('type', 'others')
+        question_type = request.args.get('questionType', 'all')
+        search_query = request.args.get('search', '')
+        page = int(request.args.get('page', 1))
+        per_page = 10
+        
+        result = QuizService.get_existing_questions(
+            device_id=device_id,
+            filter_type=filter_type,
+            question_type=question_type,
+            search_query=search_query,
+            page=page,
+            per_page=per_page
+        )
+        
+        return jsonify({
+            "questions": result["questions"],
+            "hasMore": len(result["questions"]) == per_page,
+            "totalCount": result["total_count"]
+        }), 200
+    except Exception as e:
+        print(f"Error in get_existing_questions: {str(e)}")
+        return jsonify({"error": str(e), "questions": []}), 500

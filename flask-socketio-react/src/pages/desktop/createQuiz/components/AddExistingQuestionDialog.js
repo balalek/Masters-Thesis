@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -25,78 +25,73 @@ import { QUESTION_TYPES, QUIZ_TYPES } from '../../../../constants/quizValidation
 import QuestionCard from './QuestionCard';
 import { scrollbarStyle } from '../../../../utils/scrollbarStyle';
 
-const mockQuestions = [
-  {
-    id: 1001,
-    text: "Jaké je hlavní město České republiky?",
-    type: QUESTION_TYPES.ABCD,
-    answers: [
-      { text: "Praha", isCorrect: true },
-      { text: "Brno", isCorrect: false },
-      { text: "Ostrava", isCorrect: false },
-      { text: "Plzeň", isCorrect: false }
-    ],
-    isMyQuestion: true,
-    quizName: "Česká geografie",
-    timesPlayed: 145
-  },
-  {
-    id: 1002,
-    text: "Země je placatá.",
-    type: QUESTION_TYPES.TRUE_FALSE,
-    answers: [
-      { text: "Pravda", isCorrect: false },
-      { text: "Nepravda", isCorrect: true }
-    ],
-    isMyQuestion: true,
-    quizName: "Obecné znalosti",
-    timesPlayed: 89
-  },
-  {
-    id: 1003,
-    text: "Která z následujících není primární barva?",
-    type: QUESTION_TYPES.ABCD,
-    answers: [
-      { text: "Červená", isCorrect: false },
-      { text: "Zelená", isCorrect: false },
-      { text: "Oranžová", isCorrect: true },
-      { text: "Modrá", isCorrect: false }
-    ],
-    isMyQuestion: false,
-    quizName: "Výtvarná výchova",
-    timesPlayed: 234
-  },
-  {
-    id: 1004,
-    text: "Která z následujících není primární barva?",
-    type: QUESTION_TYPES.ABCD,
-    answers: [
-      { text: "Červená", isCorrect: false },
-      { text: "Zelená", isCorrect: false },
-      { text: "Oranžová", isCorrect: true },
-      { text: "Modrá", isCorrect: false }
-    ],
-    isMyQuestion: true,
-    quizName: "Výtvarná výchova",
-    timesPlayed: 234
-  }
-];
-
 const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
   const [search, setSearch] = useState('');
   const [questionSource, setQuestionSource] = useState('others');
   const [questionTypes, setQuestionTypes] = useState('all');
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
 
-  // Add this to check what types we're dealing with
-  React.useEffect(() => {
-    console.log('Question types in mock data:', 
-      [...new Set(mockQuestions.map(q => q.type))]
-    );
-  }, []);
+  const fetchQuestions = async (pageNum = 1, append = false) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const params = new URLSearchParams({
+        type: questionSource,
+        questionType: questionTypes,
+        search: search,
+        page: pageNum
+      });
+      
+      const response = await fetch(`/get_existing_questions?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch questions');
+      }
+      
+      const data = await response.json();
+      const newQuestions = data.questions.map(q => ({
+        ...q,
+        id: q._id,
+        text: q.question,
+        answers: q.options.map((text, index) => ({
+          text,
+          isCorrect: index === q.answer
+        }))
+      }));
+
+      setQuestions(append ? [...questions, ...newQuestions] : newQuestions);
+      setHasMore(data.hasMore);
+      setTotalCount(data.totalCount);
+    } catch (err) {
+      setError('Failed to load questions');
+      console.error('Error fetching questions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchQuestions(nextPage, true);
+  };
+
+  // Modify useEffect to reset pagination when filters change
+  useEffect(() => {
+    if (open) {
+      setPage(1);
+      fetchQuestions(1, false);
+    }
+  }, [open, search, questionSource, questionTypes]);
 
   // Reset states when dialog opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       setSearch('');
       setQuestionSource('others');
@@ -114,7 +109,6 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
   };
 
   const handleQuestionTypesChange = (event) => {
-    console.log('Selected value:', event.target.value); // Debug log
     setQuestionTypes(event.target.value);
   };
 
@@ -136,13 +130,7 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
     onClose();
   };
 
-  // Add debug logging
-  console.log('QUIZ_TYPES:', QUIZ_TYPES);
-  console.log('Current questionTypes:', questionTypes);
-  console.log('Filtered Questions:', mockQuestions.map(q => ({ text: q.text, type: q.type })));
-  console.log('QUIZ_TYPES values:', QUIZ_TYPES);
-
-  const filteredQuestions = mockQuestions.filter(question => {
+  const filteredQuestions = questions.filter(question => {
     const matchesSearch = question.text.toLowerCase().includes(search.toLowerCase());
     const matchesSource = 
       (questionSource === 'mine' && question.isMyQuestion) ||
@@ -263,7 +251,8 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
           )}
 
           <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Nalezeno {filteredQuestions.filter(q => !selectedQuestions.some(sq => sq.id === q.id)).length} otázek
+            Nalezeno {totalCount} otázek 
+            {questions.length < totalCount && ` (zobrazeno ${questions.length})`}
           </Typography>
 
           <List sx={{ 
@@ -287,6 +276,17 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
             {filteredQuestions.length === 0 && (
               <ListItem>
                 <ListItemText primary="Žádné výsledky nevyhovují zadaným filtrům" />
+              </ListItem>
+            )}
+            {hasMore && (
+              <ListItem sx={{ justifyContent: 'center', py: 2 }}>
+                <Button
+                  onClick={handleLoadMore}
+                  disabled={loading}
+                  variant="outlined"
+                >
+                  {loading ? 'Načítání...' : 'Zobrazit další'}
+                </Button>
               </ListItem>
             )}
           </List>

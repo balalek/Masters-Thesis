@@ -42,7 +42,12 @@ const CreateQuizPage = () => {
     if (editingQuestion) {
       setQuestions(questions.map(q => {
         if (q.id === editingQuestion.id) {
-          const updatedQuestion = { ...question, id: editingQuestion.id };
+          // When editing, create a new question without copy_of
+          const updatedQuestion = { 
+            ...question, 
+            id: editingQuestion.id,
+            copy_of: null // Reset copy_of as it's now a new question
+          };
           return updatedQuestion;
         }
         return q;
@@ -52,7 +57,11 @@ const CreateQuizPage = () => {
         formRef.current.resetForm();
       }
     } else {
-      const newQuestion = { ...question, id: Date.now() };
+      const newQuestion = { 
+        ...question, 
+        id: Date.now(),
+        copy_of: null // New questions don't have copy_of
+      };
       setQuestions([...questions, newQuestion]);
     }
   };
@@ -168,10 +177,16 @@ const CreateQuizPage = () => {
   };
 
   const handleAddExistingQuestions = (selectedQuestions) => {
-    // Ensure all added questions have unique IDs to avoid conflicts
     const newQuestions = selectedQuestions.map(question => ({
-      ...question,
-      id: Date.now() + Math.random() // Generate a unique ID
+      _id: question.id, // Pass the original question ID for copy_of handling
+      question: question.text,
+      type: question.type,
+      answers: question.answers.map(a => a.text),
+      correctAnswer: question.answers.findIndex(a => a.isCorrect),
+      timeLimit: question.length,
+      category: question.category,
+      id: Date.now() + Math.random(), // Local React ID
+      copy_of: question.copy_of // Preserve existing copy_of if any
     }));
     
     setQuestions([...questions, ...newQuestions]);
