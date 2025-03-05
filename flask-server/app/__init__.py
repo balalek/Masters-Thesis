@@ -5,9 +5,6 @@ from flask_cors import CORS
 # Import MongoDB connection
 from .db import db
 
-# Import SQLite database
-from .sqlite_db import sqlite_db
-
 # Import global variable
 from .constants import is_online
 

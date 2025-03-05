@@ -49,18 +49,25 @@ const CreateQuizPage = () => {
   );
 
   const handleAddQuestion = (question) => {
+    if (!question.type) {
+      question.type = isAbcd ? QUIZ_TYPES.ABCD : QUIZ_TYPES.TRUE_FALSE;
+    }
+    
     if (editingQuestion) {
-      // Update existing question
-      setQuestions(questions.map(q => 
-        q.id === editingQuestion.id ? { ...question, id: editingQuestion.id } : q
-      ));
+      setQuestions(questions.map(q => {
+        if (q.id === editingQuestion.id) {
+          const updatedQuestion = { ...question, id: editingQuestion.id };
+          return updatedQuestion;
+        }
+        return q;
+      }));
       setEditingQuestion(null);
       if (formRef.current) {
         formRef.current.resetForm();
       }
     } else {
-      // Add new question
-      setQuestions([...questions, { ...question, id: Date.now() }]);
+      const newQuestion = { ...question, id: Date.now() };
+      setQuestions([...questions, newQuestion]);
     }
   };
 
@@ -84,19 +91,19 @@ const CreateQuizPage = () => {
   const handleDragEnd = (event) => {
     const { active, over } = event;
     
-    if (active.id !== over.id) {
+    if (active && over && active.id !== over.id) {
       setQuestions((items) => {
         const oldIndex = items.findIndex(item => item.id === active.id);
         const newIndex = items.findIndex(item => item.id === over.id);
         
+        if (oldIndex === -1 || newIndex === -1) return items;
         return arrayMove(items, oldIndex, newIndex);
       });
     }
   };
 
   const handleDragStart = (event) => {
-    const { active } = event;
-    const { id } = active;
+    if (!event.active) return;
   };
 
   const toggleQuestionType = () => {
@@ -115,10 +122,12 @@ const CreateQuizPage = () => {
 
   const resetState = () => {
     setQuizName('');
-    setQuestions([]);
+    setQuestions([]); // Reset questions array
     setQuizNameError(false);
     setEditingQuestion(null);
-    setQuizNameHelperText('');  // Reset helper text
+    setQuizNameHelperText('');
+    setSelectedQuizType(QUIZ_TYPES.ABCD); // Reset quiz type
+    setIsAbcd(true); // Reset question type toggle
     if (formRef.current) {
       formRef.current.resetForm();
     }
@@ -137,6 +146,14 @@ const CreateQuizPage = () => {
     }
 
     try {
+      console.log('Creating quiz with questions:', questions);
+      // Check each question for missing type
+      questions.forEach((q, index) => {
+        if (!q.type) {
+          console.warn(`Question at index ${index} is missing type!`, q);
+        }
+      });
+
       const response = await fetch('/create_quiz', {
         method: 'POST',
         headers: {
@@ -155,8 +172,9 @@ const CreateQuizPage = () => {
         throw new Error(data.error || 'Nepodařilo se vytvořit kvíz');
       }
 
+      resetState(); // Call resetState before showing success message
       setOpenSnackbar(true);
-      resetState();
+      
     } catch (error) {
       console.error('Error creating quiz:', error);
       alert('Chyba při vytváření kvízu: ' + error.message);

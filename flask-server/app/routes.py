@@ -5,6 +5,7 @@ from .game_state import game_state
 from .constants import AVAILABLE_COLORS, MAX_PLAYERS, PREVIEW_TIME, START_GAME_TIME, QUIZ_VALIDATION, QUIZ_CATEGORIES, is_online
 from time import time
 from .services.quiz_service import QuizService
+from .services.local_storage_service import LocalStorageService
 from .utils import convert_mongo_doc, get_device_id, check_internet_connection
 
 @app.route('/')

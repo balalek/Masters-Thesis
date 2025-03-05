@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import {
   SortableContext,
@@ -7,18 +7,29 @@ import {
 import { DragOverlay } from '@dnd-kit/core';
 import SortableQuestion from './SortableQuestion';
 
-const QuestionPreview = ({ questions = [], onDelete, onEdit }) => {
+const QuestionPreview = ({ 
+  questions = [], 
+  onDelete = () => {}, 
+  onEdit = () => {},
+  onMove = () => {}
+}) => {
   const [activeId, setActiveId] = useState(null);
+  
+  // Reset activeId when questions change
+  useEffect(() => {
+    setActiveId(null);
+  }, [questions]);
 
-  if (!questions) return null;
+  // Safety check for valid questions
+  const validQuestions = questions?.filter(q => q && q.id) || [];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
       <SortableContext
-        items={questions.map(q => q.id)}
+        items={validQuestions.map(q => q.id)}
         strategy={verticalListSortingStrategy}
       >
-        {questions.map((question, index) => (
+        {validQuestions.map((question, index) => (
           <SortableQuestion
             key={question.id}
             question={question}
@@ -30,11 +41,11 @@ const QuestionPreview = ({ questions = [], onDelete, onEdit }) => {
         ))}
       </SortableContext>
       <DragOverlay>
-        {activeId ? (
+        {activeId && validQuestions.find(q => q.id === activeId) ? (
           <Box sx={{ width: '100%' }}>
             <SortableQuestion
-              question={questions.find(q => q.id === activeId)}
-              index={questions.findIndex(q => q.id === activeId)}
+              question={validQuestions.find(q => q.id === activeId)}
+              index={validQuestions.findIndex(q => q.id === activeId)}
               onDelete={onDelete}
               onEdit={onEdit}
               isDragging
@@ -44,13 +55,6 @@ const QuestionPreview = ({ questions = [], onDelete, onEdit }) => {
       </DragOverlay>
     </Box>
   );
-};
-
-QuestionPreview.defaultProps = {
-  questions: [],
-  onDelete: () => {},
-  onEdit: () => {},
-  onMove: () => {}
 };
 
 export default QuestionPreview;

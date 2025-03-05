@@ -5,8 +5,7 @@ from typing import List
 from ..utils import convert_mongo_doc, get_device_id
 from datetime import datetime
 from ..constants import QUESTION_TYPES, QUIZ_TYPES
-import json
-from ..sqlite_db import sqlite_db
+from .local_storage_service import LocalStorageService
 
 class QuizService:
     @staticmethod
@@ -47,29 +46,14 @@ class QuizService:
             result = db.questions.insert_one(question.to_dict())
             question_ids.append({"questionId": result.inserted_id, "order": idx})
             
+            # Store created question ID in local database
+            LocalStorageService.store_created_question(str(result.inserted_id))
+            
         # Update the quiz with question IDs
         db.quizzes.update_one(
             {"_id": quiz_id},
             {"$set": {"questions": question_ids}}
         )
-        
-        # Also save to SQLite database
-        QuizService.save_quiz_to_sqlite(str(quiz_id), name, question_ids, quiz_type, False, device_id)
-        
-        # Save questions to SQLite
-        for idx, q in enumerate(questions):
-            q_id = str(question_ids[idx]["questionId"])
-            QuizService.save_question_to_sqlite(
-                q_id, 
-                q["question"], 
-                q.get("type"), 
-                q["answers"], 
-                q["correctAnswer"], 
-                q["timeLimit"], 
-                q["category"], 
-                str(quiz_id), 
-                device_id
-            )
         
         return quiz_id
 
@@ -110,10 +94,17 @@ class QuizService:
         return [convert_mongo_doc(quiz) for quiz in quizzes]
 
     @staticmethod
-    def get_questions_by_device(device_id: str) -> List[dict]:
-        """Get all questions created by a specific device 
-        TODO get questions from this device instead and get it from local SQLite DB instead"""
-        questions = list(db.questions.find({"created_by": device_id}))
+    def get_created_questions_IDs() -> List[dict]:
+        """Get all questions created by this device using local storage
+        It should be faster than getting it from MongoDB"""
+        # Get question IDs from local storage
+        local_question_ids = LocalStorageService.get_created_questions()
+        
+        # Convert string IDs to ObjectIds
+        object_ids = [ObjectId(id_str) for id_str in local_question_ids]
+        
+        # Fetch the questions from MongoDB
+        questions = list(db.questions.find({"_id": {"$in": object_ids}}))
         return [convert_mongo_doc(question) for question in questions]
 
     @staticmethod
@@ -143,46 +134,3 @@ class QuizService:
         if not quiz:
             return False
         return quiz.get("created_by") == device_id
-        
-    # New SQLite saving methods
-    @staticmethod
-    def save_quiz_to_sqlite(quiz_id: str, name: str, questions: List[dict], quiz_type: str, 
-                            is_public: bool = False, created_by: str = None) -> str:
-        """Save a quiz to the local SQLite database"""
-        conn = sqlite_db.get_connection()
-        cursor = conn.cursor()
-        
-        # Convert questions list to JSON string
-        questions_json = json.dumps(questions)
-        creation_date = datetime.now().isoformat()
-        
-        cursor.execute("""
-            INSERT OR REPLACE INTO quizzes 
-            (id, name, questions, type, is_public, created_by, creation_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (quiz_id, name, questions_json, quiz_type, 1 if is_public else 0, 
-              created_by, creation_date))
-        
-        conn.commit()
-        return quiz_id
-    
-    @staticmethod
-    def save_question_to_sqlite(question_id: str, question_text: str, question_type: str,
-                              options: List[str], answer: int, length: int, category: str,
-                              part_of: str = None, created_by: str = None, copy_of: str = None) -> str:
-        """Save a question to the local SQLite database"""
-        conn = sqlite_db.get_connection()
-        cursor = conn.cursor()
-        
-        # Convert options list to JSON string
-        options_json = json.dumps(options)
-        
-        cursor.execute("""
-            INSERT OR REPLACE INTO questions
-            (id, question, type, options, answer, length, category, part_of, created_by, copy_of)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (question_id, question_text, question_type, options_json, answer, length,
-              category, part_of, created_by, copy_of))
-        
-        conn.commit()
-        return question_id

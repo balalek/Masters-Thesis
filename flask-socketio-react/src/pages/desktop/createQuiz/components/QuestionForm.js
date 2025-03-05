@@ -17,17 +17,17 @@ import { QUIZ_VALIDATION, QUIZ_CATEGORIES, QUESTION_TYPES } from '../../../../co
 const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref) => {
   const answerLetters = ['A', 'B', 'C', 'D'];
 
-  const [formData, setFormData] = useState(
-    editQuestion || {
-      question: '',
-      answers: ['', '', '', ''],
-      correctAnswer: 0,
-      timeLimit: 30,
-      category: '',
-      isTrueFalse: !isAbcd,
-      type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
-    }
-  );
+  const initialFormData = editQuestion || {
+    question: '',
+    answers: ['', '', '', ''],
+    correctAnswer: 0,
+    timeLimit: 30,
+    category: '',
+    isTrueFalse: !isAbcd,
+    type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
 
   const [errors, setErrors] = useState({
     question: '',
@@ -39,22 +39,24 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
   const [backendError, setBackendError] = useState('');
 
   useEffect(() => {
+    const newType = isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE;
     setFormData(prev => ({
       ...prev,
       isTrueFalse: !isAbcd,
       answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Lež'],
       correctAnswer: 0,
-      type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
+      type: newType,
     }));
   }, [isAbcd]);
 
   useEffect(() => {
     if (editQuestion) {
-      setFormData({
+      const questionType = editQuestion.answers.length === 2 ? QUESTION_TYPES.TRUE_FALSE : QUESTION_TYPES.ABCD;
+      setFormData(prev => ({
         ...editQuestion,
         isTrueFalse: editQuestion.answers.length === 2,
-        type: editQuestion.answers.length === 2 ? QUESTION_TYPES.TRUE_FALSE : QUESTION_TYPES.ABCD,
-      });
+        type: questionType,
+      }));
     }
   }, [editQuestion]);
 
@@ -122,6 +124,9 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
   };
 
   const checkQuestionWithBackend = async (questionData) => {
+    // Log the question data before sending to backend
+    console.log('Question data being sent to backend:', JSON.stringify(questionData));
+    
     try {
       const response = await fetch('/check_question', {
         method: 'POST',
@@ -148,14 +153,18 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
   };
 
   const resetForm = () => {
-    setFormData({
+    const newFormData = {
       question: '',
       answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Lež'],
       correctAnswer: 0,
       timeLimit: 30,
       category: '',
       isTrueFalse: !isAbcd,
-    });
+      type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
+    };
+    
+    setFormData(newFormData);
+    
     setErrors({
       question: '',
       answers: ['', '', '', ''],
@@ -168,9 +177,15 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
   useImperativeHandle(ref, () => ({
     submitForm: async () => {
       if (validateForm()) {
-        const backendValid = await checkQuestionWithBackend(formData);
+        // Ensure type is set before submission
+        const dataToSubmit = {
+          ...formData,
+          type: formData.type || (isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE)
+        };
+        
+        const backendValid = await checkQuestionWithBackend(dataToSubmit);
         if (backendValid) {
-          onSubmit(formData);
+          onSubmit(dataToSubmit);
           resetForm(); // Reset form after successful submit
         }
       }
