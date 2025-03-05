@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, TextField, Select, MenuItem, Typography, Button, Container, Snackbar, Alert } from '@mui/material';
 import QuestionForm from './components/QuestionForm';
 import QuestionPreview from './components/QuestionPreview';
+import AddExistingQuestionDialog from './components/AddExistingQuestionDialog';
 import {
   DndContext,
   closestCenter,
@@ -12,24 +13,8 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { QUIZ_VALIDATION, QUIZ_TYPES } from '../../../constants/quizValidation';
-
-const scrollbarSx = {
-  '&::-webkit-scrollbar': {
-    width: '8px',
-  },
-  '&::-webkit-scrollbar-track': {
-    background: '#f1f1f1',
-    borderRadius: '4px',
-  },
-  '&::-webkit-scrollbar-thumb': {
-    background: '#888',
-    borderRadius: '4px',
-  },
-  '&::-webkit-scrollbar-thumb:hover': {
-    background: '#555',
-  }
-};
+import { QUIZ_VALIDATION, QUIZ_TYPES, QUESTION_TYPES } from '../../../constants/quizValidation';
+import { scrollbarStyle } from '../../../utils/scrollbarStyle';
 
 const CreateQuizPage = () => {
   const navigate = useNavigate();
@@ -42,6 +27,7 @@ const CreateQuizPage = () => {
   const [quizNameError, setQuizNameError] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [quizNameHelperText, setQuizNameHelperText] = useState('');
+  const [existingQuestionsDialogOpen, setExistingQuestionsDialogOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -50,7 +36,7 @@ const CreateQuizPage = () => {
 
   const handleAddQuestion = (question) => {
     if (!question.type) {
-      question.type = isAbcd ? QUIZ_TYPES.ABCD : QUIZ_TYPES.TRUE_FALSE;
+      question.type = isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE;
     }
     
     if (editingQuestion) {
@@ -78,7 +64,7 @@ const CreateQuizPage = () => {
   const handleEditQuestion = (questionToEdit) => {
     setEditingQuestion(questionToEdit);
     // Set form type based on question type
-    setIsAbcd(questionToEdit.answers.length === 4);
+    setIsAbcd(questionToEdit.type === QUESTION_TYPES.ABCD);
   };
 
   const handleMoveQuestion = (fromIndex, toIndex) => {
@@ -181,6 +167,16 @@ const CreateQuizPage = () => {
     }
   };
 
+  const handleAddExistingQuestions = (selectedQuestions) => {
+    // Ensure all added questions have unique IDs to avoid conflicts
+    const newQuestions = selectedQuestions.map(question => ({
+      ...question,
+      id: Date.now() + Math.random() // Generate a unique ID
+    }));
+    
+    setQuestions([...questions, ...newQuestions]);
+  };
+
   return (
     <Container 
       maxWidth="xl" 
@@ -272,7 +268,7 @@ const CreateQuizPage = () => {
                 flexGrow: 1,
                 overflow: 'auto',
                 pr: 2,
-                ...scrollbarSx
+                ...scrollbarStyle
               }}>
                 <QuestionForm 
                   ref={formRef}
@@ -311,15 +307,18 @@ const CreateQuizPage = () => {
               mb: 2 
             }}>
               <Typography variant="h6">Náhled kvízu</Typography>
-              <Button variant="outlined" onClick={() => {}}>
-                Přidat náhodnou otázku
+              <Button 
+                variant="outlined" 
+                onClick={() => setExistingQuestionsDialogOpen(true)}
+              >
+                Přidat existující otázku
               </Button>
             </Box>
             <Box sx={{ 
               flexGrow: 1,
               overflow: 'auto',
               pr: 2,
-              ...scrollbarSx
+              ...scrollbarStyle
             }}>
               <DndContext
                 sensors={sensors}
@@ -358,6 +357,12 @@ const CreateQuizPage = () => {
           Kvíz byl úspěšně vytvořen!
         </Alert>
       </Snackbar>
+      
+      <AddExistingQuestionDialog 
+        open={existingQuestionsDialogOpen}
+        onClose={() => setExistingQuestionsDialogOpen(false)}
+        onAddQuestions={handleAddExistingQuestions}
+      />
     </Container>
   );
 };
