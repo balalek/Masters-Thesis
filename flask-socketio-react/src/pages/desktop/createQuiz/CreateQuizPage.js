@@ -42,11 +42,12 @@ const CreateQuizPage = () => {
     if (editingQuestion) {
       setQuestions(questions.map(q => {
         if (q.id === editingQuestion.id) {
-          // When editing, create a new question without copy_of
+          // When editing, create a new question with modified flag
           const updatedQuestion = { 
             ...question, 
             id: editingQuestion.id,
-            copy_of: null // Reset copy_of as it's now a new question
+            modified: true, // Add modified flag when editing a question
+            copy_of: null
           };
           return updatedQuestion;
         }
@@ -60,7 +61,8 @@ const CreateQuizPage = () => {
       const newQuestion = { 
         ...question, 
         id: Date.now(),
-        copy_of: null // New questions don't have copy_of
+        copy_of: null, // New questions don't have copy_of
+        modified: false // New questions are not modified
       };
       setQuestions([...questions, newQuestion]);
     }
@@ -186,7 +188,8 @@ const CreateQuizPage = () => {
       timeLimit: question.length,
       category: question.category,
       id: Date.now() + Math.random(), // Local React ID
-      copy_of: question.copy_of // Preserve existing copy_of if any
+      copy_of: question.copy_of, // Preserve existing copy_of if any
+      modified: false // Added questions are not modified by default
     }));
     
     setQuestions([...questions, ...newQuestions]);

@@ -38,7 +38,12 @@ class QuizService:
             if q.get("_id"):  # If question has _id, it's a copied question
                 original = db.questions.find_one({"_id": ObjectId(q["_id"])})
                 if original:
-                    copy_of = original.get("copy_of") or original["_id"]
+                    # If the question is modified, set copy_of to null
+                    # Otherwise, use the original's copy_of or the original's _id
+                    if q.get("modified", False):
+                        copy_of = None  # Modified questions are treated as new
+                    else:
+                        copy_of = original.get("copy_of") or original["_id"]
             
             # Create new Question with fresh metadata but copied content
             question = Question(
@@ -100,7 +105,7 @@ class QuizService:
     @staticmethod
     def get_quizzes_by_device(device_id: str) -> List[dict]:
         """Get all quizzes created by a specific device -> used in home screen to show all quizzes created by this device
-        TODO Get quizzes from this device instead and get it from local SQLite DB instead"""
+        TODO Get quizzes from this device instead"""
         quizzes = list(db.quizzes.find({"created_by": device_id}))
         return [convert_mongo_doc(quiz) for quiz in quizzes]
 
@@ -119,51 +124,11 @@ class QuizService:
         return [convert_mongo_doc(question) for question in questions]
 
     @staticmethod
-    def get_public_questions(device_id: str = None) -> List[dict]:
-        """Get public questions not created by the specified device - used in quiz creation to add existing question 
-        TODO Only questions with copy_of null, if they aren't public, 
-        then find a public copy if there is one and show that one instead"""
-        query = {"part_of": {"$exists": True}}
-        if device_id:
-            query["created_by"] = {"$ne": device_id}
-            
-        # Find questions that belong to public quizzes
-        public_quizzes = list(db.quizzes.find({"is_public": True}))
-        public_quiz_ids = [quiz["_id"] for quiz in public_quizzes]
-        
-        if public_quiz_ids:
-            query["part_of"] = {"$in": public_quiz_ids}
-            questions = list(db.questions.find(query))
-            return [convert_mongo_doc(question) for question in questions]
-        return []
-    
-    @staticmethod
-    def is_owner(quiz_id: str) -> bool:
-        """Check if the current device is the owner of the quiz"""
-        device_id = get_device_id()
-        quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
-        if not quiz:
-            return False
-        return quiz.get("created_by") == device_id
-
-    @staticmethod
     def get_existing_questions(device_id: str, filter_type: str = 'all', question_type: str = 'all', 
                              search_query: str = '', page: int = 1, per_page: int = 20) -> dict:
-        """Get existing questions based on filters with pagination"""
+        """Get existing questions based on filters with pagination - used in ABCD quiz creation"""
         # Start with basic query
         query = {}
-
-        # Apply filter type
-        if filter_type == 'mine':
-            query['created_by'] = device_id
-        elif filter_type == 'others':
-            query['created_by'] = {'$ne': device_id}
-            # Get IDs of public quizzes
-            public_quiz_ids = [quiz['_id'] for quiz in db.quizzes.find({'is_public': True})]
-            if public_quiz_ids:
-                query['part_of'] = {'$in': public_quiz_ids}
-            else:
-                return []  # Return empty if no public quizzes found
 
         # Apply question type filter if not 'all'
         if question_type != 'all':
@@ -172,35 +137,72 @@ class QuizService:
         # Apply search query if provided
         if search_query:
             query['question'] = {'$regex': search_query, '$options': 'i'}
-            
-        # Get total count before pagination
-        total_count = db.questions.count_documents(query)
-            
-        # Add pagination with proper sort
-        skip = (page - 1) * per_page
-        sort_criteria = [
-            ("metadata.timesUsed", -1),  # Sort by times used
-            ("_id", 1)  # Secondary sort by _id to ensure consistent ordering
-        ]
-        questions = list(db.questions.find(query).sort(sort_criteria).skip(skip).limit(per_page))
-        
-        # Process and enrich question data
-        result = []
-        for question in questions:
-            quiz = None
-            if question.get('part_of'):
-                quiz = db.quizzes.find_one({'_id': question['part_of']})
-                
-            question_data = convert_mongo_doc(question)
-            question_data['quizName'] = quiz['name'] if quiz else 'Unknown Quiz'
-            question_data['timesPlayed'] = question.get('metadata', {}).get('timesUsed', 0)
-            question_data['isMyQuestion'] = question.get('created_by') == device_id
-            result.append(question_data)
 
-        # Sort questions by timesPlayed in descending order
-        result.sort(key=lambda x: x['timesPlayed'], reverse=True)
+        # Handle 'mine' filter type - show all my questions
+        if filter_type == 'mine':
+            query['created_by'] = device_id
+            questions = list(db.questions.find(query))
+            result = []
             
+            for question in questions:
+                quiz = db.quizzes.find_one({'_id': question['part_of']}) if question.get('part_of') else None
+                question_data = convert_mongo_doc(question)
+                question_data['quizName'] = quiz['name'] if quiz else 'Unknown Quiz'
+                question_data['timesPlayed'] = question.get('metadata', {}).get('timesUsed', 0)
+                question_data['isMyQuestion'] = True
+                result.append(question_data)
+                
+        # Handle 'others' filter type - show only public originals or their public copies
+        elif filter_type == 'others':
+            query['created_by'] = {'$ne': device_id}
+            query['copy_of'] = None  # Get only original questions
+            
+            original_questions = list(db.questions.find(query))
+            result = []
+            processed_originals = set()
+
+            for question in original_questions:
+                quiz = db.quizzes.find_one({'_id': question['part_of']}) if question.get('part_of') else None
+                is_public = quiz and quiz.get('is_public', False)
+                
+                if is_public:
+                    # If original question is public, use it
+                    question_data = convert_mongo_doc(question)
+                    question_data['quizName'] = quiz['name'] if quiz else 'Unknown Quiz'
+                    question_data['timesPlayed'] = question.get('metadata', {}).get('timesUsed', 0)
+                    question_data['isMyQuestion'] = False
+                    result.append(question_data)
+                else:
+                    # Find a public copy of this question
+                    public_copy = None
+                    copies = db.questions.find({'copy_of': question['_id']})
+                    
+                    for copy in copies:
+                        copy_quiz = db.quizzes.find_one({'_id': copy['part_of']}) if copy.get('part_of') else None
+                        if copy_quiz and copy_quiz.get('is_public', False):
+                            public_copy = copy
+                            break
+                    
+                    if public_copy:
+                        copy_quiz = db.quizzes.find_one({'_id': public_copy['part_of']})
+                        copy_data = convert_mongo_doc(public_copy)
+                        copy_data['quizName'] = copy_quiz['name'] if copy_quiz else 'Unknown Quiz'
+                        copy_data['timesPlayed'] = public_copy.get('metadata', {}).get('timesUsed', 0)
+                        copy_data['isMyQuestion'] = False
+                        result.append(copy_data)
+
+                processed_originals.add(str(question['_id']))
+
+        # Sort results by timesPlayed
+        result.sort(key=lambda x: x['timesPlayed'], reverse=True)
+        
+        # Apply pagination after sorting
+        total_count = len(result)
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        paginated_result = result[start_idx:end_idx]
+
         return {
-            "questions": result,
+            "questions": paginated_result,
             "total_count": total_count
         }
