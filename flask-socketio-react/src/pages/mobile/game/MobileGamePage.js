@@ -13,7 +13,9 @@ import TooLateAnswer from '../../../components/mobile/TooLateAnswer';  // Add th
 const MobileGamePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [question, setQuestion] = useState({
+  const initialGameData = location.state?.gameData; // Get initial game data
+  const [question, setQuestion] = useState(initialGameData?.question || {
+    type: 'ABCD',
     options: ["Option 1", "Option 2", "Option 3", "Option 4"]
   });
   const [loading, setLoading] = useState(false);
@@ -116,14 +118,19 @@ const MobileGamePage = () => {
 
   const renderQuizType = () => {
     if (!showButtons) {
-      return null;  // or some placeholder content
+      return null;
     }
     
-    switch (question?.type) {
+    // Get the current question's type
+    const questionType = question?.type;
+    
+    switch (questionType) {
       case 'TRUE_FALSE':
         return <TrueFalseQuizMobile onAnswer={handleAnswer} />;
       case 'ABCD':
+        return <ABCDQuizMobile onAnswer={handleAnswer} />;
       default:
+        console.warn('Unknown question type:', questionType); // Debug log
         return <ABCDQuizMobile onAnswer={handleAnswer} />;
     }
   };

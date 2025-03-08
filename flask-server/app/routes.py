@@ -70,6 +70,12 @@ def start_game():
     # Add team mode handling
     game_state.is_team_mode = request.json.get('isTeamMode', False)
     game_state.is_remote = request.json.get('isRemote', False)
+    quiz_id = request.json.get('quizId')  # Get quiz ID from request
+    
+    if not quiz_id:
+        return jsonify({"error": "Nebyl vybrán žádný kvíz"}), 400
+
+    # Team mode setup
     if game_state.is_team_mode:
         team_assignments = request.json.get('teamAssignments', {})
         game_state.blue_team = team_assignments.get('blue', [])
@@ -84,8 +90,8 @@ def start_game():
         print(f"Red Team: {game_state.red_team}")
         print("=====================\n")
 
-    # Get quiz from SQLite DB or MongoDB using the service
-    quiz = QuizService.get_quiz("67bae9e6d37bd4d827944e72")
+    # Get the selected quiz from MongoDB
+    quiz = QuizService.get_quiz(quiz_id)
     if not quiz:
         return jsonify({"error": "Kvíz nebyl nalezen"}), 404
         
@@ -220,6 +226,17 @@ def get_quiz(quiz_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/quiz/<quiz_id>/toggle-share', methods=['POST'])
+def toggle_share_quiz(quiz_id):
+    try:
+        device_id = get_device_id()
+        result = QuizService.toggle_quiz_publicity(quiz_id, device_id)
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 403
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/online_status', methods=['GET'])
 def get_online_status():
     """
@@ -256,3 +273,30 @@ def get_existing_questions():
     except Exception as e:
         print(f"Error in get_existing_questions: {str(e)}")
         return jsonify({"error": str(e), "questions": []}), 500
+
+@app.route('/quizzes', methods=['GET'])
+def get_quizzes():
+    device_id = get_device_id()
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
+    filter_type = request.args.get('filter', 'mine')  # 'mine' or 'public'
+    search_query = request.args.get('search', '')
+    quiz_type = request.args.get('type', 'all')
+    
+    try:
+        result = QuizService.get_quizzes(
+            device_id=device_id,
+            filter_type=filter_type,
+            quiz_type=quiz_type,
+            search_query=search_query,
+            page=page,
+            per_page=per_page
+        )
+        
+        return jsonify({
+            "quizzes": result["quizzes"],
+            "total": result["total"],
+            "hasMore": result["has_more"]
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

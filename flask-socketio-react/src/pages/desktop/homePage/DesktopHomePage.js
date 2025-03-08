@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, TextField, IconButton, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel, Tab, Tabs, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Button, Typography, TextField, IconButton, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel, Tab, Tabs, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ShareIcon from '@mui/icons-material/Share';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -15,6 +15,7 @@ import QuestionAnswerIcon from '@mui/icons-material/EditNote';
 import SearchIcon from '@mui/icons-material/Search';
 import QuizListItem from '../../../components/desktop/home/QuizListItem';
 import { QUIZ_TYPES } from '../../../constants/quizValidation';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 const QuizTypeButton = ({ icon: Icon, label, value, selected, onChange }) => (
   <ToggleButton 
@@ -76,6 +77,11 @@ const DesktopHomePage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedQuizToCopy, setSelectedQuizToCopy] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalQuizzes, setTotalQuizzes] = useState(0);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const quizTypeIcons = {
     [QUIZ_TYPES.ABCD]: { icon: QuizIcon, label: 'ABCD Kvíz' },
@@ -88,17 +94,60 @@ const DesktopHomePage = () => {
     [QUIZ_TYPES.COMBINED_QUIZ]: { icon: ShuffleIcon, label: 'Kombinovaný kvíz' },
   };
 
+  const fetchQuizzes = async (newPage = 1, newSearch = searchQuery) => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: newPage,
+        per_page: 10,
+        filter: activeTab === 0 ? 'mine' : 'public',
+        search: newSearch,
+        type: selectedType === 'all' ? 'all' : selectedType
+      });
+
+      const response = await fetch(`/quizzes?${params}`);
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error);
+
+      const newQuizzes = data.quizzes;
+      setTotalQuizzes(data.total);
+      setHasMore(data.hasMore);
+
+      if (newPage === 1) {
+        activeTab === 0 ? setQuizzes(newQuizzes) : setPublicQuizzes(newQuizzes);
+      } else {
+        activeTab === 0 
+          ? setQuizzes(prev => [...prev, ...newQuizzes])
+          : setPublicQuizzes(prev => [...prev, ...newQuizzes]);
+      }
+      setPage(newPage);
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // TODO: Fetch my quizzes and public quizzes separately
-    setQuizzes([
-      { id: 1, name: "My Quiz 1", type: "ABCD", questions: [1,2,3] },
-      { id: 2, name: "My Quiz 2", type: "BLIND_MAP", questions: [1,2] },
-    ]);
-    setPublicQuizzes([
-      { id: 3, name: "Public Quiz 1", type: "ABCD", questions: [1,2,3] },
-      { id: 4, name: "Public Quiz 2", type: "BLIND_MAP", questions: [1,2] },
-    ]);
-  }, []);
+    setPage(1);
+    fetchQuizzes(1);
+  }, [activeTab, selectedType]);
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setPage(1);
+      fetchQuizzes(1, searchQuery);
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
+
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      fetchQuizzes(page + 1);
+    }
+  };
 
   const handleEditPublicQuiz = (quiz) => {
     setSelectedQuizToCopy(quiz);
@@ -109,6 +158,43 @@ const DesktopHomePage = () => {
     // TODO: Implement quiz copy creation
     setOpenDialog(false);
     navigate(`/create-quiz?copy=${selectedQuizToCopy.id}`);
+  };
+
+  const handleToggleShare = async (quiz) => {
+    try {
+      const response = await fetch(`/quiz/${quiz._id}/toggle-share`, {
+        method: 'POST',
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) throw new Error(data.error);
+      
+      // Update quiz in state
+      setQuizzes(prev => 
+        prev.map(q => 
+          q._id === quiz._id 
+            ? { ...q, is_public: data.is_public }
+            : q
+        )
+      );
+      
+      setSnackbar({
+        open: true,
+        message: data.message,
+        severity: 'success'
+      });
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error.message || 'Nastala chyba při sdílení kvízu',
+        severity: 'error'
+      });
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
 
   return (
@@ -234,24 +320,35 @@ const DesktopHomePage = () => {
 
         {/* Quiz List */}
         <Box sx={{ mt: 2 }}>
-          {activeTab === 0 ? (
-            quizzes.map((quiz) => (
+          <InfiniteScroll
+            dataLength={activeTab === 0 ? quizzes.length : publicQuizzes.length}
+            next={loadMore}
+            hasMore={hasMore}
+            loader={
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                <CircularProgress />
+              </Box>
+            }
+          >
+            {(activeTab === 0 ? quizzes : publicQuizzes).map((quiz, index) => (
               <QuizListItem 
-                key={quiz.id} 
+                key={`${activeTab}-${quiz._id}-${page}-${index}`}
                 quiz={quiz} 
-                isPublic={false}
-                onEditPublic={() => {}}
-              />
-            ))
-          ) : (
-            publicQuizzes.map((quiz) => (
-              <QuizListItem 
-                key={quiz.id} 
-                quiz={quiz} 
-                isPublic={true}
+                isPublic={activeTab === 1}
                 onEditPublic={() => handleEditPublicQuiz(quiz)}
+                onToggleShare={handleToggleShare}
               />
-            ))
+            ))}
+          </InfiniteScroll>
+          
+          {!loading && (activeTab === 0 ? quizzes : publicQuizzes).length === 0 && (
+            <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
+              {searchQuery 
+                ? 'Nenalezeny žádné kvízy odpovídající vašemu vyhledávání'
+                : activeTab === 0 
+                  ? 'Zatím jste nevytvořili žádné kvízy' 
+                  : 'Nebyly nalezeny žádné veřejné kvízy'}
+            </Typography>
           )}
         </Box>
       </Box>
@@ -269,6 +366,21 @@ const DesktopHomePage = () => {
           <Button onClick={handleCreateCopy} variant="contained">Ano</Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

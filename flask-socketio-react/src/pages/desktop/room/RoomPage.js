@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
 import { getSocket, getServerTime } from '../../../utils/socket';
 import GameCountdown from '../../../components/desktop/GameCountdown';
@@ -9,6 +9,8 @@ import ConnectionInfo from '../../../components/desktop/room/ConnectionInfo';
 import StartGameTooltip from '../../../components/desktop/room/StartGameTooltip';
 
 const RoomPage = () => {
+  const location = useLocation();
+  const quizId = location.state?.quizId;  // Get quiz ID from navigation state
   const [players, setPlayers] = useState([]); // Add back players state
   const [blueTeam, setBlueTeam] = useState([]); // Store teams directly
   const [redTeam, setRedTeam] = useState([]);
@@ -111,7 +113,9 @@ const RoomPage = () => {
       teamAssignments: selectedMode === 'team' ? {
         blue: blueTeam.map(player => player.name),
         red: redTeam.map(player => player.name)
-      } : null
+      } : null,
+      isRemote: false,
+      quizId: quizId  // Add quiz ID to payload
     };
 
     fetch(`http://${window.location.hostname}:5000/start_game`, {
@@ -130,7 +134,6 @@ const RoomPage = () => {
   };
 
   const handleStartGameOnAnotherScreen = () => {
-    // Use the same start game logic, but don't navigate
     setStartGameError('');
     
     const payload = {
@@ -139,7 +142,8 @@ const RoomPage = () => {
         blue: blueTeam.map(player => player.name),
         red: redTeam.map(player => player.name)
       } : null,
-      isRemote: true
+      isRemote: true,
+      quizId: quizId  // Add quiz ID to payload
     };
 
     fetch(`http://${window.location.hostname}:5000/start_game`, {

@@ -206,3 +206,82 @@ class QuizService:
             "questions": paginated_result,
             "total_count": total_count
         }
+
+    @staticmethod
+    def get_quizzes(device_id: str, filter_type: str = 'mine', quiz_type: str = 'all', 
+                    search_query: str = '', page: int = 1, per_page: int = 10) -> dict:
+        """Get quizzes with pagination"""
+        try:
+            query = {}
+            
+            # Apply quiz type filter if not 'all'
+            if quiz_type != 'all':
+                query['type'] = quiz_type
+                
+            # Apply search query if provided
+            if search_query:
+                query['name'] = {'$regex': search_query, '$options': 'i'}
+            
+            # Filter by ownership
+            if filter_type == 'mine':
+                query['created_by'] = device_id
+            else:  # public
+                query['is_public'] = True
+                query['created_by'] = {'$ne': device_id}
+            
+            # Calculate skip value for pagination
+            skip = (page - 1) * per_page
+            
+            # Get total count for pagination
+            total = db.quizzes.count_documents(query)
+            
+            # Get paginated quizzes with proper sort
+            cursor = db.quizzes.find(query)
+            cursor.sort([('_id', -1)])  # Sort by _id descending (newest first)
+            cursor.skip(skip)
+            cursor.limit(per_page)
+            
+            quizzes = list(cursor)
+            
+            # Convert MongoDB documents to JSON-serializable format
+            result = []
+            for quiz in quizzes:
+                quiz_data = convert_mongo_doc(quiz)
+                # Count total questions for this quiz
+                quiz_data['questionCount'] = len(quiz.get('questions', []))
+                result.append(quiz_data)
+                
+            has_more = (skip + len(result)) < total
+                
+            return {
+                "quizzes": result,
+                "total": total,
+                "has_more": has_more
+            }
+        except Exception as e:
+            print(f"Error in get_quizzes: {str(e)}")
+            raise e
+
+    @staticmethod
+    def toggle_quiz_publicity(quiz_id: str, device_id: str) -> dict:
+        """Toggle quiz publicity status"""
+        quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
+        
+        if not quiz:
+            raise ValueError("Kvíz nebyl nalezen")
+            
+        if quiz.get("created_by") != device_id:
+            raise ValueError("Nemáte oprávnění sdílet tento kvíz")
+            
+        new_status = not quiz.get("is_public", False)
+        
+        db.quizzes.update_one(
+            {"_id": ObjectId(quiz_id)},
+            {"$set": {"is_public": new_status}}
+        )
+        
+        return {
+            "success": True,
+            "is_public": new_status,
+            "message": "Kvíz byl úspěšně zveřejněn" if new_status else "Kvíz byl úspěšně skryt"
+        }
