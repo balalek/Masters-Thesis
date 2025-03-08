@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, TextField, IconButton, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel } from '@mui/material';
+import { Box, Button, Typography, TextField, IconButton, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel, Tab, Tabs, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ShareIcon from '@mui/icons-material/Share';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -71,7 +71,11 @@ const DesktopHomePage = () => {
   const [selectedType, setSelectedType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [quizzes, setQuizzes] = useState([]);
+  const [publicQuizzes, setPublicQuizzes] = useState([]);
   const [allowAudioQuizzes, setAllowAudioQuizzes] = useState(true);
+  const [activeTab, setActiveTab] = useState(0);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedQuizToCopy, setSelectedQuizToCopy] = useState(null);
 
   const quizTypeIcons = {
     [QUIZ_TYPES.ABCD]: { icon: QuizIcon, label: 'ABCD Kvíz' },
@@ -85,13 +89,27 @@ const DesktopHomePage = () => {
   };
 
   useEffect(() => {
-    // TODO: Fetch quizzes based on device ID and favorites from TinyDB
-    // This is just mock data for now
+    // TODO: Fetch my quizzes and public quizzes separately
     setQuizzes([
-      { name: "Sample Quiz 1", type: "ABCD", questions: [1,2,3] },
-      { name: "Sample Quiz 2", type: "BLIND_MAP", questions: [1,2] },
+      { id: 1, name: "My Quiz 1", type: "ABCD", questions: [1,2,3] },
+      { id: 2, name: "My Quiz 2", type: "BLIND_MAP", questions: [1,2] },
+    ]);
+    setPublicQuizzes([
+      { id: 3, name: "Public Quiz 1", type: "ABCD", questions: [1,2,3] },
+      { id: 4, name: "Public Quiz 2", type: "BLIND_MAP", questions: [1,2] },
     ]);
   }, []);
+
+  const handleEditPublicQuiz = (quiz) => {
+    setSelectedQuizToCopy(quiz);
+    setOpenDialog(true);
+  };
+
+  const handleCreateCopy = () => {
+    // TODO: Implement quiz copy creation
+    setOpenDialog(false);
+    navigate(`/create-quiz?copy=${selectedQuizToCopy.id}`);
+  };
 
   return (
     <Box>
@@ -123,27 +141,19 @@ const DesktopHomePage = () => {
         >
           Domácí kvíz
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button 
-            variant="outlined" 
-            startIcon={<ShareIcon />}
-          >
-            Sdílené kvízy
-          </Button>
-          <Button 
-            variant="contained" 
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/create-quiz')}
-            sx={{ 
-              backgroundColor: 'primary.light',
-              '&:hover': {
-                backgroundColor: 'primary.dark'
-              }
-            }}
-          >
-            Vytvořit kvíz
-          </Button>
-        </Box>
+        <Button 
+          variant="contained" 
+          startIcon={<AddIcon />}
+          onClick={() => navigate('/create-quiz')}
+          sx={{ 
+            backgroundColor: 'primary.light',
+            '&:hover': {
+              backgroundColor: 'primary.dark'
+            }
+          }}
+        >
+          Vytvořit kvíz
+        </Button>
       </Box>
 
       {/* Main Content */}
@@ -177,14 +187,20 @@ const DesktopHomePage = () => {
           ))}
         </ToggleButtonGroup>
 
-        {/* Quiz List Header */}
+        {/* Tabs and Search */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+          <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+            <Tab label="Moje kvízy" />
+            <Tab label="Veřejné kvízy" />
+          </Tabs>
+        </Box>
+
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
           mb: 2,
           gap: 2 
         }}>
-          <Typography variant="h5" sx={{ whiteSpace: 'nowrap' }}>Moje kvízy</Typography>
           <FormControlLabel
             control={
               <Checkbox 
@@ -218,11 +234,41 @@ const DesktopHomePage = () => {
 
         {/* Quiz List */}
         <Box sx={{ mt: 2 }}>
-          {quizzes.map((quiz, index) => (
-            <QuizListItem key={index} quiz={quiz} />
-          ))}
+          {activeTab === 0 ? (
+            quizzes.map((quiz) => (
+              <QuizListItem 
+                key={quiz.id} 
+                quiz={quiz} 
+                isPublic={false}
+                onEditPublic={() => {}}
+              />
+            ))
+          ) : (
+            publicQuizzes.map((quiz) => (
+              <QuizListItem 
+                key={quiz.id} 
+                quiz={quiz} 
+                isPublic={true}
+                onEditPublic={() => handleEditPublicQuiz(quiz)}
+              />
+            ))
+          )}
         </Box>
       </Box>
+
+      {/* Copy Quiz Dialog */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>Kopírovat kvíz</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Tento kvíz nevlastníte, chcete vytvořit jeho kopii a editovat ji?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Ne</Button>
+          <Button onClick={handleCreateCopy} variant="contained">Ano</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

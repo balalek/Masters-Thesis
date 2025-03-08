@@ -5,7 +5,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const QuizListItem = ({ quiz }) => {
+const QuizListItem = ({ quiz, isPublic, onEditPublic }) => {
   return (
     <Paper 
       elevation={2}
@@ -34,15 +34,23 @@ const QuizListItem = ({ quiz }) => {
         <IconButton color="primary" size="large">
           <PlayArrowIcon />
         </IconButton>
-        <IconButton color="primary" size="large">
-          <ShareIcon />
-        </IconButton>
-        <IconButton color="primary" size="large">
+        {!isPublic && (
+          <IconButton color="primary" size="large">
+            <ShareIcon />
+          </IconButton>
+        )}
+        <IconButton 
+          color="primary" 
+          size="large"
+          onClick={isPublic ? onEditPublic : undefined}
+        >
           <EditIcon />
         </IconButton>
-        <IconButton color="error" size="large">
-          <DeleteIcon />
-        </IconButton>
+        {!isPublic && (
+          <IconButton color="error" size="large">
+            <DeleteIcon />
+          </IconButton>
+        )}
       </Box>
     </Paper>
   );
