@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, TextField, Select, MenuItem, Typography, Button, Container, Snackbar, Alert } from '@mui/material';
 import QuestionForm from './components/QuestionForm';
 import QuestionPreview from './components/QuestionPreview';
@@ -18,6 +18,9 @@ import { scrollbarStyle } from '../../../utils/scrollbarStyle';
 
 const CreateQuizPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isEditing = location.state?.isEditing || false;
+  const quizId = location.state?.quizId;
   const [quizName, setQuizName] = useState('');
   const [questions, setQuestions] = useState([]);
   const [selectedQuizType, setSelectedQuizType] = useState(QUIZ_TYPES.ABCD);
@@ -28,11 +31,50 @@ const CreateQuizPage = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [quizNameHelperText, setQuizNameHelperText] = useState('');
   const [existingQuestionsDialogOpen, setExistingQuestionsDialogOpen] = useState(false);
+  const [deletedQuestionIds, setDeletedQuestionIds] = useState(new Set());
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor)
   );
+
+  useEffect(() => {
+    console.log('isEditing:', isEditing);  // Debug log
+    console.log('quizId:', quizId);        // Debug log
+    console.log('location.state:', location.state);  // Debug log
+
+    if (isEditing && quizId) {
+      console.log('Fetching quiz data for id:', quizId);  // Debug log
+      fetch(`/quiz/${quizId}`)
+        .then(response => {
+          console.log('Response received:', response);  // Debug log
+          return response.json();
+        })
+        .then(quiz => {
+          console.log('Quiz data received:', quiz);  // Debug log
+          setQuizName(quiz.name);
+          setSelectedQuizType(quiz.type);
+          // Transform the questions data to match the expected format
+          const transformedQuestions = quiz.questions.map(q => ({
+            id: q._id,
+            _id: q._id,
+            question: q.question,
+            type: q.type,
+            answers: q.options || q.answers,
+            correctAnswer: q.answer,
+            timeLimit: q.length,
+            category: q.category,
+            copy_of: q.copy_of,
+            modified: false
+          }));
+          setQuestions(transformedQuestions);
+        })
+        .catch(error => {
+          console.error('Error fetching quiz:', error);
+          navigate('/');
+        });
+    }
+  }, [isEditing, quizId, navigate]);
 
   const handleAddQuestion = (question) => {
     if (!question.type) {
@@ -70,6 +112,11 @@ const CreateQuizPage = () => {
 
   const handleDeleteQuestion = (id) => {
     setQuestions(questions.filter(q => q.id !== id));
+    // If question has _id (exists in MongoDB), add to deleted set
+    const questionToDelete = questions.find(q => q.id === id);
+    if (questionToDelete && questionToDelete._id) {
+      setDeletedQuestionIds(prev => new Set([...prev, questionToDelete._id]));
+    }
   };
 
   const handleEditQuestion = (questionToEdit) => {
@@ -143,23 +190,17 @@ const CreateQuizPage = () => {
     }
 
     try {
-      console.log('Creating quiz with questions:', questions);
-      // Check each question for missing type
-      questions.forEach((q, index) => {
-        if (!q.type) {
-          console.warn(`Question at index ${index} is missing type!`, q);
-        }
-      });
-
-      const response = await fetch('/create_quiz', {
-        method: 'POST',
+      const endpoint = isEditing ? `/quiz/${quizId}/update` : '/create_quiz';
+      const response = await fetch(endpoint, {
+        method: isEditing ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: quizName,
           questions: questions,
-          type: selectedQuizType // Send the quiz type
+          type: selectedQuizType,
+          deletedQuestions: Array.from(deletedQuestionIds) // Add deleted questions
         }),
       });
 
@@ -171,25 +212,26 @@ const CreateQuizPage = () => {
 
       resetState(); // Call resetState before showing success message
       setOpenSnackbar(true);
+      navigate('/');
       
     } catch (error) {
-      console.error('Error creating quiz:', error);
-      alert('Chyba při vytváření kvízu: ' + error.message);
+      console.error('Error creating/updating quiz:', error);
+      alert('Chyba při vytváření/úpravě kvízu: ' + error.message);
     }
   };
 
   const handleAddExistingQuestions = (selectedQuestions) => {
     const newQuestions = selectedQuestions.map(question => ({
-      _id: question.id, // Pass the original question ID for copy_of handling
       question: question.text,
       type: question.type,
       answers: question.answers.map(a => a.text),
       correctAnswer: question.answers.findIndex(a => a.isCorrect),
       timeLimit: question.length,
       category: question.category,
-      id: Date.now() + Math.random(), // Local React ID
-      copy_of: question.copy_of, // Preserve existing copy_of if any
-      modified: false // Added questions are not modified by default
+      id: Date.now() + Math.random(),
+      // Use copy_of if it exists, otherwise use the question's id
+      copy_of: question.copy_of || question.id,
+      is_copy: true
     }));
     
     setQuestions([...questions, ...newQuestions]);
@@ -218,6 +260,7 @@ const CreateQuizPage = () => {
           <Select
             value={selectedQuizType}
             onChange={(e) => setSelectedQuizType(e.target.value)}
+            disabled={isEditing}
             sx={{ minWidth: 200 }}
           >
             <MenuItem value={QUIZ_TYPES.ABCD}>ABCD Kvíz</MenuItem>
@@ -359,7 +402,7 @@ const CreateQuizPage = () => {
                 onClick={handleCreateQuiz}
                 disabled={questions.length === 0}
               >
-                Vytvořit kvíz
+                {isEditing ? 'Aktualizovat kvíz' : 'Vytvořit kvíz'}
               </Button>
             </Box>
           </Box>

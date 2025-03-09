@@ -12,6 +12,7 @@ class GameState:
         self.team_scores = {'blue': 0, 'red': 0}
         self.question_start_time = None
         self.is_remote = False
+        self.current_question_metadata_updated = False  # Track if we've already incremented times played
 
     def reset(self):
         self.__init__()

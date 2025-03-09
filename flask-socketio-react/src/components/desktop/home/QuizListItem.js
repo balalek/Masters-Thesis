@@ -6,11 +6,19 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom'; // Add this
 
-const QuizListItem = ({ quiz, isPublic, onEditPublic, onToggleShare }) => {
+const QuizListItem = ({ quiz, isPublic, onEditPublic, onToggleShare, onEdit, onDelete }) => {
   const navigate = useNavigate();  // Add this
 
   const handleStartQuiz = () => {
     navigate('/room', { state: { quizId: quiz._id } });
+  };
+
+  const handleEdit = () => {
+    if (!quiz || !quiz._id) {
+      console.error('Missing quiz or quiz ID:', quiz);
+      return;
+    }
+    onEdit(quiz);
   };
 
   return (
@@ -64,12 +72,18 @@ const QuizListItem = ({ quiz, isPublic, onEditPublic, onToggleShare }) => {
         <IconButton 
           color="primary" 
           size="large"
-          onClick={isPublic ? onEditPublic : undefined}
+          onClick={isPublic ? onEditPublic : handleEdit}
+          title={isPublic ? "Kopírovat a upravit" : "Upravit kvíz"}
         >
           <EditIcon />
         </IconButton>
         {!isPublic && (
-          <IconButton color="error" size="large">
+          <IconButton 
+            color="error" 
+            size="large"
+            onClick={() => onDelete(quiz)}
+            title="Smazat kvíz"
+          >
             <DeleteIcon />
           </IconButton>
         )}

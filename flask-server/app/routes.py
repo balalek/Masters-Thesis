@@ -129,6 +129,7 @@ def next_question():
     game_state.current_question += 1
     game_state.answers_received = 0
     game_state.answer_counts = [0, 0, 0, 0]
+    game_state.current_question_metadata_updated = False
 
     next_question = game_state.questions[game_state.current_question]
     is_last_question = game_state.current_question + 1 == len(game_state.questions)
@@ -236,6 +237,68 @@ def toggle_share_quiz(quiz_id):
         return jsonify({"error": str(e)}), 403
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/quiz/<quiz_id>/update', methods=['PUT'])
+def update_quiz(quiz_id):
+    try:
+        data = request.json
+        quiz_name = data.get('name')
+        questions = data.get('questions', [])
+        deleted_questions = data.get('deletedQuestions', [])  # Get deleted questions
+        device_id = get_device_id()
+        
+        if not quiz_name:
+            return jsonify({"error": "Zadejte název kvízu"}), 400
+        
+        if len(quiz_name) > QUIZ_VALIDATION['QUIZ_NAME_MAX_LENGTH']:
+            return jsonify({"error": f"Název kvízu nesmí být delší než {QUIZ_VALIDATION['QUIZ_NAME_MAX_LENGTH']} znaků"}), 400
+        
+        if not questions:
+            return jsonify({"error": "Vytvořte alespoň jednu otázku"}), 400
+
+        result = QuizService.update_quiz(
+            quiz_id, 
+            quiz_name, 
+            questions, 
+            device_id,
+            deleted_questions  # Pass deleted questions to service
+        )
+        return jsonify({
+            "message": "Kvíz byl úspěšně aktualizován",
+            "quizId": str(result)
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Došlo k chybě při aktualizaci kvízu: {str(e)}"}), 500
+
+@app.route('/quiz/<quiz_id>', methods=['DELETE'])
+def delete_quiz(quiz_id):
+    try:
+        device_id = get_device_id()
+        QuizService.delete_quiz(quiz_id, device_id)
+        return jsonify({
+            "message": "Kvíz byl úspěšně smazán"
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 403
+    except Exception as e:
+        return jsonify({"error": f"Došlo k chybě při mazání kvízu: {str(e)}"}), 500
+
+@app.route('/quiz/<quiz_id>/copy', methods=['POST'])
+def copy_quiz(quiz_id):
+    try:
+        device_id = get_device_id()
+        new_quiz_id = QuizService.copy_quiz(quiz_id, device_id)
+        return jsonify({
+            "message": "Kvíz byl úspěšně zkopírován",
+            "quizId": str(new_quiz_id),
+            "success": True
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Došlo k chybě při kopírování kvízu: {str(e)}"}), 500
 
 @app.route('/online_status', methods=['GET'])
 def get_online_status():

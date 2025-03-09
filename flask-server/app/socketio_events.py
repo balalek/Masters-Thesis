@@ -4,6 +4,7 @@ from . import socketio
 from .game_state import game_state
 from .constants import PREVIEW_TIME, WAITING_TIME
 from time import time
+from .services.quiz_service import QuizService
 
 @socketio.on('join_room')
 def handle_join_room(data):
@@ -23,8 +24,16 @@ def submit_answer(data):
         emit('error', {"error": "Game not started"})
         return
         
-    correct_answer = game_state.questions[current_question]['answer']
+    current_question_data = game_state.questions[current_question]
+    correct_answer = current_question_data['answer']
     points_earned = points_for_correct if answer == correct_answer else 0
+    
+    QuizService.update_question_metadata(
+        str(current_question_data['_id']), 
+        is_correct=(answer == correct_answer),
+        increment_times_played=not game_state.current_question_metadata_updated
+    )
+    game_state.current_question_metadata_updated = True
     
     # Calculate speed points
     question_start_time = game_state.question_start_time

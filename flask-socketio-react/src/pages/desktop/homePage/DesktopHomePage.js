@@ -154,10 +154,38 @@ const DesktopHomePage = () => {
     setOpenDialog(true);
   };
 
-  const handleCreateCopy = () => {
-    // TODO: Implement quiz copy creation
-    setOpenDialog(false);
-    navigate(`/create-quiz?copy=${selectedQuizToCopy.id}`);
+  const handleCreateCopy = async () => {
+    try {
+      const response = await fetch(`/quiz/${selectedQuizToCopy._id}/copy`, {
+        method: 'POST'
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) throw new Error(data.error);
+      
+      setOpenDialog(false);
+      setSnackbar({
+        open: true,
+        message: "Kvíz byl úspěšně zkopírován",
+        severity: 'success'
+      });
+
+      // Navigate to edit page with the new quiz ID
+      navigate('/create-quiz', {
+        state: {
+          isEditing: true,
+          quizId: data.quizId
+        }
+      });
+      
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error.message || 'Nastala chyba při kopírování kvízu',
+        severity: 'error'
+      });
+    }
   };
 
   const handleToggleShare = async (quiz) => {
@@ -195,6 +223,49 @@ const DesktopHomePage = () => {
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
+  const handleEditQuiz = (quiz) => {
+    console.log('Editing quiz:', quiz);  // Debug log
+    console.log('Quiz ID:', quiz._id);   // Debug log
+    
+    navigate('/create-quiz', { 
+      state: { 
+        isEditing: true,
+        quizId: quiz._id
+      }
+    });
+  };
+
+  const handleDeleteQuiz = async (quiz) => {
+    if (!window.confirm('Opravdu chcete smazat tento kvíz?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/quiz/${quiz._id}`, {
+        method: 'DELETE'
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) throw new Error(data.error);
+      
+      // Update local state to remove the quiz
+      setQuizzes(prev => prev.filter(q => q._id !== quiz._id));
+      
+      setSnackbar({
+        open: true,
+        message: data.message,
+        severity: 'success'
+      });
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error.message || 'Nastala chyba při mazání kvízu',
+        severity: 'error'
+      });
+    }
   };
 
   return (
@@ -337,6 +408,8 @@ const DesktopHomePage = () => {
                 isPublic={activeTab === 1}
                 onEditPublic={() => handleEditPublicQuiz(quiz)}
                 onToggleShare={handleToggleShare}
+                onEdit={handleEditQuiz}
+                onDelete={handleDeleteQuiz}
               />
             ))}
           </InfiniteScroll>

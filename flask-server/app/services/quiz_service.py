@@ -9,6 +9,106 @@ from .local_storage_service import LocalStorageService
 
 class QuizService:
     @staticmethod
+    def _handle_copy_references(old_question_id: ObjectId, copies: List[dict]) -> None:
+        """Handle copy_of references when original question changes or is removed"""
+        if copies:
+            # Find oldest copy to become new original
+            new_original = min(copies, key=lambda x: x.get("created_at", datetime.max))
+            new_original_id = new_original["_id"]
+            
+            # Update all other copies to point to new original
+            db.questions.update_many(
+                {
+                    "copy_of": old_question_id,
+                    "_id": {"$ne": new_original_id}
+                },
+                {"$set": {"copy_of": new_original_id}}
+            )
+            # Make new original a true original
+            db.questions.update_one(
+                {"_id": new_original_id},
+                {"$set": {"copy_of": None}}
+            )
+
+    @staticmethod
+    def _create_question(question_data: dict, quiz_id: ObjectId, device_id: str, order: int) -> dict:
+        """Create or update a question and return its reference data"""
+        # Validate question type
+        question_type = question_data.get("type")
+        if question_type not in QUESTION_TYPES.values():
+            raise ValueError(f"Neplatný typ otázky: {question_type}")
+        
+        # Determine if this is a new question or an update
+        is_existing = "_id" in question_data and not question_data.get("is_copy")
+        is_modified = question_data.get("modified", False)
+        original = None
+
+        # If it's an existing question, fetch the original
+        if is_existing:
+            original = db.questions.find_one({"_id": ObjectId(question_data["_id"])})
+            if is_modified and original and original.get("copy_of") is None:
+                copies = list(db.questions.find({"copy_of": ObjectId(question_data["_id"])}))
+                if copies:
+                    QuizService._handle_copy_references(ObjectId(question_data["_id"]), copies)
+
+        # Create question object without _id field
+        question_dict = {
+            "question": question_data["question"],
+            "type": question_type,
+            "options": question_data["answers"] if "answers" in question_data else question_data["options"],
+            "answer": question_data["correctAnswer"] if "correctAnswer" in question_data else question_data["answer"],
+            "length": question_data["timeLimit"] if "timeLimit" in question_data else question_data["length"],
+            "category": question_data["category"],
+            "part_of": quiz_id,
+            "created_by": device_id,
+            "copy_of": None if is_modified else (
+                ObjectId(question_data["copy_of"]) if question_data.get("copy_of") else (
+                    original["copy_of"] if original and original.get("copy_of") else 
+                    original["_id"] if original else None
+                )
+            ),
+            "metadata": QuestionMetadata().to_dict()
+        }
+
+        if is_existing:
+            # Update existing question without modifying _id
+            db.questions.update_one(
+                {"_id": ObjectId(question_data["_id"])},
+                {"$set": question_dict}
+            )
+            question_id = ObjectId(question_data["_id"])
+        else:
+            # Create new question (including copies)
+            result = db.questions.insert_one(question_dict)
+            question_id = result.inserted_id
+            if not question_data.get("is_copy"):  # Only store if not a copy
+                LocalStorageService.store_created_question(str(question_id))
+
+        return {"questionId": question_id, "order": order}
+
+    @staticmethod
+    def _handle_quiz_questions(quiz_id: ObjectId, questions: List[dict], device_id: str, existing_questions: set = None) -> List[dict]:
+        """Process questions for a quiz and return list of question references"""
+        question_refs = []
+        
+        # Create/update all questions
+        for idx, question_data in enumerate(questions):
+            question_ref = QuizService._create_question(question_data, quiz_id, device_id, idx)
+            question_refs.append(question_ref)
+
+        # Handle removed questions if updating existing quiz
+        if existing_questions:
+            new_question_ids = {str(q["questionId"]) for q in question_refs}
+            removed_ids = existing_questions - new_question_ids
+            
+            for removed_id in removed_ids:
+                copies = list(db.questions.find({"copy_of": ObjectId(removed_id)}))
+                if copies:
+                    QuizService._handle_copy_references(ObjectId(removed_id), copies)
+
+        return question_refs
+
+    @staticmethod
     def create_quiz(name: str, questions: List[dict], quiz_type: str, device_id: str = None) -> ObjectId:
         # Validate quiz type
         if (quiz_type not in QUIZ_TYPES.values()):
@@ -25,70 +125,40 @@ class QuizService:
         quiz_result = db.quizzes.insert_one(quiz.to_dict())
         quiz_id = quiz_result.inserted_id
         
-        # Insert all questions with reference to the quiz and device ID
-        question_ids = []
-        for idx, q in enumerate(questions):
-            # Validate question type
-            question_type = q.get("type")
-            if question_type not in QUESTION_TYPES.values():
-                raise ValueError(f"Neplatný typ otázky: {question_type}")
-            
-            # For copied questions, only use content data, create fresh metadata
-            copy_of = None
-            if q.get("_id"):  # If question has _id, it's a copied question
-                original = db.questions.find_one({"_id": ObjectId(q["_id"])})
-                if original:
-                    # If the question is modified, set copy_of to null
-                    # Otherwise, use the original's copy_of or the original's _id
-                    if q.get("modified", False):
-                        copy_of = None  # Modified questions are treated as new
-                    else:
-                        copy_of = original.get("copy_of") or original["_id"]
-            
-            # Create new Question with fresh metadata but copied content
-            question = Question(
-                question=q["question"],
-                type=question_type,
-                options=q["answers"] if "answers" in q else q["options"],
-                answer=q["correctAnswer"] if "correctAnswer" in q else q["answer"],
-                length=q["timeLimit"] if "timeLimit" in q else q["length"],
-                category=q["category"],
-                part_of=quiz_id,
-                created_by=device_id,
-                copy_of=copy_of,
-                metadata=QuestionMetadata()  # Fresh metadata for the new question
-            )
-            
-            result = db.questions.insert_one(question.to_dict())
-            question_ids.append({"questionId": result.inserted_id, "order": idx})
-            
-            # Store created question ID in local database
-            LocalStorageService.store_created_question(str(result.inserted_id))
-            
-        # Update the quiz with question IDs
+        question_refs = QuizService._handle_quiz_questions(quiz_id, questions, device_id)
+        
         db.quizzes.update_one(
             {"_id": quiz_id},
-            {"$set": {"questions": question_ids}}
+            {"$set": {"questions": question_refs}}
         )
         
         return quiz_id
 
     @staticmethod
     def get_quiz(quiz_id: str) -> dict:
-        quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
-        if not quiz:
-            return None
-        
-        # Fetch all questions for this quiz
-        questions = []
-        for q in quiz["questions"]:
-            question = db.questions.find_one({"_id": q["questionId"]})
-            if question:
-                questions.append({**question, "order": q["order"]})
-        
-        result = {**quiz, "questions": sorted(questions, key=lambda x: x["order"])}
-        return convert_mongo_doc(result)
-        
+        """Get a specific quiz by ID with its questions"""
+        try:
+            quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
+            if not quiz:
+                return None
+            
+            # Fetch all questions for this quiz
+            questions = []
+            for q in quiz["questions"]:
+                question = db.questions.find_one({"_id": q["questionId"]})
+                if question:
+                    question_data = convert_mongo_doc(question)
+                    question_data["order"] = q["order"]
+                    questions.append(question_data)
+            
+            result = convert_mongo_doc(quiz)
+            result["questions"] = sorted(questions, key=lambda x: x["order"])
+            return result
+            
+        except Exception as e:
+            print(f"Error fetching quiz: {str(e)}")
+            raise e
+
     @staticmethod
     def is_question_visible(question_id: str) -> bool:
         """Check if a question is visible based on its parent quiz's visibility"""
@@ -165,7 +235,7 @@ class QuizService:
                 quiz = db.quizzes.find_one({'_id': question['part_of']}) if question.get('part_of') else None
                 is_public = quiz and quiz.get('is_public', False)
                 
-                if is_public:
+                if (is_public):
                     # If original question is public, use it
                     question_data = convert_mongo_doc(question)
                     question_data['quizName'] = quiz['name'] if quiz else 'Unknown Quiz'
@@ -285,3 +355,162 @@ class QuizService:
             "is_public": new_status,
             "message": "Kvíz byl úspěšně zveřejněn" if new_status else "Kvíz byl úspěšně skryt"
         }
+
+    @staticmethod
+    def update_quiz(quiz_id: str, name: str, questions: List[dict], device_id: str, deleted_questions: List[str] = None) -> ObjectId:
+        """Update existing quiz and its questions"""
+        quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
+        if not quiz:
+            raise ValueError("Kvíz nebyl nalezen")
+            
+        if quiz.get("created_by") != device_id:
+            raise ValueError("Nemáte oprávnění upravovat tento kvíz")
+            
+        # Update quiz basic info
+        db.quizzes.update_one(
+            {"_id": ObjectId(quiz_id)},
+            {"$set": {"name": name}}
+        )
+        
+        # Get existing question IDs before update
+        existing_questions = {str(q["questionId"]) for q in quiz["questions"]}
+        
+        # Handle explicitly deleted questions
+        if deleted_questions:
+            for question_id in deleted_questions:
+                try:
+                    # Find questions that reference this as original
+                    copies = list(db.questions.find({"copy_of": ObjectId(question_id)}))
+                    if copies:
+                        QuizService._handle_copy_references(ObjectId(question_id), copies)
+                    # Delete the question
+                    db.questions.delete_one({"_id": ObjectId(question_id)})
+                except Exception as e:
+                    print(f"Error deleting question {question_id}: {str(e)}")
+        
+        # Handle questions
+        question_refs = QuizService._handle_quiz_questions(
+            ObjectId(quiz_id), 
+            questions, 
+            device_id, 
+            existing_questions
+        )
+        
+        # Update questions reference in quiz
+        db.quizzes.update_one(
+            {"_id": ObjectId(quiz_id)},
+            {"$set": {"questions": question_refs}}
+        )
+        
+        return quiz_id
+
+    @staticmethod
+    def delete_quiz(quiz_id: str, device_id: str) -> None:
+        """Delete quiz and handle its questions' copy references"""
+        quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
+        if not quiz:
+            raise ValueError("Kvíz nebyl nalezen")
+            
+        if quiz.get("created_by") != device_id:
+            raise ValueError("Nemáte oprávnění smazat tento kvíz")
+
+        # Get all questions from this quiz
+        question_ids = [q["questionId"] for q in quiz["questions"]]
+        
+        # Handle copy references for each question before deletion
+        for question_id in question_ids:
+            # Find questions that reference this as original
+            copies = list(db.questions.find({"copy_of": question_id}))
+            if copies:
+                QuizService._handle_copy_references(question_id, copies)
+
+        # Delete all questions
+        db.questions.delete_many({"_id": {"$in": [ObjectId(id) for id in question_ids]}})
+        
+        # Delete the quiz
+        db.quizzes.delete_one({"_id": ObjectId(quiz_id)})
+
+    @staticmethod
+    def copy_quiz(quiz_id: str, device_id: str) -> ObjectId:
+        """Create a copy of an existing quiz with new questions"""
+        # Get original quiz
+        quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
+        if not quiz:
+            raise ValueError("Původní kvíz nebyl nalezen")
+
+        # Create new quiz with reset metadata
+        new_quiz = Quiz(
+            name=f"Kopie - {quiz['name']}", 
+            questions=[],  # Will be filled later
+            type=quiz['type'],
+            is_public=False,
+            created_by=device_id
+        )
+        new_quiz_result = db.quizzes.insert_one(new_quiz.to_dict())
+        new_quiz_id = new_quiz_result.inserted_id
+
+        # Create copies of all questions
+        question_refs = []
+        for idx, q_ref in enumerate(quiz['questions']):
+            original_q = db.questions.find_one({"_id": q_ref["questionId"]})
+            if not original_q:
+                continue
+
+            # Create new question with proper references
+            new_question = {
+                "question": original_q["question"],
+                "type": original_q["type"],
+                "options": original_q["options"],
+                "answer": original_q["answer"],
+                "length": original_q["length"],
+                "category": original_q["category"],
+                "part_of": new_quiz_id,
+                "created_by": device_id,
+                "copy_of": original_q.get("copy_of") or original_q["_id"],  # Keep original reference chain
+                "metadata": QuestionMetadata().to_dict()  # Reset metadata
+            }
+
+            # Insert new question
+            result = db.questions.insert_one(new_question)
+            question_refs.append({
+                "questionId": result.inserted_id,
+                "order": idx
+            })
+
+        # Update quiz with question references
+        db.quizzes.update_one(
+            {"_id": new_quiz_id},
+            {"$set": {"questions": question_refs}}
+        )
+
+        return new_quiz_id
+
+    @staticmethod
+    def update_question_metadata(question_id: str, is_correct: bool, increment_times_played: bool = False) -> None:
+        """Update question metadata after it's been answered"""
+        question = db.questions.find_one({"_id": ObjectId(question_id)})
+        if not question:
+            return
+
+        current_metadata = question.get('metadata', {})
+        times_used = current_metadata.get('timesUsed', 0)
+        current_rate = current_metadata.get('averageCorrectRate', 0.0)
+
+        # Calculate new correct rate using weighted average
+        if increment_times_played:
+            new_times_used = times_used + 1
+            new_rate = ((current_rate * times_used) + (1 if is_correct else 0)) / new_times_used
+        else:
+            new_times_used = times_used
+            # Update rate without incrementing times_used
+            new_rate = ((current_rate * times_used) + (1 if is_correct else 0)) / (times_used or 1)
+
+        # Update metadata
+        update_dict = {"metadata.averageCorrectRate": round(new_rate, 4)}
+        if increment_times_played:
+            update_dict["metadata.timesUsed"] = new_times_used
+
+        db.questions.update_one(
+            {"_id": ObjectId(question_id)},
+            {"$set": update_dict}
+        )
