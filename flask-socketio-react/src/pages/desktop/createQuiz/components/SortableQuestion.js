@@ -5,6 +5,7 @@ import { Box, Typography, IconButton, Paper } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import EditIcon from '@mui/icons-material/Edit';
+import { QUESTION_TYPES } from '../../../../constants/quizValidation';
 
 const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDragging }) => {
   const {
@@ -24,6 +25,53 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
     transition,
     width: '100%',
     opacity: isSortableDragging ? 0.4 : 1,
+  };
+
+  const renderAnswers = () => {
+    if (question.type === QUESTION_TYPES.OPEN_ANSWER) {
+      return (
+        <>
+          <Box
+            sx={{
+              p: 1,
+              my: 0.5,
+              bgcolor: 'success.light',
+              borderRadius: 1,
+              width: '100%'  // Make box full width
+            }}
+          >
+            <Typography align="left">
+              Správná odpověď: {question.answer}
+            </Typography>
+          </Box>
+          {question.mediaType && (
+            <Box sx={{ mt: 1, color: 'text.secondary' }}>
+              <Typography variant="body2">
+                {question.mediaType === 'image' ? 'Obrázek' : 'Audio'}: {question.fileName || 'Soubor'}
+                {question.showImageGradually && question.mediaType === 'image' && ' (postupné odkrývání)'}
+              </Typography>
+            </Box>
+          )}
+        </>
+      );
+    }
+
+    return question.answers?.map((answer, ansIndex) => (
+      <Box
+        key={ansIndex}
+        sx={{
+          p: 1,
+          my: 0.5,
+          bgcolor: ansIndex === question.correctAnswer ? 'success.light' : 'action.hover',
+          borderRadius: 1,
+          width: '100%'  // Make all answer boxes full width
+        }}
+      >
+        <Typography align="left">
+          {answer}
+        </Typography>
+      </Box>
+    ));
   };
 
   return (
@@ -75,21 +123,7 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
           <Typography sx={{ mt: 1 }}>{question.question}</Typography>
           
           <Box sx={{ mt: 2 }}>
-            {question.answers.map((answer, ansIndex) => (
-              <Box
-                key={ansIndex}
-                sx={{
-                  p: 1,
-                  my: 0.5,
-                  bgcolor: ansIndex === question.correctAnswer ? 'success.light' : 'action.hover',
-                  borderRadius: 1
-                }}
-              >
-                <Typography align="left">
-                  {answer}
-                </Typography>
-              </Box>
-            ))}
+            {renderAnswers()}
           </Box>
           
           <Box sx={{ mt: 2, display: 'flex', gap: 2, color: 'text.secondary' }}>

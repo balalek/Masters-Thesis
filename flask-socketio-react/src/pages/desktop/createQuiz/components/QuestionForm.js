@@ -10,7 +10,8 @@ import {
   FormLabel,
   Autocomplete,
   FormHelperText,
-  Alert
+  Alert,
+  Slider // Add this import
 } from '@mui/material';
 import { QUIZ_VALIDATION, QUIZ_CATEGORIES, QUESTION_TYPES } from '../../../../constants/quizValidation';
 
@@ -21,7 +22,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
     question: '',
     answers: ['', '', '', ''],
     correctAnswer: 0,
-    timeLimit: 30,
+    timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
     category: '',
     isTrueFalse: !isAbcd,
     type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
@@ -157,7 +158,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
       question: '',
       answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Lež'],
       correctAnswer: 0,
-      timeLimit: 30,
+      timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
       category: '',
       isTrueFalse: !isAbcd,
       type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
@@ -251,23 +252,30 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
         </FormControl>
       )}
 
-      <TextField
-        type="number"
-        label="Časový limit (vteřiny)"
-        value={formData.timeLimit || ''} // Use empty string when value is 0
-        onChange={(e) => {
-          const value = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
-          setFormData({ ...formData, timeLimit: value });
-        }}
-        error={!!errors.timeLimit}
-        helperText={errors.timeLimit || `Zadejte čas mezi ${QUIZ_VALIDATION.TIME_LIMIT.MIN}-${QUIZ_VALIDATION.TIME_LIMIT.MAX} vteřinami`}
-        slotProps={{
-          input: {
-            step: 1,
-            min: 0  // Prevent negative numbers
-          }
-        }}
-      />
+      <Box sx={{ px: 2, width: '99%' }}> {/* Adjust width and padding */}
+        <Typography gutterBottom>
+          Časový limit: {formData.timeLimit} vteřin
+        </Typography>
+        <Slider
+          value={formData.timeLimit}
+          onChange={(e, newValue) => setFormData({ ...formData, timeLimit: newValue })}
+          min={QUIZ_VALIDATION.TIME_LIMIT.MIN}
+          max={QUIZ_VALIDATION.TIME_LIMIT.MAX}
+          valueLabelDisplay="auto"
+          marks={[
+            { value: 5, label: '5s' },
+            { value: 30, label: '30s' },
+            { value: 60, label: '60s' },
+            { value: 90, label: '90s' },
+            { value: 120, label: '120s' },
+          ]}
+          sx={{
+            '& .MuiSlider-markLabel': {
+              transform: 'translateX(-50%)', // Center the labels under marks
+            }
+          }}
+        />
+      </Box>
 
       <Autocomplete
         value={formData.category}

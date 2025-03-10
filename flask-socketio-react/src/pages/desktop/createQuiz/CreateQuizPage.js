@@ -4,6 +4,7 @@ import { Box, TextField, Select, MenuItem, Typography, Button, Container, Snackb
 import QuestionForm from './components/QuestionForm';
 import QuestionPreview from './components/QuestionPreview';
 import AddExistingQuestionDialog from './components/AddExistingQuestionDialog';
+import OpenAnswerForm from './components/OpenAnswerForm';
 import {
   DndContext,
   closestCenter,
@@ -77,36 +78,62 @@ const CreateQuizPage = () => {
   }, [isEditing, quizId, navigate]);
 
   const handleAddQuestion = (question) => {
-    if (!question.type) {
-      question.type = isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE;
-    }
-    
-    if (editingQuestion) {
-      setQuestions(questions.map(q => {
-        if (q.id === editingQuestion.id) {
-          // When editing, create a new question with modified flag
-          const updatedQuestion = { 
-            ...question, 
-            id: editingQuestion.id,
-            modified: true, // Add modified flag when editing a question
-            copy_of: null
-          };
-          return updatedQuestion;
-        }
-        return q;
-      }));
+    if (selectedQuizType === QUIZ_TYPES.OPEN_ANSWER) {
+      const newQuestion = {
+        ...question,
+        id: editingQuestion ? editingQuestion.id : Date.now(),
+        type: QUIZ_TYPES.OPEN_ANSWER,
+        modified: editingQuestion ? true : false,
+        copy_of: null,
+        // Include fileName with the question data
+        fileName: question.fileName,
+        answer: question.answer,
+        mediaType: question.mediaType,
+        mediaUrl: question.mediaUrl,
+        showImageGradually: question.showImageGradually
+      };
+
+      if (editingQuestion) {
+        setQuestions(questions.map(q => q.id === editingQuestion.id ? newQuestion : q));
+      } else {
+        setQuestions([...questions, newQuestion]);
+      }
+      
       setEditingQuestion(null);
       if (formRef.current) {
         formRef.current.resetForm();
       }
     } else {
-      const newQuestion = { 
-        ...question, 
-        id: Date.now(),
-        copy_of: null, // New questions don't have copy_of
-        modified: false // New questions are not modified
-      };
-      setQuestions([...questions, newQuestion]);
+      // Original ABCD/True-False handling
+      if (!question.type) {
+        question.type = isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE;
+      }
+      
+      if (editingQuestion) {
+        setQuestions(questions.map(q => {
+          if (q.id === editingQuestion.id) {
+            return { 
+              ...question, 
+              id: editingQuestion.id,
+              modified: true,
+              copy_of: null
+            };
+          }
+          return q;
+        }));
+        setEditingQuestion(null);
+        if (formRef.current) {
+          formRef.current.resetForm();
+        }
+      } else {
+        const newQuestion = { 
+          ...question, 
+          id: Date.now(),
+          copy_of: null,
+          modified: false
+        };
+        setQuestions([...questions, newQuestion]);
+      }
     }
   };
 
@@ -120,9 +147,27 @@ const CreateQuizPage = () => {
   };
 
   const handleEditQuestion = (questionToEdit) => {
-    setEditingQuestion(questionToEdit);
-    // Set form type based on question type
-    setIsAbcd(questionToEdit.type === QUESTION_TYPES.ABCD);
+    // For open answer questions, we need to format the data differently
+    if (questionToEdit.type === QUIZ_TYPES.OPEN_ANSWER) {
+      setEditingQuestion({
+        id: questionToEdit.id,
+        question: questionToEdit.question,
+        answer: questionToEdit.answer,
+        timeLimit: questionToEdit.timeLimit,
+        category: questionToEdit.category,
+        mediaType: questionToEdit.mediaType,
+        mediaUrl: questionToEdit.mediaUrl,
+        fileName: questionToEdit.fileName,  // Add this line
+        showImageGradually: questionToEdit.showImageGradually,
+        type: QUIZ_TYPES.OPEN_ANSWER
+      });
+      setSelectedQuizType(QUIZ_TYPES.OPEN_ANSWER);
+    } else {
+      // For ABCD/True-False questions
+      setEditingQuestion(questionToEdit);
+      setIsAbcd(questionToEdit.type === QUESTION_TYPES.ABCD);
+      setSelectedQuizType(QUIZ_TYPES.ABCD);
+    }
   };
 
   const handleMoveQuestion = (fromIndex, toIndex) => {
@@ -264,6 +309,7 @@ const CreateQuizPage = () => {
             sx={{ minWidth: 200 }}
           >
             <MenuItem value={QUIZ_TYPES.ABCD}>ABCD Kvíz</MenuItem>
+            <MenuItem value={QUIZ_TYPES.OPEN_ANSWER}>Otevřené odpovědi</MenuItem>
             <MenuItem value="other" disabled>Další typy (Připravujeme)</MenuItem>
           </Select>
           <TextField
@@ -311,13 +357,15 @@ const CreateQuizPage = () => {
             height: '100%',
             overflow: 'hidden'
           }}>
-            <Button 
-              variant="outlined" 
-              onClick={toggleQuestionType}
-              sx={{ mb: 2 }}
-            >
-              Přepnout na {isAbcd ? 'Pravda/Lež' : 'ABCD'}
-            </Button>
+            {selectedQuizType === QUIZ_TYPES.ABCD && (
+              <Button 
+                variant="outlined" 
+                onClick={toggleQuestionType}
+                sx={{ mb: 2 }}
+              >
+                Přepnout na {isAbcd ? 'Pravda/Lež' : 'ABCD'}
+              </Button>
+            )}
 
             <Box sx={{
               display: 'flex',
@@ -331,12 +379,20 @@ const CreateQuizPage = () => {
                 pr: 2,
                 ...scrollbarStyle
               }}>
-                <QuestionForm 
-                  ref={formRef}
-                  onSubmit={handleAddQuestion}
-                  editQuestion={editingQuestion}
-                  isAbcd={isAbcd}
-                />
+                {selectedQuizType === QUIZ_TYPES.ABCD ? (
+                  <QuestionForm 
+                    ref={formRef}
+                    onSubmit={handleAddQuestion}
+                    editQuestion={editingQuestion}
+                    isAbcd={isAbcd}
+                  />
+                ) : (
+                  <OpenAnswerForm
+                    ref={formRef}
+                    onSubmit={handleAddQuestion}
+                    editQuestion={editingQuestion}
+                  />
+                )}
               </Box>
 
               <Box sx={{ pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
