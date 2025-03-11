@@ -27,6 +27,20 @@ const QuestionCard = ({
     setIsExpanded(!isExpanded);
   };
 
+  // Determine question type label
+  const getQuestionTypeLabel = () => {
+    switch(question.type) {
+      case QUESTION_TYPES.ABCD: 
+        return 'ABCD';
+      case QUESTION_TYPES.TRUE_FALSE: 
+        return 'Pravda/Lež';
+      case QUESTION_TYPES.OPEN_ANSWER: 
+        return 'Otevřená odpověď';
+      default: 
+        return question.type;
+    }
+  };
+
   return (
     <>
       <ListItem 
@@ -84,7 +98,7 @@ const QuestionCard = ({
               }}
             >
               <span style={{ color: 'primary.main' }}>
-                {question.type === QUESTION_TYPES.ABCD ? 'ABCD' : 'Pravda/Lež'}
+                {getQuestionTypeLabel()}
               </span>
               <span>•</span>
               <span>Hráno {question.timesPlayed}×</span>
@@ -127,6 +141,15 @@ const QuestionCard = ({
                 </Typography>
               </Box>
             ))}
+            
+            {/* Show media type info for open answers if available */}
+            {question.type === QUESTION_TYPES.OPEN_ANSWER && question.media_type && (
+              <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+                {question.media_type === 'image' 
+                  ? `Obrázek${question.show_image_gradually ? ' (postupné odkrývání)' : ''}` 
+                  : 'Audio'}
+              </Typography>
+            )}
           </Stack>
         </Box>
       </Collapse>

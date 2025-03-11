@@ -14,7 +14,7 @@ import ShuffleIcon from '@mui/icons-material/Shuffle';
 import QuestionAnswerIcon from '@mui/icons-material/EditNote';
 import SearchIcon from '@mui/icons-material/Search';
 import QuizListItem from '../../../components/desktop/home/QuizListItem';
-import { QUIZ_TYPES } from '../../../constants/quizValidation';
+import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const QuizTypeButton = ({ icon: Icon, label, value, selected, onChange }) => (
@@ -84,14 +84,14 @@ const DesktopHomePage = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const quizTypeIcons = {
-    [QUIZ_TYPES.ABCD]: { icon: QuizIcon, label: 'ABCD Kvíz' },
-    [QUIZ_TYPES.OPEN_ANSWER]: { icon: QuestionAnswerIcon, label: 'Otevřené odpovědi' },
-    [QUIZ_TYPES.BLIND_MAP]: { icon: MapIcon, label: 'Slepá mapa' },
-    [QUIZ_TYPES.DRAWING]: { icon: DrawIcon, label: 'Kreslení' },
-    [QUIZ_TYPES.WORD_CHAIN]: { icon: LinkIcon, label: 'Slovní řetěz' },
-    [QUIZ_TYPES.MATH_QUIZ]: { icon: CalculateIcon, label: 'Matematický kvíz' },
-    [QUIZ_TYPES.GUESS_A_NUMBER]: { icon: Filter1Icon, label: 'Hádej číslo' },
-    [QUIZ_TYPES.COMBINED_QUIZ]: { icon: ShuffleIcon, label: 'Kombinovaný kvíz' },
+    [QUIZ_TYPES.ABCD]: { icon: QuizIcon, label: QUIZ_TYPE_TRANSLATIONS[QUIZ_TYPES.ABCD] },
+    [QUIZ_TYPES.OPEN_ANSWER]: { icon: QuestionAnswerIcon, label: QUIZ_TYPE_TRANSLATIONS[QUIZ_TYPES.OPEN_ANSWER] },
+    [QUIZ_TYPES.BLIND_MAP]: { icon: MapIcon, label: QUIZ_TYPE_TRANSLATIONS[QUIZ_TYPES.BLIND_MAP] },
+    [QUIZ_TYPES.DRAWING]: { icon: DrawIcon, label: QUIZ_TYPE_TRANSLATIONS[QUIZ_TYPES.DRAWING] },
+    [QUIZ_TYPES.WORD_CHAIN]: { icon: LinkIcon, label: QUIZ_TYPE_TRANSLATIONS[QUIZ_TYPES.WORD_CHAIN] },
+    [QUIZ_TYPES.MATH_QUIZ]: { icon: CalculateIcon, label: QUIZ_TYPE_TRANSLATIONS[QUIZ_TYPES.MATH_QUIZ] },
+    [QUIZ_TYPES.GUESS_A_NUMBER]: { icon: Filter1Icon, label: QUIZ_TYPE_TRANSLATIONS[QUIZ_TYPES.GUESS_A_NUMBER] },
+    [QUIZ_TYPES.COMBINED_QUIZ]: { icon: ShuffleIcon, label: QUIZ_TYPE_TRANSLATIONS[QUIZ_TYPES.COMBINED_QUIZ] },
   };
 
   const fetchQuizzes = async (newPage = 1, newSearch = searchQuery) => {

@@ -5,6 +5,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom'; // Add this
+import { QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation'; // Adjust the import path as necessary
 
 const QuizListItem = ({ quiz, isPublic, onEditPublic, onToggleShare, onEdit, onDelete }) => {
   const navigate = useNavigate();  // Add this
@@ -38,7 +39,7 @@ const QuizListItem = ({ quiz, isPublic, onEditPublic, onToggleShare, onEdit, onD
           {quiz.name}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-          {quiz.type}
+          {QUIZ_TYPE_TRANSLATIONS[quiz.type] || quiz.type}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Počet otázek: {quiz.questionCount || quiz.questions?.length || 0}

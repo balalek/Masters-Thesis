@@ -31,7 +31,10 @@ QUIZ_VALIDATION = {
     "ANSWER_MAX_LENGTH": 50,
     "TIME_LIMIT_MIN": 5,
     "TIME_LIMIT_MAX": 120,
-    'QUIZ_NAME_MAX_LENGTH': 200
+    'QUIZ_NAME_MAX_LENGTH': 200,
+    "MEDIA_FILE_SIZE_LIMIT": 5 * 1024 * 1024,  # 5MB
+    "ALLOWED_IMAGE_TYPES": ["image/jpeg", "image/png", "image/gif"],
+    "ALLOWED_AUDIO_TYPES": ["audio/mpeg", "audio/wav", "audio/ogg"]
 }
 
 # Quiz and question type constants
@@ -50,8 +53,6 @@ QUESTION_TYPES = {
     "ABCD": "ABCD",
     "TRUE_FALSE": "TRUE_FALSE",
     "OPEN_ANSWER": "OPEN_ANSWER",
-    "OPEN_ANSWER_AUDIO": "OPEN_ANSWER_AUDIO",
-    "OPEN_ANSWER_IMAGE": "OPEN_ANSWER_IMAGE",
     "BLIND_MAP_CZECH": "BLIND_MAP_CZECH",
     "BLIND_MAP_EUROPE": "BLIND_MAP_EUROPE",
     "DRAWING": "DRAWING",

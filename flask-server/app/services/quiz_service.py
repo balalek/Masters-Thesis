@@ -31,6 +31,19 @@ class QuizService:
             )
 
     @staticmethod
+    def _determine_copy_of(question_data: dict, original: dict, is_modified: bool, is_existing: bool) -> ObjectId:
+        """Determine the 'copy_of' field value for a question."""
+        if is_modified:
+            return None
+        if question_data.get("copy_of"):
+            return ObjectId(question_data["copy_of"])
+        if original and original.get("copy_of"):
+            return original["copy_of"]
+        if not original or (is_existing and str(original["_id"]) == str(question_data.get("_id"))):
+            return None
+        return original["_id"]
+
+    @staticmethod
     def _create_question(question_data: dict, quiz_id: ObjectId, device_id: str, order: int) -> dict:
         """Create or update a question and return its reference data"""
         # Validate question type
@@ -51,37 +64,42 @@ class QuizService:
                 if copies:
                     QuizService._handle_copy_references(ObjectId(question_data["_id"]), copies)
 
-        # Create question object without _id field
+        # Create base question dict
         question_dict = {
             "question": question_data["question"],
             "type": question_type,
-            "options": question_data["answers"] if "answers" in question_data else question_data["options"],
-            "answer": question_data["correctAnswer"] if "correctAnswer" in question_data else question_data["answer"],
-            "length": question_data["timeLimit"] if "timeLimit" in question_data else question_data["length"],
+            "length": question_data.get("timeLimit", question_data.get("length", 30)),
             "category": question_data["category"],
             "part_of": quiz_id,
             "created_by": device_id,
-            "copy_of": None if is_modified else (
-                ObjectId(question_data["copy_of"]) if question_data.get("copy_of") else (
-                    original["copy_of"] if original and original.get("copy_of") else 
-                    original["_id"] if original else None
-                )
-            ),
+            "copy_of": QuizService._determine_copy_of(question_data, original, is_modified, is_existing),
             "metadata": QuestionMetadata().to_dict()
         }
 
+        # Add type-specific fields
+        if question_type in [QUESTION_TYPES["ABCD"], QUESTION_TYPES["TRUE_FALSE"]]:
+            question_dict.update({
+                "options": question_data.get("answers", question_data.get("options")),
+                "answer": question_data.get("correctAnswer", question_data.get("answer"))
+            })
+        elif question_type == QUESTION_TYPES["OPEN_ANSWER"]:
+            question_dict.update({
+                "open_answer": question_data.get("answer"),
+                "media_type": question_data.get("mediaType"),
+                "media_url": question_data.get("mediaUrl"),
+                "show_image_gradually": question_data.get("showImageGradually", False)
+            })
+
         if is_existing:
-            # Update existing question without modifying _id
             db.questions.update_one(
                 {"_id": ObjectId(question_data["_id"])},
                 {"$set": question_dict}
             )
             question_id = ObjectId(question_data["_id"])
         else:
-            # Create new question (including copies)
             result = db.questions.insert_one(question_dict)
             question_id = result.inserted_id
-            if not question_data.get("is_copy"):  # Only store if not a copy
+            if not question_data.get("is_copy"):
                 LocalStorageService.store_created_question(str(question_id))
 
         return {"questionId": question_id, "order": order}
@@ -211,15 +229,57 @@ class QuizService:
         # Handle 'mine' filter type - show all my questions
         if filter_type == 'mine':
             query['created_by'] = device_id
+            
             questions = list(db.questions.find(query))
+            
             result = []
             
             for question in questions:
+                
                 quiz = db.quizzes.find_one({'_id': question['part_of']}) if question.get('part_of') else None
                 question_data = convert_mongo_doc(question)
                 question_data['quizName'] = quiz['name'] if quiz else 'Unknown Quiz'
                 question_data['timesPlayed'] = question.get('metadata', {}).get('timesUsed', 0)
                 question_data['isMyQuestion'] = True
+                
+                # Handle different question types
+                if question.get('type') in [QUESTION_TYPES['ABCD'], QUESTION_TYPES['TRUE_FALSE']]:
+                    # Format ABCD/True-False questions
+                    if 'options' in question and question.get('answer') is not None:
+                        question_data['answers'] = [
+                            {'text': option, 'isCorrect': idx == question['answer']}
+                            for idx, option in enumerate(question['options'])
+                        ]
+                    else:
+                        # Fallback for malformed questions
+                        question_data['answers'] = [
+                            {'text': 'Missing options', 'isCorrect': True}
+                        ]
+                        
+                elif question.get('type') == QUESTION_TYPES['OPEN_ANSWER']:
+                    # Format open answer questions
+                    open_answer = question.get('open_answer', '')
+                    if not open_answer and 'answer' in question:  # Fallback to 'answer' field if needed
+                        open_answer = question.get('answer', '')
+                        
+                    question_data['answers'] = [
+                        {'text': f"Správná odpověď: {open_answer}", 'isCorrect': True}
+                    ]
+                    question_data['open_answer'] = open_answer
+                    
+                    # Add media fields if they exist
+                    if 'media_type' in question:
+                        question_data['media_type'] = question['media_type']
+                    if 'media_url' in question:
+                        question_data['media_url'] = question['media_url']
+                    if 'show_image_gradually' in question:
+                        question_data['show_image_gradually'] = question['show_image_gradually']
+                else:
+                    # Handle unknown question types
+                    question_data['answers'] = [
+                        {'text': f"Neznámý typ otázky: {question.get('type')}", 'isCorrect': True}
+                    ]
+                
                 result.append(question_data)
                 
         # Handle 'others' filter type - show only public originals or their public copies
@@ -241,6 +301,19 @@ class QuizService:
                     question_data['quizName'] = quiz['name'] if quiz else 'Unknown Quiz'
                     question_data['timesPlayed'] = question.get('metadata', {}).get('timesUsed', 0)
                     question_data['isMyQuestion'] = False
+                    
+                    # Handle different question types
+                    if question['type'] in [QUESTION_TYPES['ABCD'], QUESTION_TYPES['TRUE_FALSE']]:
+                        question_data['answers'] = [
+                            {'text': option, 'isCorrect': idx == question['answer']}
+                            for idx, option in enumerate(question['options'])
+                        ]
+                    elif question['type'] == QUESTION_TYPES['OPEN_ANSWER']:
+                        question_data['answers'] = [
+                            {'text': f"Správná odpověď: {question.get('open_answer', '')}", 'isCorrect': True}
+                        ]
+                        question_data['open_answer'] = question.get('open_answer', '')
+                        
                     result.append(question_data)
                 else:
                     # Find a public copy of this question
@@ -259,10 +332,23 @@ class QuizService:
                         copy_data['quizName'] = copy_quiz['name'] if copy_quiz else 'Unknown Quiz'
                         copy_data['timesPlayed'] = public_copy.get('metadata', {}).get('timesUsed', 0)
                         copy_data['isMyQuestion'] = False
+                        
+                        # Handle different question types for copies
+                        if public_copy['type'] in [QUESTION_TYPES['ABCD'], QUESTION_TYPES['TRUE_FALSE']]:
+                            copy_data['answers'] = [
+                                {'text': option, 'isCorrect': idx == public_copy['answer']}
+                                for idx, option in enumerate(public_copy['options'])
+                            ]
+                        elif public_copy['type'] == QUESTION_TYPES['OPEN_ANSWER']:
+                            copy_data['answers'] = [
+                                {'text': f"Správná odpověď: {public_copy.get('open_answer', '')}", 'isCorrect': True}
+                            ]
+                            copy_data['open_answer'] = public_copy.get('open_answer', '')
+                            
                         result.append(copy_data)
-
+                # TODO is this needed?
                 processed_originals.add(str(question['_id']))
-
+        
         # Sort results by timesPlayed
         result.sort(key=lambda x: x['timesPlayed'], reverse=True)
         
@@ -357,7 +443,7 @@ class QuizService:
         }
 
     @staticmethod
-    def update_quiz(quiz_id: str, name: str, questions: List[dict], device_id: str, deleted_questions: List[str] = None) -> ObjectId:
+    def update_quiz(quiz_id: str, name: str, questions: List[dict], device_id: str, deleted_questions: List[str] = None, quiz_type: str = None) -> ObjectId:
         """Update existing quiz and its questions"""
         quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
         if not quiz:
@@ -365,11 +451,15 @@ class QuizService:
             
         if quiz.get("created_by") != device_id:
             raise ValueError("Nemáte oprávnění upravovat tento kvíz")
+        
+        # Update quiz basic info including type
+        update_fields = {"name": name}
+        if quiz_type:
+            update_fields["type"] = quiz_type
             
-        # Update quiz basic info
         db.quizzes.update_one(
             {"_id": ObjectId(quiz_id)},
-            {"$set": {"name": name}}
+            {"$set": update_fields}
         )
         
         # Get existing question IDs before update

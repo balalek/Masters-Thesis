@@ -219,7 +219,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
       {isAbcd ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {formData.answers.map((answer, index) => (
-            <Box key={index} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Box key={index} sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
               <TextField
                 fullWidth
                 label={`Odpověď ${answerLetters[index]}`}
@@ -232,10 +232,12 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
                 error={!!errors.answers[index]}
                 helperText={errors.answers[index] || `${answer.length}/${QUIZ_VALIDATION.ANSWER_MAX_LENGTH}`}
               />
-              <Radio
-                checked={formData.correctAnswer === index}
-                onChange={() => setFormData({ ...formData, correctAnswer: index })}
-              />
+              <Box sx={{ display: 'flex', alignItems: 'center', height: '56px' }}>
+                <Radio
+                  checked={formData.correctAnswer === index}
+                  onChange={() => setFormData({ ...formData, correctAnswer: index })}
+                />
+              </Box>
             </Box>
           ))}
         </Box>

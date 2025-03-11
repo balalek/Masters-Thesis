@@ -245,6 +245,7 @@ def update_quiz(quiz_id):
         quiz_name = data.get('name')
         questions = data.get('questions', [])
         deleted_questions = data.get('deletedQuestions', [])  # Get deleted questions
+        quiz_type = data.get('type')  # Get the quiz type
         device_id = get_device_id()
         
         if not quiz_name:
@@ -261,7 +262,8 @@ def update_quiz(quiz_id):
             quiz_name, 
             questions, 
             device_id,
-            deleted_questions  # Pass deleted questions to service
+            deleted_questions,  # Pass deleted questions to service
+            quiz_type  # Pass the quiz type to the service
         )
         return jsonify({
             "message": "Kvíz byl úspěšně aktualizován",

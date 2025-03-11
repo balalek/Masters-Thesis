@@ -57,6 +57,8 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
 
     if (!formData.answer.trim()) {
       newErrors.answer = 'Odpověď je povinná';
+    } else if (formData.answer.length > QUIZ_VALIDATION.ANSWER_MAX_LENGTH) {
+      newErrors.answer = `Maximální délka je ${QUIZ_VALIDATION.ANSWER_MAX_LENGTH} znaků`;
     }
 
     if (!formData.category) {
@@ -94,6 +96,8 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       ...formData,
       mediaType: isImage ? 'image' : 'audio',
       mediaUrl: URL.createObjectURL(file),
+      // Always set showImageGradually to false unless it's an image
+      showImageGradually: isImage ? formData.showImageGradually : false
     });
   };
 
@@ -110,6 +114,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
     }
   };
 
+  // Reset form should also ensure showImageGradually is false if no media
   const resetForm = () => {
     setFormData({
       question: '',
@@ -118,7 +123,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       category: '',
       mediaType: null,
       mediaUrl: null,
-      showImageGradually: false,
+      showImageGradually: false,  // Always reset to false
     });
     setMediaFile(null);
     setFileName('');
@@ -138,7 +143,12 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
         value={formData.question}
         onChange={(e) => setFormData({ ...formData, question: e.target.value })}
         error={!!errors.question}
-        helperText={errors.question}
+        helperText={errors.question || `${formData.question.length}/${QUIZ_VALIDATION.QUESTION_MAX_LENGTH}`}
+        sx={{ 
+          '& .MuiInputLabel-root': {
+            px: 0.5
+          }
+        }}
       />
 
       <TextField
@@ -147,7 +157,12 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
         value={formData.answer}
         onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
         error={!!errors.answer}
-        helperText={errors.answer}
+        helperText={errors.answer || `${formData.answer.length}/${QUIZ_VALIDATION.ANSWER_MAX_LENGTH}`}
+        sx={{ 
+          '& .MuiInputLabel-root': {
+            px: 0.5
+          }
+        }}
       />
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>

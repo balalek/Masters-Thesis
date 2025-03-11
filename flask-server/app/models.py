@@ -1,6 +1,7 @@
 from bson import ObjectId
 from typing import List, Optional
 from datetime import datetime
+from .constants import QUESTION_TYPES
 
 class QuestionMetadata:
     def __init__(self, times_used: int = 0, average_correct_rate: float = 0.0):
@@ -18,35 +19,43 @@ class Question:
         self,
         question: str,
         type: str,
-        options: List[str],
-        answer: int,
-        length: int,
-        category: str,
+        options: List[str] = None,  # Make optional for open answers
+        answer: int = None,         # Make optional for open answers
+        length: int = 30,
+        category: str = None,
         part_of: Optional[ObjectId] = None,  # Add part_of parameter to store quiz ID
         created_by: Optional[str] = None,  # Add created_by parameter to store device ID
         copy_of: Optional[ObjectId] = None,  # Add copy_of parameter to reference original question
         metadata: Optional[QuestionMetadata] = None,
-        _id: Optional[ObjectId] = None
+        _id: Optional[ObjectId] = None,
+        # Add new fields for open answers
+        open_answer: Optional[str] = None,
+        media_type: Optional[str] = None,
+        media_url: Optional[str] = None,
+        show_image_gradually: bool = False
     ):
         self._id = _id or ObjectId()
         self.question = question
         self.type = type
         self.options = options
         self.answer = answer
+        self.open_answer = open_answer
         self.length = length
         self.category = category
         self.part_of = part_of  # Store the ObjectId of the quiz this question belongs to
         self.created_by = created_by  # Store the device ID that created this question
         self.copy_of = copy_of  # Store the ObjectId of the original question this is a copy of
         self.metadata = metadata or QuestionMetadata()
+        # Add media fields
+        self.media_type = media_type
+        self.media_url = media_url
+        self.show_image_gradually = show_image_gradually
 
     def to_dict(self):
-        return {
+        base_dict = {
             "_id": self._id,
             "question": self.question,
             "type": self.type,
-            "options": self.options,
-            "answer": self.answer,
             "length": self.length,
             "category": self.category,
             "part_of": self.part_of,  # Include part_of in the dictionary
@@ -54,6 +63,22 @@ class Question:
             "copy_of": self.copy_of,  # Include copy_of in the dictionary
             "metadata": self.metadata.to_dict()
         }
+        
+        # Add type-specific fields
+        if self.type in [QUESTION_TYPES["ABCD"], QUESTION_TYPES["TRUE_FALSE"]]:
+            base_dict.update({
+                "options": self.options,
+                "answer": self.answer
+            })
+        elif self.type == QUESTION_TYPES["OPEN_ANSWER"]:
+            base_dict.update({
+                "open_answer": self.open_answer,
+                "media_type": self.media_type,
+                "media_url": self.media_url,
+                "show_image_gradually": self.show_image_gradually
+            })
+            
+        return base_dict
 
 class Quiz:
     def __init__(

@@ -49,21 +49,47 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
         page: pageNum
       });
       
+      console.log(`Fetching questions with params: ${params.toString()}`);
+      
       const response = await fetch(`/get_existing_questions?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch questions');
       }
       
       const data = await response.json();
-      const newQuestions = data.questions.map(q => ({
-        ...q,
-        id: q._id,
-        text: q.question,
-        answers: q.options.map((text, index) => ({
-          text,
-          isCorrect: index === q.answer
-        }))
-      }));
+      console.log(`Got ${data.questions.length} questions, total: ${data.totalCount}`);
+      
+      const newQuestions = data.questions.map(q => {
+        // Make sure answers is always properly formatted
+        let answers = q.answers;
+        if (!answers && q.type === QUESTION_TYPES.OPEN_ANSWER) {
+          answers = [{ text: `Správná odpověď: ${q.open_answer || ''}`, isCorrect: true }];
+        } else if (!answers && q.options) {
+          answers = q.options.map((text, index) => ({
+            text,
+            isCorrect: index === q.answer
+          }));
+        }
+        
+        // Ensure we preserve all important fields for open answers
+        const questionData = {
+          ...q,
+          id: q._id,
+          text: q.question,
+          answers: answers
+        };
+        
+        // Make sure open answer fields are properly included
+        if (q.type === QUESTION_TYPES.OPEN_ANSWER) {
+          questionData.answer = q.open_answer;  // Make sure we preserve the answer
+          questionData.mediaType = q.media_type;
+          questionData.mediaUrl = q.media_url;
+          questionData.showImageGradually = q.show_image_gradually;
+          questionData.fileName = q.media_url ? q.media_url.split('/').pop() : '';
+        }
+        
+        return questionData;
+      });
 
       setQuestions(append ? [...questions, ...newQuestions] : newQuestions);
       setHasMore(data.hasMore);
@@ -131,18 +157,16 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
   };
 
   const filteredQuestions = questions.filter(question => {
-    const matchesSearch = question.text.toLowerCase().includes(search.toLowerCase());
+    if (!question) return false;
+    
+    const matchesSearch = question.text && question.text.toLowerCase().includes(search.toLowerCase());
     const matchesSource = 
       (questionSource === 'mine' && question.isMyQuestion) ||
       (questionSource === 'others' && !question.isMyQuestion);
     
-    // Updated type matching to only include ABCD and TRUE_FALSE when "all" is selected
+    // Fix matching logic to show ALL question types when "all" is selected
     const matchesType = 
-      (questionTypes === 'all' && (
-        question.type === QUESTION_TYPES.ABCD || 
-        question.type === QUESTION_TYPES.TRUE_FALSE
-      )) || 
-      question.type === questionTypes;
+      questionTypes === 'all' || question.type === questionTypes;
       
     return matchesSearch && matchesSource && matchesType;
   });
@@ -210,6 +234,7 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
               <MenuItem value="all">Všechny typy</MenuItem>
               <MenuItem value={QUESTION_TYPES.ABCD}>ABCD</MenuItem>
               <MenuItem value={QUESTION_TYPES.TRUE_FALSE}>Pravda/Lež</MenuItem>
+              <MenuItem value={QUESTION_TYPES.OPEN_ANSWER}>Otevřená odpověď</MenuItem>
             </Select>
           </FormControl>
         </Box>
