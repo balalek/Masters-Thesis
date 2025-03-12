@@ -33,6 +33,12 @@ const CreateQuizPage = () => {
   const [quizNameHelperText, setQuizNameHelperText] = useState('');
   const [existingQuestionsDialogOpen, setExistingQuestionsDialogOpen] = useState(false);
   const [deletedQuestionIds, setDeletedQuestionIds] = useState(new Set());
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info'
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -245,6 +251,10 @@ const CreateQuizPage = () => {
     }
   };
 
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
   const handleCreateQuiz = async () => {
     if (!quizName.trim()) {
       setQuizNameError(true);
@@ -257,47 +267,81 @@ const CreateQuizPage = () => {
       return;
     }
 
-    // Simple and future-proof quiz type logic
-    let finalQuizType = selectedQuizType;
-    
-    const activeQuestions = questions.filter(q => 
-      // If question has an _id, check that it's not in the deleted set
-      !(q._id && deletedQuestionIds.has(q._id))
-    );
-    
-    console.log('Active questions:', activeQuestions); // Debug log
-    console.log('Deleted question IDs:', Array.from(deletedQuestionIds)); // Debug log
-    
-    if (activeQuestions.length > 0) {
-      // Get all unique question types
-      const uniqueQuestionTypes = new Set(activeQuestions.map(q => q.type).filter(Boolean));
-      console.log('Unique question types:', Array.from(uniqueQuestionTypes)); // Debug log
+    try {
+      setLoading(true);
+      const hasMediaFiles = questions.some(q => q.mediaFile);
       
-      // If have size 2, check if its abcd and true/false, then set to ABCD
-      if (uniqueQuestionTypes.size === 2 && 
-          uniqueQuestionTypes.has(QUESTION_TYPES.ABCD) && 
-          uniqueQuestionTypes.has(QUESTION_TYPES.TRUE_FALSE)) {
-            finalQuizType = QUIZ_TYPES.ABCD;
+      if (hasMediaFiles) {
+        setSnackbar({
+          open: true,
+          message: "Nahrávání souborů, prosím čekejte...",
+          severity: "info"
+        });
       }
 
-      // If we have more than one type, it's a combined quiz
-      else if (uniqueQuestionTypes.size > 1) {
-        finalQuizType = QUIZ_TYPES.COMBINED_QUIZ;
-      }
-      else {
-        // Get the first type, but if it's true/false, set to ABCD
-        const firstType = Array.from(uniqueQuestionTypes)[0];
-        if (firstType === QUESTION_TYPES.TRUE_FALSE) {
-          finalQuizType = QUIZ_TYPES.ABCD;
-        } else {
-          finalQuizType = firstType;
+      // Upload all media files first
+      const updatedQuestions = await Promise.all(questions.map(async (question) => {
+        if (question.mediaFile) {
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', question.mediaFile);
+
+          const response = await fetch('/upload_media', {
+            method: 'POST',
+            body: uploadFormData
+          });
+
+          if (!response.ok) throw new Error('Upload failed');
+          const data = await response.json();
+
+          return {
+            ...question,
+            mediaUrl: data.url,
+            mediaFile: undefined // Remove the file before sending to backend
+          };
+        }
+        return question;
+      }));
+
+      // Simple and future-proof quiz type logic
+      let finalQuizType = selectedQuizType;
+      
+      const activeQuestions = questions.filter(q => 
+        // If question has an _id, check that it's not in the deleted set
+        !(q._id && deletedQuestionIds.has(q._id))
+      );
+      
+      console.log('Active questions:', activeQuestions); // Debug log
+      console.log('Deleted question IDs:', Array.from(deletedQuestionIds)); // Debug log
+      
+      if (activeQuestions.length > 0) {
+        // Get all unique question types
+        const uniqueQuestionTypes = new Set(activeQuestions.map(q => q.type).filter(Boolean));
+        console.log('Unique question types:', Array.from(uniqueQuestionTypes)); // Debug log
+        
+        // If have size 2, check if its abcd and true/false, then set to ABCD
+        if (uniqueQuestionTypes.size === 2 && 
+            uniqueQuestionTypes.has(QUESTION_TYPES.ABCD) && 
+            uniqueQuestionTypes.has(QUESTION_TYPES.TRUE_FALSE)) {
+              finalQuizType = QUIZ_TYPES.ABCD;
+        }
+
+        // If we have more than one type, it's a combined quiz
+        else if (uniqueQuestionTypes.size > 1) {
+          finalQuizType = QUIZ_TYPES.COMBINED_QUIZ;
+        }
+        else {
+          // Get the first type, but if it's true/false, set to ABCD
+          const firstType = Array.from(uniqueQuestionTypes)[0];
+          if (firstType === QUESTION_TYPES.TRUE_FALSE) {
+            finalQuizType = QUIZ_TYPES.ABCD;
+          } else {
+            finalQuizType = firstType;
+          }
         }
       }
-    }
 
-    console.log('Final quiz type:', finalQuizType); // Debug log
+      console.log('Final quiz type:', finalQuizType); // Debug log
 
-    try {
       const endpoint = isEditing ? `/quiz/${quizId}/update` : '/create_quiz';
       const response = await fetch(endpoint, {
         method: isEditing ? 'PUT' : 'POST',
@@ -306,7 +350,7 @@ const CreateQuizPage = () => {
         },
         body: JSON.stringify({
           name: quizName,
-          questions: questions,
+          questions: updatedQuestions,
           type: finalQuizType,
           deletedQuestions: Array.from(deletedQuestionIds) // Add deleted questions
         }),
@@ -324,7 +368,13 @@ const CreateQuizPage = () => {
       
     } catch (error) {
       console.error('Error creating/updating quiz:', error);
-      alert('Chyba při vytváření/úpravě kvízu: ' + error.message);
+      setSnackbar({
+        open: true,
+        message: `Chyba při vytváření/úpravě kvízu: ${error.message}`,
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -539,22 +589,26 @@ const CreateQuizPage = () => {
                 variant="contained" 
                 fullWidth 
                 onClick={handleCreateQuiz}
-                disabled={questions.length === 0}
+                disabled={questions.length === 0 || loading}
               >
-                {isEditing ? 'Aktualizovat kvíz' : 'Vytvořit kvíz'}
+                {loading ? 'Zpracování...' : isEditing ? 'Aktualizovat kvíz' : 'Vytvořit kvíz'}
               </Button>
             </Box>
           </Box>
         </Box>
       </Box>
       <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert severity="success" sx={{ width: '100%' }}>
-          Kvíz byl úspěšně vytvořen!
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
         </Alert>
       </Snackbar>
       

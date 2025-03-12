@@ -7,6 +7,7 @@ from datetime import datetime
 from ..constants import QUESTION_TYPES, QUIZ_TYPES
 from .local_storage_service import LocalStorageService
 from .question_handlers.question_handler_factory import QuestionHandlerFactory
+from .cloudinary_service import CloudinaryService
 
 class QuizService:
     @staticmethod
@@ -259,6 +260,16 @@ class QuizService:
                 quiz_data = convert_mongo_doc(quiz)
                 # Count total questions for this quiz
                 quiz_data['questionCount'] = len(quiz.get('questions', []))
+                
+                # Check if quiz has audio questions
+                has_audio = False
+                for q_ref in quiz.get('questions', []):
+                    question = db.questions.find_one({"_id": q_ref["questionId"]})
+                    if question and question.get('media_type') == 'audio':
+                        has_audio = True
+                        break
+                
+                quiz_data['has_audio'] = has_audio
                 result.append(quiz_data)
                 
             has_more = (skip + len(result)) < total
@@ -323,21 +334,30 @@ class QuizService:
         if deleted_questions:
             for question_id in deleted_questions:
                 try:
-                    # Find question to get its type
                     question = db.questions.find_one({"_id": ObjectId(question_id)})
                     if question:
-                        # Get the appropriate handler for this question type
+                        # Delete media file if exists and not used by other questions
+                        if question.get('media_url'):
+                            CloudinaryService.delete_file(question['media_url'], db)
+                            
                         handler = QuestionHandlerFactory.get_handler(question["type"])
-                        # Find questions that reference this as original
                         copies = list(db.questions.find({"copy_of": ObjectId(question_id)}))
                         if copies:
-                            # Use the handler's method instead of QuizService._handle_copy_references
                             handler.handle_copy_references(ObjectId(question_id), copies)
-                    # Delete the question
+                            
                     db.questions.delete_one({"_id": ObjectId(question_id)})
                 except Exception as e:
                     print(f"Error deleting question {question_id}: {str(e)}")
-        
+
+        # Handle questions update with media replacement
+        for question in questions:
+            if question.get('_id'):
+                original = db.questions.find_one({"_id": ObjectId(question['_id'])})
+                if original and original.get('media_url'):
+                    # If media URL changed, delete old file if not used by other questions
+                    if question.get('mediaUrl') != original['media_url']:
+                        CloudinaryService.delete_file(original['media_url'], db)
+
         # Handle questions
         question_refs = QuizService._handle_quiz_questions(
             ObjectId(quiz_id), 
@@ -367,17 +387,18 @@ class QuizService:
         # Get all questions from this quiz
         question_ids = [q["questionId"] for q in quiz["questions"]]
         
-        # Handle copy references for each question before deletion
+        # Handle each question
         for question_id in question_ids:
-            # Find question to get its type
             question = db.questions.find_one({"_id": question_id})
             if question:
-                # Get handler for the question type
+                # Delete media file if exists and not used by other questions
+                if question.get('media_url'):
+                    CloudinaryService.delete_file(question['media_url'], db)
+                    
+                # Handle copy references
                 handler = QuestionHandlerFactory.get_handler(question["type"])
-                # Find questions that reference this as original
                 copies = list(db.questions.find({"copy_of": question_id}))
                 if copies:
-                    # Use the handler's method instead of QuizService._handle_copy_references
                     handler.handle_copy_references(question_id, copies)
 
         # Delete all questions

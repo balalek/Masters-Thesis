@@ -73,7 +73,7 @@ const DesktopHomePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [quizzes, setQuizzes] = useState([]);
   const [publicQuizzes, setPublicQuizzes] = useState([]);
-  const [allowAudioQuizzes, setAllowAudioQuizzes] = useState(true);
+  const [hideAudioQuizzes, setHideAudioQuizzes] = useState(false); // Changed name and default to false
   const [activeTab, setActiveTab] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedQuizToCopy, setSelectedQuizToCopy] = useState(null);
@@ -268,6 +268,15 @@ const DesktopHomePage = () => {
     }
   };
 
+  // Filter quizzes based on audio preference
+  const filteredQuizzes = (activeTab === 0 ? quizzes : publicQuizzes).filter(quiz => {
+    // If hideAudioQuizzes is true and quiz has audio content, filter it out
+    if (hideAudioQuizzes && quiz.has_audio) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <Box>
       {/* Header/Navigation Bar */}
@@ -361,11 +370,11 @@ const DesktopHomePage = () => {
           <FormControlLabel
             control={
               <Checkbox 
-                checked={allowAudioQuizzes}
-                onChange={(e) => setAllowAudioQuizzes(e.target.checked)}
+                checked={hideAudioQuizzes}
+                onChange={(e) => setHideAudioQuizzes(e.target.checked)}
               />
             }
-            label="Povolit audio kvízy"
+            label="Nezobrazovat audio otázky" // Updated label
             sx={{ mr: 2 }}
           />
           <TextField
@@ -389,10 +398,10 @@ const DesktopHomePage = () => {
           </Button>
         </Box>
 
-        {/* Quiz List */}
+        {/* Quiz List - now using filteredQuizzes instead of directly using quizzes or publicQuizzes */}
         <Box sx={{ mt: 2 }}>
           <InfiniteScroll
-            dataLength={activeTab === 0 ? quizzes.length : publicQuizzes.length}
+            dataLength={filteredQuizzes.length}
             next={loadMore}
             hasMore={hasMore}
             loader={
@@ -401,7 +410,7 @@ const DesktopHomePage = () => {
               </Box>
             }
           >
-            {(activeTab === 0 ? quizzes : publicQuizzes).map((quiz, index) => (
+            {filteredQuizzes.map((quiz, index) => (
               <QuizListItem 
                 key={`${activeTab}-${quiz._id}-${page}-${index}`}
                 quiz={quiz} 
@@ -414,7 +423,7 @@ const DesktopHomePage = () => {
             ))}
           </InfiniteScroll>
           
-          {!loading && (activeTab === 0 ? quizzes : publicQuizzes).length === 0 && (
+          {!loading && filteredQuizzes.length === 0 && (
             <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
               {searchQuery 
                 ? 'Nenalezeny žádné kvízy odpovídající vašemu vyhledávání'

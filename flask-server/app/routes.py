@@ -7,6 +7,7 @@ from time import time
 from .services.quiz_service import QuizService
 from .services.local_storage_service import LocalStorageService
 from .utils import convert_mongo_doc, get_device_id, check_internet_connection
+from .services.cloudinary_service import CloudinaryService
 
 @app.route('/')
 def index():
@@ -363,5 +364,49 @@ def get_quizzes():
             "total": result["total"],
             "hasMore": result["has_more"]
         }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/upload_media', methods=['POST'])
+def upload_media():
+    """Upload media files to Cloudinary and return the URL"""
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+        
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
+    
+    try:
+        # Determine if it's image or audio based on mimetype
+        mimetype = file.mimetype
+        resource_type = "auto"
+        folder = "quiz_media"
+        transformation = None
+        
+        # Prepare optimized transformations based on file type
+        if mimetype.startswith('image/'):
+            resource_type = "image"
+            transformation = {"quality": "auto", "fetch_format": "auto"}
+        elif mimetype.startswith('audio/'):
+            resource_type = "video"  # Cloudinary uses "video" type for audio too
+            folder = "quiz_audio"
+        
+        # Upload to Cloudinary
+        result = CloudinaryService.upload_file(
+            file,
+            folder=folder,
+            resource_type=resource_type,
+            transformation=transformation
+        )
+        
+        # Return the secure URL and other needed metadata
+        return jsonify({
+            "url": result["secure_url"],
+            "public_id": result["public_id"],
+            "resource_type": resource_type,
+            "format": result["format"]
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500

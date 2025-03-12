@@ -1,11 +1,14 @@
 # db.py
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import os
 
-# TODO remove this line after application is done
-uri = "mongodb+srv://balalek2:94S1QEYE6sjzqJpQ@homequiz.vw2v2.mongodb.net/?retryWrites=true&w=majority&appName=HomeQuiz"
+uri = os.getenv('MONGODB_URI')
+if not uri:
+    raise ValueError("MONGODB_URI environment variable is not set")
+
 client = MongoClient(uri, server_api=ServerApi('1'))
-db = client.quiz_db  # database name
+db = client.quiz_db
 
 # Test connection
 try:

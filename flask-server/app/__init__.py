@@ -1,6 +1,11 @@
 from flask import Flask
 from flask_socketio import SocketIO
 from flask_cors import CORS
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Import MongoDB connection
 from .db import db

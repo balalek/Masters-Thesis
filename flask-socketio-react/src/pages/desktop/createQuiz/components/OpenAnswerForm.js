@@ -90,28 +90,34 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       return;
     }
 
+    if (file.size > QUIZ_VALIDATION.MEDIA_FILE_SIZE_LIMIT) {
+      setErrors({ 
+        ...errors, 
+        media: `Soubor je příliš velký. Maximální velikost je ${QUIZ_VALIDATION.MEDIA_FILE_SIZE_LIMIT / 1024 / 1024}MB` 
+      });
+      return;
+    }
+
     setMediaFile(file);
     setFileName(file.name);
     setFormData({
       ...formData,
       mediaType: isImage ? 'image' : 'audio',
-      mediaUrl: URL.createObjectURL(file),
-      // Always set showImageGradually to false unless it's an image
+      mediaUrl: URL.createObjectURL(file), // Just for preview
       showImageGradually: isImage ? formData.showImageGradually : false
     });
   };
 
   const handleSubmit = () => {
-    if (validateForm()) {
-      onSubmit({
-        ...formData,
-        mediaFile,
-        fileName,
-      });
-      
-      // Call resetForm instead of manually resetting
-      resetForm();
-    }
+    if (!validateForm()) return;
+
+    onSubmit({
+      ...formData,
+      mediaFile, // Pass the actual file to be uploaded later
+      fileName,
+    });
+    
+    resetForm();
   };
 
   // Reset form should also ensure showImageGradually is false if no media
