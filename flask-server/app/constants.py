@@ -41,23 +41,22 @@ QUIZ_VALIDATION = {
 QUIZ_TYPES = {
     "ABCD": "ABCD",
     "OPEN_ANSWER": "OPEN_ANSWER",
-    "BLIND_MAP": "BLIND_MAP",
-    "DRAWING": "DRAWING",
-    "WORD_CHAIN": "WORD_CHAIN",
-    "MATH_QUIZ": "MATH_QUIZ",
-    "GUESS_A_NUMBER": "GUESS_A_NUMBER",
-    "COMBINED_QUIZ": "COMBINED_QUIZ"
+    "BLIND_MAP": "BLIND_MAP",  # TODO: Implement BlindMapQuestionHandler
+    "DRAWING": "DRAWING",      # TODO: Implement DrawingQuestionHandler
+    "WORD_CHAIN": "WORD_CHAIN",  # TODO: Implement WordChainQuestionHandler
+    "MATH_QUIZ": "MATH_QUIZ",    # TODO: Implement MathQuizQuestionHandler
+    "GUESS_A_NUMBER": "GUESS_A_NUMBER",  # TODO: Implement GuessANumberQuestionHandler
+    "COMBINED_QUIZ": "COMBINED_QUIZ"     # TODO: Implement CombinedQuizHandler
 }
 
 QUESTION_TYPES = {
     "ABCD": "ABCD",
     "TRUE_FALSE": "TRUE_FALSE",
     "OPEN_ANSWER": "OPEN_ANSWER",
-    "BLIND_MAP_CZECH": "BLIND_MAP_CZECH",
-    "BLIND_MAP_EUROPE": "BLIND_MAP_EUROPE",
-    "DRAWING": "DRAWING",
-    "MATH_QUIZ": "MATH_QUIZ",
-    "GUESS_A_NUMBER": "GUESS_A_NUMBER"
+    "BLIND_MAP": "BLIND_MAP",    # TODO: Implement BlindMapQuestionHandler
+    "DRAWING": "DRAWING",        # TODO: Implement DrawingQuestionHandler
+    "MATH_QUIZ": "MATH_QUIZ",    # TODO: Implement MathQuizQuestionHandler
+    "GUESS_A_NUMBER": "GUESS_A_NUMBER"  # TODO: Implement GuessANumberQuestionHandler
 }
 
 QUIZ_CATEGORIES = [

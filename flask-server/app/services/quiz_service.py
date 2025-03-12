@@ -1,48 +1,14 @@
 from ..db import db
-from ..models import Question, Quiz, QuestionMetadata  # Add QuestionMetadata to imports
+from ..models import Question, Quiz, QuestionMetadata
 from bson import ObjectId
-from typing import List
+from typing import List, Dict, Any, Optional, Set
 from ..utils import convert_mongo_doc, get_device_id
 from datetime import datetime
 from ..constants import QUESTION_TYPES, QUIZ_TYPES
 from .local_storage_service import LocalStorageService
+from .question_handlers.question_handler_factory import QuestionHandlerFactory
 
 class QuizService:
-    @staticmethod
-    def _handle_copy_references(old_question_id: ObjectId, copies: List[dict]) -> None:
-        """Handle copy_of references when original question changes or is removed"""
-        if copies:
-            # Find oldest copy to become new original
-            new_original = min(copies, key=lambda x: x.get("created_at", datetime.max))
-            new_original_id = new_original["_id"]
-            
-            # Update all other copies to point to new original
-            db.questions.update_many(
-                {
-                    "copy_of": old_question_id,
-                    "_id": {"$ne": new_original_id}
-                },
-                {"$set": {"copy_of": new_original_id}}
-            )
-            # Make new original a true original
-            db.questions.update_one(
-                {"_id": new_original_id},
-                {"$set": {"copy_of": None}}
-            )
-
-    @staticmethod
-    def _determine_copy_of(question_data: dict, original: dict, is_modified: bool, is_existing: bool) -> ObjectId:
-        """Determine the 'copy_of' field value for a question."""
-        if is_modified:
-            return None
-        if question_data.get("copy_of"):
-            return ObjectId(question_data["copy_of"])
-        if original and original.get("copy_of"):
-            return original["copy_of"]
-        if not original or (is_existing and str(original["_id"]) == str(question_data.get("_id"))):
-            return None
-        return original["_id"]
-
     @staticmethod
     def _create_question(question_data: dict, quiz_id: ObjectId, device_id: str, order: int) -> dict:
         """Create or update a question and return its reference data"""
@@ -51,44 +17,23 @@ class QuizService:
         if question_type not in QUESTION_TYPES.values():
             raise ValueError(f"Neplatný typ otázky: {question_type}")
         
+        # Get the appropriate handler for this question type
+        handler = QuestionHandlerFactory.get_handler(question_type)
+        
         # Determine if this is a new question or an update
         is_existing = "_id" in question_data and not question_data.get("is_copy")
-        is_modified = question_data.get("modified", False)
         original = None
 
         # If it's an existing question, fetch the original
         if is_existing:
             original = db.questions.find_one({"_id": ObjectId(question_data["_id"])})
-            if is_modified and original and original.get("copy_of") is None:
+            if question_data.get("modified", False) and original and original.get("copy_of") is None:
                 copies = list(db.questions.find({"copy_of": ObjectId(question_data["_id"])}))
                 if copies:
-                    QuizService._handle_copy_references(ObjectId(question_data["_id"]), copies)
+                    handler.handle_copy_references(ObjectId(question_data["_id"]), copies)
 
-        # Create base question dict
-        question_dict = {
-            "question": question_data["question"],
-            "type": question_type,
-            "length": question_data.get("timeLimit", question_data.get("length", 30)),
-            "category": question_data["category"],
-            "part_of": quiz_id,
-            "created_by": device_id,
-            "copy_of": QuizService._determine_copy_of(question_data, original, is_modified, is_existing),
-            "metadata": QuestionMetadata().to_dict()
-        }
-
-        # Add type-specific fields
-        if question_type in [QUESTION_TYPES["ABCD"], QUESTION_TYPES["TRUE_FALSE"]]:
-            question_dict.update({
-                "options": question_data.get("answers", question_data.get("options")),
-                "answer": question_data.get("correctAnswer", question_data.get("answer"))
-            })
-        elif question_type == QUESTION_TYPES["OPEN_ANSWER"]:
-            question_dict.update({
-                "open_answer": question_data.get("answer"),
-                "media_type": question_data.get("mediaType"),
-                "media_url": question_data.get("mediaUrl"),
-                "show_image_gradually": question_data.get("showImageGradually", False)
-            })
+        # Create question dict using the handler
+        question_dict = handler.create_question_dict(question_data, quiz_id, device_id, original)
 
         if is_existing:
             db.questions.update_one(
@@ -105,7 +50,7 @@ class QuizService:
         return {"questionId": question_id, "order": order}
 
     @staticmethod
-    def _handle_quiz_questions(quiz_id: ObjectId, questions: List[dict], device_id: str, existing_questions: set = None) -> List[dict]:
+    def _handle_quiz_questions(quiz_id: ObjectId, questions: List[dict], device_id: str, existing_questions: Set[str] = None) -> List[dict]:
         """Process questions for a quiz and return list of question references"""
         question_refs = []
         
@@ -120,9 +65,12 @@ class QuizService:
             removed_ids = existing_questions - new_question_ids
             
             for removed_id in removed_ids:
-                copies = list(db.questions.find({"copy_of": ObjectId(removed_id)}))
-                if copies:
-                    QuizService._handle_copy_references(ObjectId(removed_id), copies)
+                question = db.questions.find_one({"_id": ObjectId(removed_id)})
+                if question:
+                    handler = QuestionHandlerFactory.get_handler(question["type"])
+                    copies = list(db.questions.find({"copy_of": ObjectId(removed_id)}))
+                    if copies:
+                        handler.handle_copy_references(ObjectId(removed_id), copies)
 
         return question_refs
 
@@ -138,7 +86,7 @@ class QuizService:
             questions=[], 
             type=quiz_type, 
             is_public=False,
-            created_by=device_id  # Set the created_by field
+            created_by=device_id
         )
         quiz_result = db.quizzes.insert_one(quiz.to_dict())
         quiz_id = quiz_result.inserted_id
@@ -178,40 +126,6 @@ class QuizService:
             raise e
 
     @staticmethod
-    def is_question_visible(question_id: str) -> bool:
-        """Check if a question is visible based on its parent quiz's visibility"""
-        question = db.questions.find_one({"_id": ObjectId(question_id)})
-        if not question or not question.get("part_of"):
-            return False
-            
-        quiz = db.quizzes.find_one({"_id": question["part_of"]})
-        if not quiz:
-            return False
-            
-        return quiz.get("is_public", False)
-        
-    @staticmethod
-    def get_quizzes_by_device(device_id: str) -> List[dict]:
-        """Get all quizzes created by a specific device -> used in home screen to show all quizzes created by this device
-        TODO Get quizzes from this device instead"""
-        quizzes = list(db.quizzes.find({"created_by": device_id}))
-        return [convert_mongo_doc(quiz) for quiz in quizzes]
-
-    @staticmethod
-    def get_created_questions_IDs() -> List[dict]:
-        """Get all questions created by this device using local storage
-        It should be faster than getting it from MongoDB"""
-        # Get question IDs from local storage
-        local_question_ids = LocalStorageService.get_created_questions()
-        
-        # Convert string IDs to ObjectIds
-        object_ids = [ObjectId(id_str) for id_str in local_question_ids]
-        
-        # Fetch the questions from MongoDB
-        questions = list(db.questions.find({"_id": {"$in": object_ids}}))
-        return [convert_mongo_doc(question) for question in questions]
-
-    @staticmethod
     def get_existing_questions(device_id: str, filter_type: str = 'all', question_type: str = 'all', 
                              search_query: str = '', page: int = 1, per_page: int = 20) -> dict:
         """Get existing questions based on filters with pagination - used in ABCD quiz creation"""
@@ -235,50 +149,15 @@ class QuizService:
             result = []
             
             for question in questions:
-                
                 quiz = db.quizzes.find_one({'_id': question['part_of']}) if question.get('part_of') else None
-                question_data = convert_mongo_doc(question)
-                question_data['quizName'] = quiz['name'] if quiz else 'Unknown Quiz'
-                question_data['timesPlayed'] = question.get('metadata', {}).get('timesUsed', 0)
-                question_data['isMyQuestion'] = True
+                quiz_name = quiz['name'] if quiz else 'Unknown Quiz'
                 
-                # Handle different question types
-                if question.get('type') in [QUESTION_TYPES['ABCD'], QUESTION_TYPES['TRUE_FALSE']]:
-                    # Format ABCD/True-False questions
-                    if 'options' in question and question.get('answer') is not None:
-                        question_data['answers'] = [
-                            {'text': option, 'isCorrect': idx == question['answer']}
-                            for idx, option in enumerate(question['options'])
-                        ]
-                    else:
-                        # Fallback for malformed questions
-                        question_data['answers'] = [
-                            {'text': 'Missing options', 'isCorrect': True}
-                        ]
-                        
-                elif question.get('type') == QUESTION_TYPES['OPEN_ANSWER']:
-                    # Format open answer questions
-                    open_answer = question.get('open_answer', '')
-                    if not open_answer and 'answer' in question:  # Fallback to 'answer' field if needed
-                        open_answer = question.get('answer', '')
-                        
-                    question_data['answers'] = [
-                        {'text': f"Správná odpověď: {open_answer}", 'isCorrect': True}
-                    ]
-                    question_data['open_answer'] = open_answer
-                    
-                    # Add media fields if they exist
-                    if 'media_type' in question:
-                        question_data['media_type'] = question['media_type']
-                    if 'media_url' in question:
-                        question_data['media_url'] = question['media_url']
-                    if 'show_image_gradually' in question:
-                        question_data['show_image_gradually'] = question['show_image_gradually']
-                else:
-                    # Handle unknown question types
-                    question_data['answers'] = [
-                        {'text': f"Neznámý typ otázky: {question.get('type')}", 'isCorrect': True}
-                    ]
+                # Get the appropriate handler for this question type
+                handler = QuestionHandlerFactory.get_handler(question['type'])
+                
+                # Format the question for frontend using the handler
+                question_data = handler.format_for_frontend(question, quiz_name)
+                question_data['isMyQuestion'] = True
                 
                 result.append(question_data)
                 
@@ -297,23 +176,9 @@ class QuizService:
                 
                 if (is_public):
                     # If original question is public, use it
-                    question_data = convert_mongo_doc(question)
-                    question_data['quizName'] = quiz['name'] if quiz else 'Unknown Quiz'
-                    question_data['timesPlayed'] = question.get('metadata', {}).get('timesUsed', 0)
+                    handler = QuestionHandlerFactory.get_handler(question['type'])
+                    question_data = handler.format_for_frontend(question, quiz['name'] if quiz else 'Unknown Quiz')
                     question_data['isMyQuestion'] = False
-                    
-                    # Handle different question types
-                    if question['type'] in [QUESTION_TYPES['ABCD'], QUESTION_TYPES['TRUE_FALSE']]:
-                        question_data['answers'] = [
-                            {'text': option, 'isCorrect': idx == question['answer']}
-                            for idx, option in enumerate(question['options'])
-                        ]
-                    elif question['type'] == QUESTION_TYPES['OPEN_ANSWER']:
-                        question_data['answers'] = [
-                            {'text': f"Správná odpověď: {question.get('open_answer', '')}", 'isCorrect': True}
-                        ]
-                        question_data['open_answer'] = question.get('open_answer', '')
-                        
                     result.append(question_data)
                 else:
                     # Find a public copy of this question
@@ -328,25 +193,14 @@ class QuizService:
                     
                     if public_copy:
                         copy_quiz = db.quizzes.find_one({'_id': public_copy['part_of']})
-                        copy_data = convert_mongo_doc(public_copy)
-                        copy_data['quizName'] = copy_quiz['name'] if copy_quiz else 'Unknown Quiz'
-                        copy_data['timesPlayed'] = public_copy.get('metadata', {}).get('timesUsed', 0)
+                        handler = QuestionHandlerFactory.get_handler(public_copy['type'])
+                        copy_data = handler.format_for_frontend(
+                            public_copy, 
+                            copy_quiz['name'] if copy_quiz else 'Unknown Quiz'
+                        )
                         copy_data['isMyQuestion'] = False
-                        
-                        # Handle different question types for copies
-                        if public_copy['type'] in [QUESTION_TYPES['ABCD'], QUESTION_TYPES['TRUE_FALSE']]:
-                            copy_data['answers'] = [
-                                {'text': option, 'isCorrect': idx == public_copy['answer']}
-                                for idx, option in enumerate(public_copy['options'])
-                            ]
-                        elif public_copy['type'] == QUESTION_TYPES['OPEN_ANSWER']:
-                            copy_data['answers'] = [
-                                {'text': f"Správná odpověď: {public_copy.get('open_answer', '')}", 'isCorrect': True}
-                            ]
-                            copy_data['open_answer'] = public_copy.get('open_answer', '')
-                            
                         result.append(copy_data)
-                # TODO is this needed?
+                
                 processed_originals.add(str(question['_id']))
         
         # Sort results by timesPlayed
@@ -469,10 +323,16 @@ class QuizService:
         if deleted_questions:
             for question_id in deleted_questions:
                 try:
-                    # Find questions that reference this as original
-                    copies = list(db.questions.find({"copy_of": ObjectId(question_id)}))
-                    if copies:
-                        QuizService._handle_copy_references(ObjectId(question_id), copies)
+                    # Find question to get its type
+                    question = db.questions.find_one({"_id": ObjectId(question_id)})
+                    if question:
+                        # Get the appropriate handler for this question type
+                        handler = QuestionHandlerFactory.get_handler(question["type"])
+                        # Find questions that reference this as original
+                        copies = list(db.questions.find({"copy_of": ObjectId(question_id)}))
+                        if copies:
+                            # Use the handler's method instead of QuizService._handle_copy_references
+                            handler.handle_copy_references(ObjectId(question_id), copies)
                     # Delete the question
                     db.questions.delete_one({"_id": ObjectId(question_id)})
                 except Exception as e:
@@ -509,13 +369,19 @@ class QuizService:
         
         # Handle copy references for each question before deletion
         for question_id in question_ids:
-            # Find questions that reference this as original
-            copies = list(db.questions.find({"copy_of": question_id}))
-            if copies:
-                QuizService._handle_copy_references(question_id, copies)
+            # Find question to get its type
+            question = db.questions.find_one({"_id": question_id})
+            if question:
+                # Get handler for the question type
+                handler = QuestionHandlerFactory.get_handler(question["type"])
+                # Find questions that reference this as original
+                copies = list(db.questions.find({"copy_of": question_id}))
+                if copies:
+                    # Use the handler's method instead of QuizService._handle_copy_references
+                    handler.handle_copy_references(question_id, copies)
 
         # Delete all questions
-        db.questions.delete_many({"_id": {"$in": [ObjectId(id) for id in question_ids]}})
+        db.questions.delete_many({"_id": {"$in": question_ids}})
         
         # Delete the quiz
         db.quizzes.delete_one({"_id": ObjectId(quiz_id)})
@@ -546,22 +412,37 @@ class QuizService:
             if not original_q:
                 continue
 
-            # Create new question with proper references
-            new_question = {
+            # Get the appropriate handler for this question type
+            handler = QuestionHandlerFactory.get_handler(original_q["type"])
+
+            # Create question data in a format compatible with handlers
+            question_data = {
                 "question": original_q["question"],
                 "type": original_q["type"],
-                "options": original_q["options"],
-                "answer": original_q["answer"],
-                "length": original_q["length"],
                 "category": original_q["category"],
-                "part_of": new_quiz_id,
-                "created_by": device_id,
-                "copy_of": original_q.get("copy_of") or original_q["_id"],  # Keep original reference chain
-                "metadata": QuestionMetadata().to_dict()  # Reset metadata
+                "timeLimit": original_q["length"],
+                "copy_of": original_q.get("copy_of") or original_q["_id"],
             }
 
+            # Add type-specific fields based on question type
+            if original_q["type"] == QUESTION_TYPES["OPEN_ANSWER"]:
+                question_data.update({
+                    "answer": original_q.get("open_answer", ""),
+                    "mediaType": original_q.get("media_type"),
+                    "mediaUrl": original_q.get("media_url"),
+                    "showImageGradually": original_q.get("show_image_gradually", False)
+                })
+            else:  # ABCD or TRUE_FALSE
+                question_data.update({
+                    "answers": original_q.get("options", []),
+                    "correctAnswer": original_q.get("answer")
+                })
+
+            # Create question dict using the handler
+            question_dict = handler.create_question_dict(question_data, new_quiz_id, device_id, None)
+            
             # Insert new question
-            result = db.questions.insert_one(new_question)
+            result = db.questions.insert_one(question_dict)
             question_refs.append({
                 "questionId": result.inserted_id,
                 "order": idx
