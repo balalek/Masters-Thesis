@@ -27,6 +27,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
   const [errors, setErrors] = useState({});
   const [mediaFile, setMediaFile] = useState(null);
   const [fileName, setFileName] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   // Add this useEffect to handle editing
   useEffect(() => {
@@ -78,7 +79,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleMediaUpload = (event) => {
+  const handleMediaUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -98,14 +99,52 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       return;
     }
 
-    setMediaFile(file);
-    setFileName(file.name);
-    setFormData({
-      ...formData,
-      mediaType: isImage ? 'image' : 'audio',
-      mediaUrl: URL.createObjectURL(file), // Just for preview
-      showImageGradually: isImage ? formData.showImageGradually : false
-    });
+    try {
+      setIsUploading(true);
+      setErrors({ ...errors, media: null });
+
+      // If there's an existing file URL, remember it for cleanup
+      const oldUrl = formData.mediaUrl;
+
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+
+      const response = await fetch('/upload_media', {
+        method: 'POST',
+        body: uploadFormData
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+      const data = await response.json();
+
+      // If upload was successful and we had an old file, delete it
+      if (oldUrl) {
+        try {
+          await fetch('/delete_media', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: oldUrl })
+          });
+        } catch (error) {
+          console.error('Error deleting old file:', error);
+          // Don't block the upload if cleanup fails
+        }
+      }
+
+      setFormData({
+        ...formData,
+        mediaType: isImage ? 'image' : 'audio',
+        mediaUrl: data.url,
+        showImageGradually: isImage ? formData.showImageGradually : false
+      });
+      setFileName(file.name);
+    } catch (error) {
+      setErrors({ ...errors, media: `Chyba při nahrávání: ${error.message}` });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmit = () => {
@@ -175,13 +214,15 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
         <Button
           variant="outlined"
           component="label"
+          disabled={isUploading}
         >
-          Nahrát obrázek/audio (volitelně)
+          {isUploading ? 'Nahrávání...' : 'Nahrát obrázek/audio (volitelně)'}
           <input
             type="file"
             hidden
             accept={[...QUIZ_VALIDATION.ALLOWED_IMAGE_TYPES, ...QUIZ_VALIDATION.ALLOWED_AUDIO_TYPES].join(',')}
             onChange={handleMediaUpload}
+            disabled={isUploading}
           />
         </Button>
         {formData.mediaUrl && (

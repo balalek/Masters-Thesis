@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, TextField, IconButton, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel, Tab, Tabs, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { Box, Button, Typography, TextField, IconButton, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel, Tab, Tabs, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, Alert, Paper } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ShareIcon from '@mui/icons-material/Share';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -13,6 +13,7 @@ import Filter1Icon from '@mui/icons-material/Filter1';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import QuestionAnswerIcon from '@mui/icons-material/EditNote';
 import SearchIcon from '@mui/icons-material/Search';
+import DeleteIcon from '@mui/icons-material/Delete';
 import QuizListItem from '../../../components/desktop/home/QuizListItem';
 import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -82,6 +83,7 @@ const DesktopHomePage = () => {
   const [hasMore, setHasMore] = useState(true);
   const [totalQuizzes, setTotalQuizzes] = useState(0);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [unfinishedQuizzes, setUnfinishedQuizzes] = useState([]);
 
   const quizTypeIcons = {
     [QUIZ_TYPES.ABCD]: { icon: QuizIcon, label: QUIZ_TYPE_TRANSLATIONS[QUIZ_TYPES.ABCD] },
@@ -132,6 +134,9 @@ const DesktopHomePage = () => {
   useEffect(() => {
     setPage(1);
     fetchQuizzes(1);
+    
+    // Fetch unfinished quizzes when the page loads
+    fetchUnfinishedQuizzes();
   }, [activeTab, selectedType]);
 
   useEffect(() => {
@@ -277,6 +282,60 @@ const DesktopHomePage = () => {
     return true;
   });
 
+  // Add this function to fetch unfinished quizzes
+  const fetchUnfinishedQuizzes = async () => {
+    try {
+      const response = await fetch('/unfinished_quizzes');
+      if (!response.ok) throw new Error('Failed to fetch unfinished quizzes');
+      
+      const data = await response.json();
+      setUnfinishedQuizzes(data.unfinished_quizzes || []);
+    } catch (error) {
+      console.error('Error fetching unfinished quizzes:', error);
+    }
+  };
+  
+  // Add function to continue editing an unfinished quiz
+  const continueUnfinishedQuiz = (unfinishedQuiz) => {
+    navigate('/create-quiz', { 
+      state: { 
+        autosaveIdentifier: unfinishedQuiz.identifier,
+        isEditing: unfinishedQuiz.is_editing,
+        quizId: unfinishedQuiz.original_quiz_id
+      }
+    });
+  };
+  
+  // Add function to delete an unfinished quiz
+  const deleteUnfinishedQuiz = async (identifier) => {
+    if (!window.confirm('Opravdu chcete odstranit tento rozdělaný kvíz?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/unfinished_quizzes/${identifier}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) throw new Error('Failed to delete unfinished quiz');
+      
+      // Refresh the list
+      fetchUnfinishedQuizzes();
+      
+      setSnackbar({
+        open: true,
+        message: 'Rozdělaný kvíz byl úspěšně odstraněn',
+        severity: 'success'
+      });
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error.message || 'Nastala chyba při mazání rozdělaného kvízu',
+        severity: 'error'
+      });
+    }
+  };
+
   return (
     <Box>
       {/* Header/Navigation Bar */}
@@ -358,6 +417,7 @@ const DesktopHomePage = () => {
           <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
             <Tab label="Moje kvízy" />
             <Tab label="Veřejné kvízy" />
+            <Tab label="Rozdělané kvízy" />  {/* Add this new Tab */}
           </Tabs>
         </Box>
 
@@ -398,41 +458,100 @@ const DesktopHomePage = () => {
           </Button>
         </Box>
 
-        {/* Quiz List - now using filteredQuizzes instead of directly using quizzes or publicQuizzes */}
-        <Box sx={{ mt: 2 }}>
-          <InfiniteScroll
-            dataLength={filteredQuizzes.length}
-            next={loadMore}
-            hasMore={hasMore}
-            loader={
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                <CircularProgress />
-              </Box>
-            }
-          >
-            {filteredQuizzes.map((quiz, index) => (
-              <QuizListItem 
-                key={`${activeTab}-${quiz._id}-${page}-${index}`}
-                quiz={quiz} 
-                isPublic={activeTab === 1}
-                onEditPublic={() => handleEditPublicQuiz(quiz)}
-                onToggleShare={handleToggleShare}
-                onEdit={handleEditQuiz}
-                onDelete={handleDeleteQuiz}
-              />
-            ))}
-          </InfiniteScroll>
-          
-          {!loading && filteredQuizzes.length === 0 && (
-            <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
-              {searchQuery 
-                ? 'Nenalezeny žádné kvízy odpovídající vašemu vyhledávání'
-                : activeTab === 0 
-                  ? 'Zatím jste nevytvořili žádné kvízy' 
-                  : 'Nebyly nalezeny žádné veřejné kvízy'}
-            </Typography>
-          )}
-        </Box>
+        {/* Show different content based on selected tab */}
+        {activeTab === 2 ? (
+          // Unfinished quizzes tab content
+          <Box sx={{ mt: 2 }}>
+            {unfinishedQuizzes.length > 0 ? (
+              unfinishedQuizzes.map((quiz) => (
+                <Paper 
+                  key={quiz.identifier}
+                  elevation={2}
+                  sx={{ 
+                    p: 2, 
+                    mb: 2, 
+                    display: 'flex', 
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    backgroundColor: 'background.paper'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <Typography variant="h6" component="div" sx={{ mb: 0.5 }}>
+                      {quiz.name || 'Nepojmenovaný kvíz'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      {quiz.is_editing ? 'Úprava existujícího kvízu' : 'Vytváření nového kvízu'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Počet otázek: {quiz.question_count || 0} • Naposledy upraveno: {
+                        new Date(quiz.last_updated).toLocaleString()
+                      }
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => continueUnfinishedQuiz(quiz)}
+                    >
+                      Pokračovat
+                    </Button>
+                    <IconButton 
+                      color="error" 
+                      size="large"
+                      onClick={() => deleteUnfinishedQuiz(quiz.identifier)}
+                      title="Smazat rozdělaný kvíz"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                </Paper>
+              ))
+            ) : (
+              <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
+                Nemáte žádné rozdělané kvízy
+              </Typography>
+            )}
+          </Box>
+        ) : (
+          // Original quiz list display for tab 0 and 1
+          <Box sx={{ mt: 2 }}>
+            <InfiniteScroll
+              dataLength={filteredQuizzes.length}
+              next={loadMore}
+              hasMore={hasMore}
+              loader={
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                  <CircularProgress />
+                </Box>
+              }
+            >
+              {filteredQuizzes.map((quiz, index) => (
+                <QuizListItem 
+                  key={`${activeTab}-${quiz._id}-${page}-${index}`}
+                  quiz={quiz} 
+                  isPublic={activeTab === 1}
+                  onEditPublic={() => handleEditPublicQuiz(quiz)}
+                  onToggleShare={handleToggleShare}
+                  onEdit={handleEditQuiz}
+                  onDelete={handleDeleteQuiz}
+                />
+              ))}
+            </InfiniteScroll>
+            
+            {!loading && filteredQuizzes.length === 0 && (
+              <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
+                {searchQuery 
+                  ? 'Nenalezeny žádné kvízy odpovídající vašemu vyhledávání'
+                  : activeTab === 0 
+                    ? 'Zatím jste nevytvořili žádné kvízy' 
+                    : 'Nebyly nalezeny žádné veřejné kvízy'}
+              </Typography>
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* Copy Quiz Dialog */}

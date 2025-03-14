@@ -8,6 +8,7 @@ from .services.quiz_service import QuizService
 from .services.local_storage_service import LocalStorageService
 from .utils import convert_mongo_doc, get_device_id, check_internet_connection
 from .services.cloudinary_service import CloudinaryService
+from .services.unfinished_quiz_service import UnfinishedQuizService  # Add this import
 
 @app.route('/')
 def index():
@@ -342,14 +343,14 @@ def get_existing_questions():
 
 @app.route('/quizzes', methods=['GET'])
 def get_quizzes():
-    device_id = get_device_id()
-    page = int(request.args.get('page', 1))
-    per_page = int(request.args.get('per_page', 10))
-    filter_type = request.args.get('filter', 'mine')  # 'mine' or 'public'
-    search_query = request.args.get('search', '')
-    quiz_type = request.args.get('type', 'all')
-    
     try:
+        device_id = get_device_id()
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 10))
+        filter_type = request.args.get('filter', 'mine')  # 'mine' or 'public'
+        search_query = request.args.get('search', '')
+        quiz_type = request.args.get('type', 'all')
+        
         result = QuizService.get_quizzes(
             device_id=device_id,
             filter_type=filter_type,
@@ -365,7 +366,13 @@ def get_quizzes():
             "hasMore": result["has_more"]
         }), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error in get_quizzes route: {str(e)}")
+        return jsonify({
+            "error": str(e),
+            "quizzes": [],
+            "total": 0,
+            "hasMore": False
+        }), 500
 
 @app.route('/upload_media', methods=['POST'])
 def upload_media():
@@ -410,3 +417,68 @@ def upload_media():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/delete_media', methods=['POST'])
+def delete_media():
+    """Delete a media file from Cloudinary"""
+    data = request.json
+    url = data.get('url')
+    
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
+        
+    try:
+        success = CloudinaryService.delete_file(url)
+        if success:
+            return jsonify({"message": "File deleted successfully"}), 200
+        return jsonify({"error": "Failed to delete file"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Add these new routes at the end of the file
+@app.route('/unfinished_quizzes', methods=['GET'])
+def get_unfinished_quizzes():
+    """Get all unfinished quizzes for the current device"""
+    quizzes = UnfinishedQuizService.get_unfinished_quizzes()
+    return jsonify({"unfinished_quizzes": quizzes}), 200
+
+@app.route('/unfinished_quizzes/<identifier>', methods=['GET'])
+def get_unfinished_quiz(identifier):
+    """Get a specific unfinished quiz"""
+    quiz = UnfinishedQuizService.get_unfinished_quiz(identifier)
+    if not quiz:
+        return jsonify({"error": "Unfinished quiz not found"}), 404
+    return jsonify(quiz), 200
+
+@app.route('/unfinished_quizzes', methods=['POST'])
+def save_unfinished_quiz():
+    """Save or update an unfinished quiz"""
+    data = request.json
+    is_editing = data.get('is_editing', False)
+    quiz_id = data.get('quiz_id')
+    autosave_id = data.get('autosave_id')  # Get the autosave ID if provided
+    
+    success, identifier = UnfinishedQuizService.save_unfinished_quiz(
+        data.get('quiz_data', {}), 
+        is_editing, 
+        quiz_id,
+        autosave_id
+    )
+    
+    if success:
+        return jsonify({
+            "success": True,
+            "autosave_id": identifier  # Always return the identifier to the client
+        }), 200
+    return jsonify({
+        "error": "Failed to save unfinished quiz",
+        "success": False
+    }), 500
+
+@app.route('/unfinished_quizzes/<identifier>', methods=['DELETE'])
+def delete_unfinished_quiz(identifier):
+    """Delete an unfinished quiz"""
+    result = UnfinishedQuizService.delete_unfinished_quiz(identifier)
+    if result:
+        return jsonify({"success": True}), 200
+    return jsonify({"error": "Failed to delete unfinished quiz"}), 500

@@ -257,21 +257,39 @@ class QuizService:
             # Convert MongoDB documents to JSON-serializable format
             result = []
             for quiz in quizzes:
-                quiz_data = convert_mongo_doc(quiz)
-                # Count total questions for this quiz
-                quiz_data['questionCount'] = len(quiz.get('questions', []))
-                
-                # Check if quiz has audio questions
-                has_audio = False
-                for q_ref in quiz.get('questions', []):
-                    question = db.questions.find_one({"_id": q_ref["questionId"]})
-                    if question and question.get('media_type') == 'audio':
-                        has_audio = True
-                        break
-                
-                quiz_data['has_audio'] = has_audio
-                result.append(quiz_data)
-                
+                try:
+                    quiz_data = convert_mongo_doc(quiz)
+                    
+                    # Add proper error handling for questions array
+                    questions = quiz.get('questions', [])
+                    if not isinstance(questions, list):
+                        questions = []
+                    
+                    # Count total questions for this quiz - safely handle malformed question references
+                    quiz_data['questionCount'] = len(questions)
+                    
+                    # Check if quiz has audio questions
+                    has_audio = False
+                    for q_ref in questions:
+                        if not isinstance(q_ref, dict) or 'questionId' not in q_ref:
+                            continue  # Skip invalid question references
+                        
+                        try:
+                            question = db.questions.find_one({"_id": q_ref["questionId"]})
+                            if question and question.get('media_type') == 'audio':
+                                has_audio = True
+                                break
+                        except Exception as q_error:
+                            print(f"Error processing question reference: {q_error}")
+                            continue
+                    
+                    quiz_data['has_audio'] = has_audio
+                    result.append(quiz_data)
+                except Exception as quiz_error:
+                    print(f"Error processing quiz {quiz.get('_id', 'unknown')}: {quiz_error}")
+                    # Skip this quiz instead of failing the entire request
+                    continue
+                    
             has_more = (skip + len(result)) < total
                 
             return {

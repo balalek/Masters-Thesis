@@ -16,11 +16,13 @@ try:
     created_questions = db.table('created_questions')
     favorite_quizzes = db.table('favorite_quizzes')
     created_quizzes = db.table('created_quizzes')
+    unfinished_quizzes = db.table('unfinished_quizzes')  # Add this new table
     
     local_db = {
         'created_questions': created_questions,
         'favorite_quizzes': favorite_quizzes,
-        'created_quizzes': created_quizzes
+        'created_quizzes': created_quizzes,
+        'unfinished_quizzes': unfinished_quizzes  # Add to the dict
     }
     
     print(f"TinyDB initialized successfully at {db_path}")
