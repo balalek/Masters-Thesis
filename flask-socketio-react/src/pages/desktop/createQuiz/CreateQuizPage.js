@@ -434,20 +434,29 @@ const CreateQuizPage = () => {
         <Box sx={{ 
           display: 'flex', 
           gap: 2, 
-          mb: 3 
+          mb: 3,
+          alignItems: 'center' // Add this to align items vertically
         }}>
+          <Typography sx={{ 
+            whiteSpace: 'nowrap',
+            fontSize: '1.1rem',
+            fontWeight: 600,
+            color: 'primary.main'
+          }}>
+            Vyberte typ otázky:
+          </Typography>
           <Select
             value={selectedQuizType}
             onChange={(e) => setSelectedQuizType(e.target.value)}
             sx={{ minWidth: 200 }}
           >
-            <MenuItem value={QUIZ_TYPES.ABCD}>ABCD Kvíz</MenuItem>
-            <MenuItem value={QUIZ_TYPES.OPEN_ANSWER}>Otevřené odpovědi</MenuItem>
+            <MenuItem value={QUIZ_TYPES.ABCD}>ABCD, Pravda/lež</MenuItem>
+            <MenuItem value={QUIZ_TYPES.OPEN_ANSWER}>Otevřená odpověď</MenuItem>
             <MenuItem value="other" disabled>Další typy (Připravujeme)</MenuItem>
           </Select>
           <TextField
             fullWidth
-            placeholder="Název kvízu"
+            label="Název kvízu"  // Add this line
             value={quizName}
             onChange={(e) => {
               setQuizName(e.target.value);
@@ -461,12 +470,21 @@ const CreateQuizPage = () => {
                 ? `Název kvízu nesmí být delší než ${QUIZ_VALIDATION.QUIZ_NAME_MAX_LENGTH} znaků` 
                 : '')
             }
+            sx={{
+              '& .MuiInputLabel-shrink': {
+                transform: 'translate(14px, -4px) scale(0.75)', // Prevent top cutoff
+              }
+            }}
           />
           <Button 
             variant="outlined" 
             onClick={handleBackToHome}
             color="error"
-            sx={{ whiteSpace: 'nowrap', minWidth: '150px' }}
+            sx={{ 
+              whiteSpace: 'nowrap', 
+              minWidth: '150px',
+              height: '56px' // Match height of other elements
+            }}
           >
             Zpět domů
           </Button>

@@ -51,6 +51,7 @@ const QuizListItem = ({ quiz, isPublic, onEditPublic, onToggleShare, onEdit, onD
           color="primary" 
           size="large"
           onClick={handleStartQuiz}
+          title="Hrát kvíz"
         >
           <PlayArrowIcon />
         </IconButton>
@@ -59,7 +60,7 @@ const QuizListItem = ({ quiz, isPublic, onEditPublic, onToggleShare, onEdit, onD
             color="primary" 
             size="large"
             onClick={() => onToggleShare(quiz)}
-            title={quiz.is_public ? "Zrušit sdílení" : "Sdílet"}
+            title={quiz.is_public ? "Skrýt kvíz" : "Zveřejnit kvíz"}
           >
             <ShareIcon 
               sx={{ 
