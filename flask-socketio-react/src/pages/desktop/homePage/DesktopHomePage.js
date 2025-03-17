@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, TextField, IconButton, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel, Tab, Tabs, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, Alert, Paper } from '@mui/material';
+import { Box, Button, Typography, TextField, IconButton, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel, Tab, Tabs, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, Alert, Paper, Divider, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ShareIcon from '@mui/icons-material/Share';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -14,9 +14,9 @@ import ShuffleIcon from '@mui/icons-material/Shuffle';
 import QuestionAnswerIcon from '@mui/icons-material/EditNote';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import QuizListItem from '../../../components/desktop/home/QuizListItem';
 import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
-import InfiniteScroll from 'react-infinite-scroll-component';
 
 const QuizTypeButton = ({ icon: Icon, label, value, selected, onChange }) => (
   <ToggleButton 
@@ -101,7 +101,7 @@ const DesktopHomePage = () => {
       setLoading(true);
       const params = new URLSearchParams({
         page: newPage,
-        per_page: 10,
+        per_page: 20,
         filter: activeTab === 0 ? 'mine' : 'public',
         search: newSearch,
         type: selectedType === 'all' ? 'all' : selectedType
@@ -460,55 +460,26 @@ const DesktopHomePage = () => {
 
         {/* Show different content based on selected tab */}
         {activeTab === 2 ? (
-          // Unfinished quizzes tab content
+          // Unfinished quizzes tab content - now using QuizListItem
           <Box sx={{ mt: 2 }}>
             {unfinishedQuizzes.length > 0 ? (
-              unfinishedQuizzes.map((quiz) => (
-                <Paper 
-                  key={quiz.identifier}
-                  elevation={2}
-                  sx={{ 
-                    p: 2, 
-                    mb: 2, 
-                    display: 'flex', 
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    backgroundColor: 'background.paper'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <Typography variant="h6" component="div" sx={{ mb: 0.5 }}>
-                      {quiz.name || 'Nepojmenovaný kvíz'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      {quiz.is_editing ? 'Úprava existujícího kvízu' : 'Vytváření nového kvízu'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Počet otázek: {quiz.question_count || 0} • Naposledy upraveno: {
-                        new Date(quiz.last_updated).toLocaleString()
-                      }
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => continueUnfinishedQuiz(quiz)}
-                    >
-                      Pokračovat
-                    </Button>
-                    <IconButton 
-                      color="error" 
-                      size="large"
-                      onClick={() => deleteUnfinishedQuiz(quiz.identifier)}
-                      title="Smazat rozdělaný kvíz"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </Paper>
-              ))
+              <Box 
+                sx={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: 3
+                }}
+              >
+                {unfinishedQuizzes.map((quiz) => (
+                  <QuizListItem 
+                    key={quiz.identifier}
+                    quiz={quiz}
+                    isUnfinished={true}
+                    onContinue={continueUnfinishedQuiz}
+                    onDelete={() => deleteUnfinishedQuiz(quiz.identifier)}
+                  />
+                ))}
+              </Box>
             ) : (
               <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
                 Nemáte žádné rozdělané kvízy
@@ -516,17 +487,14 @@ const DesktopHomePage = () => {
             )}
           </Box>
         ) : (
-          // Original quiz list display for tab 0 and 1
+          // Replace the quiz list with a grid layout
           <Box sx={{ mt: 2 }}>
-            <InfiniteScroll
-              dataLength={filteredQuizzes.length}
-              next={loadMore}
-              hasMore={hasMore}
-              loader={
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                  <CircularProgress />
-                </Box>
-              }
+            <Box 
+              sx={{ 
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: 3
+              }}
             >
               {filteredQuizzes.map((quiz, index) => (
                 <QuizListItem 
@@ -539,7 +507,27 @@ const DesktopHomePage = () => {
                   onDelete={handleDeleteQuiz}
                 />
               ))}
-            </InfiniteScroll>
+            </Box>
+            
+            {hasMore && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 3 }}>
+                <Button
+                  onClick={loadMore}
+                  disabled={loading}
+                  variant="outlined"
+                >
+                  {loading ? 'Načítání...' : `Zobrazit další`}
+                </Button>
+              </Box>
+            )}
+
+            {!hasMore && filteredQuizzes.length > 0 && (
+              <Box sx={{ textAlign: 'center', py: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Načteny všechny kvízy
+                </Typography>
+              </Box>
+            )}
             
             {!loading && filteredQuizzes.length === 0 && (
               <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>

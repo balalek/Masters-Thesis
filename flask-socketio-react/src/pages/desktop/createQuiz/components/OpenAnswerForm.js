@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { QUIZ_VALIDATION, QUIZ_CATEGORIES } from '../../../../constants/quizValidation';
 
-const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) => {
+const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null, onUploadStateChange }, ref) => {
   const initialFormData = editQuestion || {
     question: '',
     answer: '',
@@ -27,7 +27,6 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
   const [errors, setErrors] = useState({});
   const [mediaFile, setMediaFile] = useState(null);
   const [fileName, setFileName] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
 
   // Add this useEffect to handle editing
   useEffect(() => {
@@ -79,7 +78,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleMediaUpload = async (event) => {
+  const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -99,60 +98,26 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       return;
     }
 
-    try {
-      setIsUploading(true);
-      setErrors({ ...errors, media: null });
+    setMediaFile(file);
+    setFileName(file.name);
+    setFormData(prev => ({
+      ...prev,
+      mediaType: isImage ? 'image' : 'audio',
+      mediaUrl: null,
+      oldMediaUrl: prev.mediaUrl, // Store old URL to be cleaned up later
+      showImageGradually: isImage ? prev.showImageGradually : false
+    }));
 
-      // If there's an existing file URL, remember it for cleanup
-      const oldUrl = formData.mediaUrl;
-
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
-
-      const response = await fetch('/upload_media', {
-        method: 'POST',
-        body: uploadFormData
-      });
-
-      if (!response.ok) throw new Error('Upload failed');
-      const data = await response.json();
-
-      // If upload was successful and we had an old file, delete it
-      if (oldUrl) {
-        try {
-          await fetch('/delete_media', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url: oldUrl })
-          });
-        } catch (error) {
-          console.error('Error deleting old file:', error);
-          // Don't block the upload if cleanup fails
-        }
-      }
-
-      setFormData({
-        ...formData,
-        mediaType: isImage ? 'image' : 'audio',
-        mediaUrl: data.url,
-        showImageGradually: isImage ? formData.showImageGradually : false
-      });
-      setFileName(file.name);
-    } catch (error) {
-      setErrors({ ...errors, media: `Chyba při nahrávání: ${error.message}` });
-    } finally {
-      setIsUploading(false);
-    }
+    setErrors({ ...errors, media: null });
   };
 
   const handleSubmit = () => {
     if (!validateForm()) return;
 
+    // Pass the form data along with the mediaFile to be uploaded by the parent
     onSubmit({
       ...formData,
-      mediaFile, // Pass the actual file to be uploaded later
+      mediaFile, // This will be handled by CreateQuizPage
       fileName,
     });
     
@@ -175,6 +140,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
     setErrors({});
   };
 
+  // Update ref implementation to include isUploading state
   React.useImperativeHandle(ref, () => ({
     submitForm: handleSubmit,
     resetForm
@@ -185,10 +151,10 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       <TextField
         fullWidth
         label="Otázka"
-        value={formData.question}
+        value={formData.question || ''}
         onChange={(e) => setFormData({ ...formData, question: e.target.value })}
         error={!!errors.question}
-        helperText={errors.question || `${formData.question.length}/${QUIZ_VALIDATION.QUESTION_MAX_LENGTH}`}
+        helperText={errors.question || `${(formData.question || '').length}/${QUIZ_VALIDATION.QUESTION_MAX_LENGTH}`}
         sx={{ 
           '& .MuiInputLabel-root': {
             px: 0.5
@@ -199,10 +165,10 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       <TextField
         fullWidth
         label="Správná odpověď"
-        value={formData.answer}
+        value={formData.answer || ''}
         onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
         error={!!errors.answer}
-        helperText={errors.answer || `${formData.answer.length}/${QUIZ_VALIDATION.ANSWER_MAX_LENGTH}`}
+        helperText={errors.answer || `${(formData.answer || '').length}/${QUIZ_VALIDATION.ANSWER_MAX_LENGTH}`}
         sx={{ 
           '& .MuiInputLabel-root': {
             px: 0.5
@@ -214,20 +180,18 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
         <Button
           variant="outlined"
           component="label"
-          disabled={isUploading}
         >
-          {isUploading ? 'Nahrávání...' : 'Nahrát obrázek/audio (volitelně)'}
+          {mediaFile ? 'Změnit soubor' : 'Nahrát obrázek/audio (volitelně)'}
           <input
             type="file"
             hidden
             accept={[...QUIZ_VALIDATION.ALLOWED_IMAGE_TYPES, ...QUIZ_VALIDATION.ALLOWED_AUDIO_TYPES].join(',')}
-            onChange={handleMediaUpload}
-            disabled={isUploading}
+            onChange={handleFileSelect}
           />
         </Button>
-        {formData.mediaUrl && (
+        {fileName && (
           <Typography variant="body2">
-            Nahráno: {fileName}
+            Vybráno: {fileName}
           </Typography>
         )}
       </Box>

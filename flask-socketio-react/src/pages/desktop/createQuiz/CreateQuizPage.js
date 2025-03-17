@@ -20,8 +20,8 @@ import { scrollbarStyle } from '../../../utils/scrollbarStyle';
 const CreateQuizPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isEditing = location.state?.isEditing || false;
-  const quizId = location.state?.quizId;
+  const [isEditing, setIsEditing] = useState(location.state?.isEditing || false);
+  const [quizId, setQuizId] = useState(location.state?.quizId);
   const autosaveIdentifier = location.state?.autosaveIdentifier;
   const [quizName, setQuizName] = useState('');
   const [questions, setQuestions] = useState([]);
@@ -30,7 +30,6 @@ const CreateQuizPage = () => {
   const formRef = React.useRef(null);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [quizNameError, setQuizNameError] = useState(false);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [quizNameHelperText, setQuizNameHelperText] = useState('');
   const [existingQuestionsDialogOpen, setExistingQuestionsDialogOpen] = useState(false);
   const [deletedQuestionIds, setDeletedQuestionIds] = useState(new Set());
@@ -42,7 +41,9 @@ const CreateQuizPage = () => {
   });
   const [lastAutosaved, setLastAutosaved] = useState(null);
   const autosaveIntervalRef = useRef(null);
-  const [autosaveId, setAutosaveId] = useState(null); // Add this state for tracking autosave ID
+  const [autosaveId, setAutosaveId] = useState(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -58,9 +59,10 @@ const CreateQuizPage = () => {
     }, [questions])
   );
 
-  // Update the performAutosave function to use and update autosaveId
+  // Update the performAutosave function to check isEditing before attempting to save
   const performAutosave = useCallback(() => {
-    if (questions.length === 0) return;
+    // Skip autosaving entirely when editing
+    if (isEditing || questions.length === 0) return;
     
     const quizData = {
       name: quizName,
@@ -68,12 +70,11 @@ const CreateQuizPage = () => {
       quiz_type: selectedQuizType
     };
     
-    // Use existing autosaveId or null for the first save
     const requestData = {
       quiz_data: quizData,
-      is_editing: isEditing,
+      is_editing: false,
       quiz_id: quizId,
-      autosave_id: autosaveId // Pass the current autosaveId (null on first save)
+      autosave_id: autosaveId
     };
     
     fetch('/unfinished_quizzes', {
@@ -88,13 +89,9 @@ const CreateQuizPage = () => {
       if (data.success) {
         setLastAutosaved(new Date());
         
-        // Always store the autosave identifier returned from the server
         if (data.autosave_id) {
-          console.log('Setting autosave ID:', data.autosave_id);
           setAutosaveId(data.autosave_id);
         }
-        
-        console.log('Quiz autosaved successfully with ID:', data.autosave_id);
       }
     })
     .catch(error => {
@@ -122,10 +119,11 @@ const CreateQuizPage = () => {
     }
   }, [questions.length, performAutosave]);
 
-  // Update the load unfinished quiz effect to set autosaveId
+  // Load autosaved quiz if identifier is provided
   useEffect(() => {
     if (autosaveIdentifier) {
-      setAutosaveId(autosaveIdentifier); // Store the ID from the URL
+      setAutosaveId(autosaveIdentifier);
+      setDataLoaded(true);
       
       fetch(`/unfinished_quizzes/${autosaveIdentifier}`)
         .then(response => response.json())
@@ -133,50 +131,45 @@ const CreateQuizPage = () => {
           setQuizName(data.name);
           setSelectedQuizType(data.quiz_type || QUIZ_TYPES.ABCD);
           setIsAbcd(data.quiz_type !== QUIZ_TYPES.OPEN_ANSWER);
+          
+          // Check if any questions had missing media files
+          const hasMissingMedia = data.questions.some(q => q.mediaFileNotFound);
+          if (hasMissingMedia) {
+            setSnackbar({
+              open: true,
+              message: "Některé otázky obsahovaly odkazy na soubory, které již neexistují. Tyto odkazy byly odstraněny.",
+              severity: 'warning'
+            });
+          }
+          
           setQuestions(data.questions || []);
           
           if (data.is_editing && data.original_quiz_id) {
-            isEditing = true;
-            quizId = data.original_quiz_id;
+            setIsEditing(true);
+            setQuizId(data.original_quiz_id);
           }
         })
         .catch(error => {
           console.error('Error loading unfinished quiz:', error);
+          setDataLoaded(false);
         });
     }
   }, [autosaveIdentifier]);
 
-  // Update the cleanupAutosave function to use autosaveId
-  const cleanupAutosave = useCallback(() => {
-    if (autosaveId) {
-      fetch(`/unfinished_quizzes/${autosaveId}`, {
-        method: 'DELETE'
-      }).catch(error => {
-        console.error('Error cleaning up autosave:', error);
-      });
-    }
-  }, [autosaveId]);
-
+  // Load original quiz if editing
   useEffect(() => {
-    console.log('isEditing:', isEditing);
-    console.log('quizId:', quizId);
-    console.log('location.state:', location.state);
-
     if (isEditing && quizId) {
-      console.log('Fetching quiz data for id:', quizId);
+      if (dataLoaded) {
+        return;
+      }
+      
       fetch(`/quiz/${quizId}`)
-        .then(response => {
-          console.log('Response received:', response);
-          return response.json();
-        })
+        .then(response => response.json())
         .then(quiz => {
-          console.log('Quiz data received:', quiz);
           setQuizName(quiz.name);
           
-          // Handle COMBINED_QUIZ type by defaulting to ABCD
           if (quiz.type === QUIZ_TYPES.COMBINED_QUIZ) {
             setSelectedQuizType(QUIZ_TYPES.ABCD);
-            console.log('Combined quiz detected, defaulting to ABCD type');
           } else {
             setSelectedQuizType(quiz.type);
           }
@@ -220,9 +213,87 @@ const CreateQuizPage = () => {
           navigate('/');
         });
     }
-  }, [isEditing, quizId, navigate]);
+  }, [isEditing, quizId, navigate, dataLoaded]);
 
-  const handleAddQuestion = (question) => {
+  // Update the cleanupAutosave function to use autosaveId
+  const cleanupAutosave = useCallback(() => {
+    if (autosaveId) {
+      fetch(`/unfinished_quizzes/${autosaveId}?keep_files=true`, {
+        method: 'DELETE'
+      }).catch(error => {
+        console.error('Error cleaning up autosave:', error);
+      });
+    }
+  }, [autosaveId]);
+
+  // Add a helper function to delete autosave
+  const deleteAutosave = useCallback(() => {
+    if (autosaveId) {
+      console.log("Deleting autosave for empty quiz");
+      fetch(`/unfinished_quizzes/${autosaveId}`, {
+        method: 'DELETE'
+      }).catch(error => {
+        console.error('Error deleting autosave:', error);
+      });
+      setAutosaveId(null); // Reset autosave ID after deleting
+      setLastAutosaved(null); // Reset last autosaved timestamp
+    }
+  }, [autosaveId]);
+
+  const handleAddQuestion = async (question) => {
+    // Explicitly check and delete old media URL if present and a new file is being uploaded
+    if (question.oldMediaUrl && question.mediaFile) {
+      console.log("Deleting old media file:", question.oldMediaUrl);
+      try {
+        const deleteResponse = await fetch('/delete_media', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: question.oldMediaUrl })
+        });
+        
+        if (!deleteResponse.ok) {
+          console.error('Failed to delete old media file');
+        } else {
+          console.log('Successfully deleted old media file');
+        }
+      } catch (error) {
+        console.error('Error deleting old media:', error);
+      }
+    }
+
+    // If there's a media file, upload it first
+    if (question.mediaFile) {
+      setIsUploading(true);
+      
+      try {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', question.mediaFile);
+        
+        const response = await fetch('/upload_media', {
+          method: 'POST',
+          body: uploadFormData
+        });
+        
+        if (!response.ok) throw new Error('Upload failed');
+        const data = await response.json();
+        
+        // Update question with the uploaded file URL
+        question.mediaUrl = data.url;
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        setSnackbar({
+          open: true,
+          message: `Chyba při nahrávání souboru: ${error.message}`,
+          severity: 'error'
+        });
+        setIsUploading(false);
+        return; // Don't proceed with adding the question if upload fails
+      }
+      
+      setIsUploading(false);
+    }
+    
+    // Now continue with the original logic to add the question
     if (selectedQuizType === QUIZ_TYPES.OPEN_ANSWER) {
       const newQuestion = {
         ...question,
@@ -231,13 +302,16 @@ const CreateQuizPage = () => {
         type: QUIZ_TYPES.OPEN_ANSWER,
         modified: editingQuestion ? true : false,
         copy_of: editingQuestion && editingQuestion.modified ? null : editingQuestion?.copy_of || null,
-// Include fileName with the question data
+        // No need to include mediaFile in the saved question
         fileName: question.fileName,
         answer: question.answer,
         mediaType: question.mediaType,
         mediaUrl: question.mediaUrl,
         showImageGradually: question.showImageGradually
       };
+
+      // Remove the mediaFile property which is not needed anymore
+      delete newQuestion.mediaFile;
 
       if (editingQuestion) {
         setQuestions(questions.map(q => q.id === editingQuestion.id ? newQuestion : q));
@@ -287,7 +361,7 @@ const CreateQuizPage = () => {
     const questionToDelete = questions.find(q => q.id === id);
     
     // If question has media URL, delete it from Cloudinary first
-    if (questionToDelete && questionToDelete.mediaUrl) {
+    if (!isEditing && questionToDelete && questionToDelete.mediaUrl) {
       try {
         const response = await fetch('/delete_media', {
           method: 'POST',
@@ -305,8 +379,16 @@ const CreateQuizPage = () => {
       }
     }
 
+    // Check if this is the last question
+    const isLastQuestion = questions.length === 1;
+
     // Update questions state
     setQuestions(questions.filter(q => q.id !== id));
+    
+    // If this was the last question, delete the autosave
+    if (isLastQuestion && autosaveId && !isEditing) {
+      deleteAutosave();
+    }
     
     // Handle deleted question IDs for backend
     if (questionToDelete && questionToDelete._id) {
@@ -364,8 +446,10 @@ const CreateQuizPage = () => {
     }
   };
 
+  // Update the back-to-home handler to skip autosave when editing
   const handleBackToHome = () => {
-    if (questions.length > 0) {
+    // Existing logic
+    if (questions.length > 0 && !isEditing) {
       if (window.confirm('Chcete odejít? Vaše rozdělaná práce bude uložena pro pozdější dokončení.')) {
         performAutosave();
         navigate('/');
@@ -422,12 +506,8 @@ const CreateQuizPage = () => {
         !(q._id && deletedQuestionIds.has(q._id))
       );
       
-      console.log('Active questions:', activeQuestions);
-      console.log('Deleted question IDs:', Array.from(deletedQuestionIds));
-      
       if (activeQuestions.length > 0) {
         const uniqueQuestionTypes = new Set(activeQuestions.map(q => q.type).filter(Boolean));
-        console.log('Unique question types:', Array.from(uniqueQuestionTypes));
         
         if (uniqueQuestionTypes.size === 2 && 
             uniqueQuestionTypes.has(QUESTION_TYPES.ABCD) && 
@@ -444,8 +524,6 @@ const CreateQuizPage = () => {
           }
         }
       }
-
-      console.log('Final quiz type:', finalQuizType);
 
       const endpoint = isEditing ? `/quiz/${quizId}/update` : '/create_quiz';
       const response = await fetch(endpoint, {
@@ -470,7 +548,6 @@ const CreateQuizPage = () => {
       cleanupAutosave();
       
       resetState();
-      setOpenSnackbar(true);
       navigate('/');
       
     } catch (error) {
@@ -551,6 +628,7 @@ const CreateQuizPage = () => {
             value={selectedQuizType}
             onChange={(e) => setSelectedQuizType(e.target.value)}
             sx={{ minWidth: 200 }}
+            disabled={!!editingQuestion} // Disable when editing a question
           >
             <MenuItem value={QUIZ_TYPES.ABCD}>ABCD, Pravda/lež</MenuItem>
             <MenuItem value={QUIZ_TYPES.OPEN_ANSWER}>Otevřená odpověď</MenuItem>
@@ -578,18 +656,34 @@ const CreateQuizPage = () => {
               }
             }}
           />
-          <Button 
-            variant="outlined" 
-            onClick={handleBackToHome}
-            color="error"
-            sx={{ 
-              whiteSpace: 'nowrap', 
-              minWidth: '150px',
-              height: '56px'
-            }}
-          >
-            Zpět domů
-          </Button>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              gap: 2
+            }}>
+              {lastAutosaved && !isEditing && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Automaticky uloženo
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    v {lastAutosaved.toLocaleTimeString()}
+                  </Typography>
+                </Box>
+              )}
+              <Button 
+                variant="outlined" 
+                onClick={handleBackToHome}
+                color="error"
+                sx={{ 
+                  whiteSpace: 'nowrap', 
+                  minWidth: '150px',
+                  height: '56px'
+                }}
+              >
+                Zpět domů
+              </Button>
+            </Box>
         </Box>
         
         <Box sx={{ 
@@ -653,8 +747,12 @@ const CreateQuizPage = () => {
                   variant="contained" 
                   fullWidth
                   onClick={handleAddQuestionClick}
+                  // Use direct ref check to see if file is uploading
+                  disabled={isUploading || loading}
                 >
-                  {editingQuestion ? 'Aktualizovat otázku' : 'Přidat otázku'}
+                  {isUploading 
+                    ? 'Nahrávání souboru...' 
+                    : (editingQuestion ? 'Aktualizovat otázku' : 'Přidat otázku')}
                 </Button>
               </Box>
             </Box>
@@ -738,24 +836,6 @@ const CreateQuizPage = () => {
         onAddQuestions={handleAddExistingQuestions}
       />
 
-      {lastAutosaved && (
-        <Box 
-          sx={{ 
-            position: 'fixed', 
-            bottom: 20, 
-            right: 20, 
-            backgroundColor: 'background.paper', 
-            p: 1, 
-            borderRadius: 1,
-            boxShadow: 1,
-            opacity: 0.8
-          }}
-        >
-          <Typography variant="caption" color="text.secondary">
-            Automaticky uloženo v {lastAutosaved.toLocaleTimeString()}
-          </Typography>
-        </Box>
-      )}
     </Container>
   );
 };

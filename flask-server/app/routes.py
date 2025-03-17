@@ -346,7 +346,7 @@ def get_quizzes():
     try:
         device_id = get_device_id()
         page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per_page', 10))
+        per_page = int(request.args.get('per_page', 10))  # Changed default to 10
         filter_type = request.args.get('filter', 'mine')  # 'mine' or 'public'
         search_query = request.args.get('search', '')
         quiz_type = request.args.get('type', 'all')
@@ -477,8 +477,9 @@ def save_unfinished_quiz():
 
 @app.route('/unfinished_quizzes/<identifier>', methods=['DELETE'])
 def delete_unfinished_quiz(identifier):
-    """Delete an unfinished quiz"""
-    result = UnfinishedQuizService.delete_unfinished_quiz(identifier)
+    """Delete an unfinished quiz and associated media files"""
+    keep_files = request.args.get('keep_files', 'false').lower() == 'true'
+    result = UnfinishedQuizService.delete_unfinished_quiz(identifier, keep_files)
     if result:
         return jsonify({"success": True}), 200
     return jsonify({"error": "Failed to delete unfinished quiz"}), 500

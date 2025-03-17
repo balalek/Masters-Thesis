@@ -1,9 +1,12 @@
 from ..local_db import local_db
-from typing import List, Dict, Optional, Any, Tuple
+from typing import List, Dict, Optional, Any, Tuple, Set
 from datetime import datetime
 import json
 from tinydb import Query
 from ..utils import get_device_id
+from .cloudinary_service import CloudinaryService
+from ..db import db
+from bson import ObjectId  # Add this import
 
 class UnfinishedQuizService:
     @staticmethod
@@ -13,6 +16,10 @@ class UnfinishedQuizService:
         Save or update unfinished quiz in the local database
         Returns: Tuple containing (success_bool, autosave_identifier)
         """
+        # Don't save if we're editing an existing quiz
+        if is_editing:
+            return False, None
+            
         if not local_db:
             print("Local database not available")
             return False, None
@@ -26,16 +33,9 @@ class UnfinishedQuizService:
             # If autosave_id was provided, use that - this means we're updating an existing autosave
             if autosave_id:
                 identifier = autosave_id
-                print(f"Using provided autosave ID: {identifier}")
-            # For an edited quiz, use the quiz_id as identifier
-            elif is_editing and quiz_id:
-                identifier = quiz_id
-                print(f"Using quiz ID as identifier for edited quiz: {identifier}")
-            # For a completely new quiz, always create a new identifier
             else:
                 # Always create a unique ID for a new quiz
                 identifier = f"new_{int(datetime.now().timestamp())}_{hash(str(quiz_data))}"
-                print(f"Created new identifier for new quiz: {identifier}")
             
             # Basic validation
             if not quiz_data or not quiz_data.get('questions') or not isinstance(quiz_data.get('questions'), list):
@@ -135,7 +135,45 @@ class UnfinishedQuizService:
             # Parse questions from JSON
             try:
                 questions = json.loads(quiz_data.get("questions", "[]"))
-            except:
+                
+                # Validate media files still exist in Cloudinary
+                questions_with_valid_data = []
+                for question in questions:
+                    # Check if question has media that needs validation
+                    if question.get('mediaUrl'):
+                        # Verify the file exists in Cloudinary
+                        if CloudinaryService.check_file_exists(question['mediaUrl']):
+                            # File exists, include question as-is
+                            pass
+                        else:
+                            # File doesn't exist, mark media as missing
+                            print(f"Media file not found: {question['mediaUrl']}")
+                            question['mediaUrl'] = None
+                            question['mediaType'] = None
+                            question['showImageGradually'] = False
+                            question['mediaFileNotFound'] = True
+                    
+                    # Check if copy_of reference still exists in MongoDB
+                    if question.get('copy_of'):
+                        try:
+                            # Validate that the original question still exists
+                            original_exists = db.questions.find_one({"_id": ObjectId(question['copy_of'])})
+                            if not original_exists:
+                                # Original question doesn't exist anymore, remove the reference
+                                print(f"Original question not found for copy_of: {question['copy_of']}")
+                                question['copy_of'] = None
+                        except Exception as e:
+                            # If there's any error (invalid ObjectId, etc.), remove the reference
+                            print(f"Error checking copy_of reference: {e}")
+                            question['copy_of'] = None
+                    
+                    questions_with_valid_data.append(question)
+                
+                # Replace original questions with validated ones
+                questions = questions_with_valid_data
+                
+            except Exception as e:
+                print(f"Error parsing/validating questions: {e}")
                 questions = []
             
             return {
@@ -145,16 +183,21 @@ class UnfinishedQuizService:
                 "quiz_type": quiz_data.get("quiz_type"),
                 "is_editing": quiz_data.get("is_editing"),
                 "original_quiz_id": quiz_data.get("original_quiz_id"),
-                "last_updated": quiz_data.get("last_updated")
+                "last_updated": quiz_data.get("last_updated"),
+                "media_validation_performed": True  # Flag to indicate media was checked
             }
         except Exception as e:
             print(f"Error retrieving unfinished quiz: {e}")
             return None
     
     @staticmethod
-    def delete_unfinished_quiz(identifier: str) -> bool:
+    def delete_unfinished_quiz(identifier: str, keep_files: bool = False) -> bool:
         """
-        Delete an unfinished quiz by identifier
+        Delete an unfinished quiz by identifier and optionally clean up associated media files
+        
+        Args:
+            identifier: The identifier of the unfinished quiz
+            keep_files: If True, don't delete media files (used when quiz was successfully created)
         """
         if not local_db:
             print("Local database not available")
@@ -164,6 +207,58 @@ class UnfinishedQuizService:
             device_id = get_device_id()
             Quiz = Query()
             
+            # First, fetch the quiz to get its questions for media cleanup
+            quiz_data = UnfinishedQuizService.get_unfinished_quiz(identifier)
+            if quiz_data and quiz_data.get('questions') and not keep_files:
+                # Only delete files if keep_files is False
+                # Check if this is an edit of an existing quiz
+                is_editing = quiz_data.get('is_editing', False)
+                original_quiz_id = quiz_data.get('original_quiz_id')
+                
+                # Collect media URLs that need to be deleted
+                media_urls_to_delete = set()
+                
+                # Get all questions with media
+                questions_with_media = [q for q in quiz_data['questions'] if q.get('mediaUrl')]
+                
+                if is_editing and original_quiz_id:
+                    # This is an edit of an existing quiz
+                    # Get the original quiz to compare media URLs
+                    try:
+                        # Use MongoDB to get the original quiz
+                        original_quiz = db.quizzes.find_one({"_id": original_quiz_id})
+                        if original_quiz:
+                            original_question_ids = {str(q_ref['questionId']) for q_ref in original_quiz.get('questions', [])}
+                            
+                            # Get all original questions' media URLs
+                            original_media_urls = set()
+                            if original_question_ids:
+                                original_questions = db.questions.find({"_id": {"$in": original_question_ids}})
+                                original_media_urls = {q.get('media_url') for q in original_questions if q.get('media_url')}
+                            
+                            # Only delete media URLs that are not in the original quiz
+                            for question in questions_with_media:
+                                if question.get('mediaUrl') and question.get('mediaUrl') not in original_media_urls:
+                                    # This is a newly added media file
+                                    media_urls_to_delete.add(question.get('mediaUrl'))
+                    except Exception as e:
+                        print(f"Error getting original quiz: {e}")
+                        # If we can't get original quiz, assume all media is new
+                        media_urls_to_delete = {q.get('mediaUrl') for q in questions_with_media}
+                else:
+                    # This is a new quiz, delete all media
+                    media_urls_to_delete = {q.get('mediaUrl') for q in questions_with_media}
+                
+                # Delete all collected media URLs
+                for url in media_urls_to_delete:
+                    if url:
+                        try:
+                            CloudinaryService.delete_file(url)
+                            print(f"Deleted media file: {url}")
+                        except Exception as e:
+                            print(f"Error deleting media file {url}: {e}")
+            
+            # Now delete the quiz from local DB
             local_db['unfinished_quizzes'].remove(
                 (Quiz.identifier == identifier) & 
                 (Quiz.device_id == device_id)

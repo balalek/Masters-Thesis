@@ -162,3 +162,46 @@ class CloudinaryService:
         except Exception as e:
             current_app.logger.error(f"Cloudinary delete error for URL {url}: {str(e)}")
             return False
+
+    @staticmethod
+    def check_file_exists(url: str) -> bool:
+        """
+        Check if a file exists in Cloudinary
+        
+        Args:
+            url: The Cloudinary URL of the file
+            
+        Returns:
+            bool: True if file exists, False otherwise
+        """
+        if not url or 'res.cloudinary.com' not in url:
+            return False
+            
+        try:
+            # Extract public_id and resource_type from URL
+            parts = url.split('/upload/')
+            if len(parts) != 2:
+                return False
+            
+            # Handle version number in path
+            path_part = parts[1]
+            if '/' in path_part and path_part.split('/')[0].startswith('v'):
+                path_part = path_part.split('/', 1)[1]
+            
+            # Determine resource_type based on folder
+            resource_type = 'image'
+            if 'quiz_audio' in path_part:
+                resource_type = 'video'  # Cloudinary uses video type for audio
+            
+            # Extract public_id without extension
+            public_id = path_part.rsplit('.', 1)[0]
+            
+            # Check if asset exists
+            CloudinaryService.initialize()
+            result = cloudinary.api.resource(public_id, resource_type=resource_type)
+            return bool(result and result.get('public_id'))
+        except cloudinary.exceptions.NotFound:
+            return False
+        except Exception as e:
+            print(f"Error checking if file exists in Cloudinary: {str(e)}")
+            return False
