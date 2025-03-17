@@ -36,6 +36,8 @@ const QuestionCard = ({
         return 'Pravda/Lež';
       case QUESTION_TYPES.OPEN_ANSWER: 
         return 'Otevřená odpověď';
+      case QUESTION_TYPES.GUESS_A_NUMBER:
+        return 'Hádej číslo';
       default: 
         return question.type;
     }

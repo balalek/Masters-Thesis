@@ -105,7 +105,8 @@ class BaseQuestionHandler:
         """Handle copy_of references when original question changes or is removed"""
         if copies:
             # Find oldest copy to become new original
-            new_original = min(copies, key=lambda x: x.get("created_at", datetime.max))
+            # Use the created_at field if it exists, otherwise use _id as a fallback
+            new_original = min(copies, key=lambda x: x.get("created_at", x.get("_id", datetime.max)))
             new_original_id = new_original["_id"]
             
             # Update all other copies to point to new original

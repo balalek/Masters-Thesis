@@ -64,6 +64,8 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
         let answers = q.answers;
         if (!answers && q.type === QUESTION_TYPES.OPEN_ANSWER) {
           answers = [{ text: `Správná odpověď: ${q.open_answer || ''}`, isCorrect: true }];
+        } else if (!answers && q.type === QUESTION_TYPES.GUESS_A_NUMBER) {
+          answers = [{ text: `Správná odpověď: ${q.number_answer || '0'}`, isCorrect: true }];
         } else if (!answers && q.options) {
           answers = q.options.map((text, index) => ({
             text,
@@ -86,6 +88,8 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
           questionData.mediaUrl = q.media_url;
           questionData.showImageGradually = q.show_image_gradually;
           questionData.fileName = q.media_url ? q.media_url.split('/').pop() : '';
+        } else if (q.type === QUESTION_TYPES.GUESS_A_NUMBER) {
+          questionData.answer = q.number_answer || 0;
         }
         
         return questionData;
@@ -235,6 +239,7 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
               <MenuItem value={QUESTION_TYPES.ABCD}>ABCD</MenuItem>
               <MenuItem value={QUESTION_TYPES.TRUE_FALSE}>Pravda/Lež</MenuItem>
               <MenuItem value={QUESTION_TYPES.OPEN_ANSWER}>Otevřená odpověď</MenuItem>
+              <MenuItem value={QUESTION_TYPES.GUESS_A_NUMBER}>Hádej číslo</MenuItem>
             </Select>
           </FormControl>
         </Box>

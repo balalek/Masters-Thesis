@@ -32,7 +32,9 @@ class Question:
         open_answer: Optional[str] = None,
         media_type: Optional[str] = None,
         media_url: Optional[str] = None,
-        show_image_gradually: bool = False
+        show_image_gradually: bool = False,
+        # Add new fields for guess a number
+        number_answer: Optional[float] = None
     ):
         self._id = _id or ObjectId()
         self.question = question
@@ -50,6 +52,8 @@ class Question:
         self.media_type = media_type
         self.media_url = media_url
         self.show_image_gradually = show_image_gradually
+        # Add guess a number fields
+        self.number_answer = number_answer
 
     def to_dict(self):
         base_dict = {
@@ -76,6 +80,10 @@ class Question:
                 "media_type": self.media_type,
                 "media_url": self.media_url,
                 "show_image_gradually": self.show_image_gradually
+            })
+        elif self.type == QUESTION_TYPES["GUESS_A_NUMBER"]:
+            base_dict.update({
+                "number_answer": self.number_answer
             })
             
         return base_dict

@@ -5,6 +5,7 @@ import QuestionForm from './components/QuestionForm';
 import QuestionPreview from './components/QuestionPreview';
 import AddExistingQuestionDialog from './components/AddExistingQuestionDialog';
 import OpenAnswerForm from './components/OpenAnswerForm';
+import GuessANumberForm from './components/GuessANumberForm';
 import {
   DndContext,
   closestCenter,
@@ -197,6 +198,11 @@ const CreateQuizPage = () => {
                 showImageGradually: q.show_image_gradually || false,
                 fileName: q.media_url ? q.media_url.split('/').pop() : ''
               };
+            } else if (q.type === QUESTION_TYPES.GUESS_A_NUMBER) {
+              return {
+                ...baseQuestion,
+                answer: q.number_answer || 0
+              };
             } else if (q.type === QUESTION_TYPES.ABCD || q.type === QUESTION_TYPES.TRUE_FALSE) {
               return {
                 ...baseQuestion,
@@ -204,6 +210,8 @@ const CreateQuizPage = () => {
                 correctAnswer: q.answer
               };
             }
+            
+            return baseQuestion; // Fallback case
           });
           
           setQuestions(transformedQuestions);
@@ -323,6 +331,26 @@ const CreateQuizPage = () => {
       if (formRef.current) {
         formRef.current.resetForm();
       }
+    } else if (selectedQuizType === QUIZ_TYPES.GUESS_A_NUMBER) {
+      const newQuestion = {
+        ...question,
+        id: editingQuestion ? editingQuestion.id : Date.now(),
+        _id: editingQuestion ? editingQuestion._id : undefined,
+        type: QUIZ_TYPES.GUESS_A_NUMBER,
+        modified: editingQuestion ? true : false,
+        copy_of: editingQuestion && editingQuestion.modified ? null : editingQuestion?.copy_of || null,
+      };
+
+      if (editingQuestion) {
+        setQuestions(questions.map(q => q.id === editingQuestion.id ? newQuestion : q));
+      } else {
+        setQuestions([...questions, newQuestion]);
+      }
+      
+      setEditingQuestion(null);
+      if (formRef.current) {
+        formRef.current.resetForm();
+      }
     } else {
       if (!question.type) {
         question.type = isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE;
@@ -404,6 +432,9 @@ const CreateQuizPage = () => {
     if (questionToEdit.type === QUIZ_TYPES.OPEN_ANSWER) {
       setEditingQuestion(questionToEdit);
       setSelectedQuizType(QUIZ_TYPES.OPEN_ANSWER);
+    } else if (questionToEdit.type === QUIZ_TYPES.GUESS_A_NUMBER) {
+      setEditingQuestion(questionToEdit);
+      setSelectedQuizType(QUIZ_TYPES.GUESS_A_NUMBER);
     } else {
       setEditingQuestion(questionToEdit);
       setIsAbcd(questionToEdit.type === QUESTION_TYPES.ABCD);
@@ -583,6 +614,11 @@ const CreateQuizPage = () => {
           showImageGradually: question.showImageGradually || question.show_image_gradually || false,
           fileName: question.fileName || (question.mediaUrl ? question.mediaUrl.split('/').pop() : '')
         };
+      } else if (question.type === QUESTION_TYPES.GUESS_A_NUMBER) {
+        return {
+          ...baseQuestion,
+          answer: question.number_answer || question.answer || 0,
+        };
       } else if (question.type === QUESTION_TYPES.ABCD || question.type === QUESTION_TYPES.TRUE_FALSE) {
         return {
           ...baseQuestion,
@@ -632,6 +668,7 @@ const CreateQuizPage = () => {
           >
             <MenuItem value={QUIZ_TYPES.ABCD}>ABCD, Pravda/lež</MenuItem>
             <MenuItem value={QUIZ_TYPES.OPEN_ANSWER}>Otevřená odpověď</MenuItem>
+            <MenuItem value={QUIZ_TYPES.GUESS_A_NUMBER}>Hádej číslo</MenuItem>
             <MenuItem value="other" disabled>Další typy (Připravujeme)</MenuItem>
           </Select>
           <TextField
@@ -733,13 +770,19 @@ const CreateQuizPage = () => {
                     editQuestion={editingQuestion}
                     isAbcd={isAbcd}
                   />
-                ) : (
+                ) : selectedQuizType === QUIZ_TYPES.OPEN_ANSWER ? (
                   <OpenAnswerForm
                     ref={formRef}
                     onSubmit={handleAddQuestion}
                     editQuestion={editingQuestion}
                   />
-                )}
+                ) : selectedQuizType === QUIZ_TYPES.GUESS_A_NUMBER ? (
+                  <GuessANumberForm
+                    ref={formRef}
+                    onSubmit={handleAddQuestion}
+                    editQuestion={editingQuestion}
+                  />
+                ) : null}
               </Box>
 
               <Box sx={{ pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>

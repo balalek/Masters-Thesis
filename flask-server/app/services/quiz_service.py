@@ -471,6 +471,10 @@ class QuizService:
                     "mediaUrl": original_q.get("media_url"),
                     "showImageGradually": original_q.get("show_image_gradually", False)
                 })
+            elif original_q["type"] == QUESTION_TYPES["GUESS_A_NUMBER"]:
+                question_data.update({
+                    "answer": original_q.get("number_answer", 0)
+                })
             else:  # ABCD or TRUE_FALSE
                 question_data.update({
                     "answers": original_q.get("options", []),

@@ -54,6 +54,22 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
           )}
         </>
       );
+    } else if (question.type === QUESTION_TYPES.GUESS_A_NUMBER) {
+      return (
+        <Box
+          sx={{
+            p: 1,
+            my: 0.5,
+            bgcolor: 'success.light',
+            borderRadius: 1,
+            width: '100%'  // Make box full width
+          }}
+        >
+          <Typography align="left">
+            Správná odpověď: {question.answer}
+          </Typography>
+        </Box>
+      );
     }
 
     return question.answers?.map((answer, ansIndex) => (
