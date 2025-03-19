@@ -6,6 +6,7 @@ import QuestionPreview from './components/QuestionPreview';
 import AddExistingQuestionDialog from './components/AddExistingQuestionDialog';
 import OpenAnswerForm from './components/OpenAnswerForm';
 import GuessANumberForm from './components/GuessANumberForm';
+import MathQuizForm from './components/MathQuizForm';
 import {
   DndContext,
   closestCenter,
@@ -164,9 +165,12 @@ const CreateQuizPage = () => {
         return;
       }
       
+      console.log("Fetching quiz data for editing:", quizId);
+      
       fetch(`/quiz/${quizId}`)
         .then(response => response.json())
         .then(quiz => {
+          console.log("Loaded quiz data:", quiz);
           setQuizName(quiz.name);
           
           if (quiz.type === QUIZ_TYPES.COMBINED_QUIZ) {
@@ -180,10 +184,10 @@ const CreateQuizPage = () => {
             const baseQuestion = {
               id: q._id,
               _id: q._id,
-              question: q.question,
+              question: q.question || '', // Default empty string for math quiz
               type: q.type,
               timeLimit: q.length,
-              category: q.category,
+              category: q.category || '', // Default empty string for math quiz
               copy_of: q.copy_of,
               modified: false
             };
@@ -203,6 +207,17 @@ const CreateQuizPage = () => {
                 ...baseQuestion,
                 answer: q.number_answer || 0
               };
+            } else if (q.type === QUESTION_TYPES.MATH_QUIZ) {
+              // Handle math quiz questions
+              return {
+                ...baseQuestion,
+                sequences: q.sequences?.map(seq => ({
+                  id: Date.now() + Math.random(),
+                  equation: seq.equation || '',
+                  answer: seq.answer || '',
+                  length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT
+                })) || []
+              };
             } else if (q.type === QUESTION_TYPES.ABCD || q.type === QUESTION_TYPES.TRUE_FALSE) {
               return {
                 ...baseQuestion,
@@ -215,6 +230,7 @@ const CreateQuizPage = () => {
           });
           
           setQuestions(transformedQuestions);
+          setDataLoaded(true); // Mark data as loaded after successful fetch
         })
         .catch(error => {
           console.error('Error fetching quiz:', error);
@@ -351,6 +367,26 @@ const CreateQuizPage = () => {
       if (formRef.current) {
         formRef.current.resetForm();
       }
+    } else if (selectedQuizType === QUIZ_TYPES.MATH_QUIZ) {
+      const newQuestion = {
+        ...question,
+        id: editingQuestion ? editingQuestion.id : Date.now(),
+        _id: editingQuestion ? editingQuestion._id : undefined,
+        type: QUIZ_TYPES.MATH_QUIZ,
+        modified: editingQuestion ? true : false,
+        copy_of: editingQuestion && editingQuestion.modified ? null : editingQuestion?.copy_of || null,
+      };
+
+      if (editingQuestion) {
+        setQuestions(questions.map(q => q.id === editingQuestion.id ? newQuestion : q));
+      } else {
+        setQuestions([...questions, newQuestion]);
+      }
+      
+      setEditingQuestion(null);
+      if (formRef.current) {
+        formRef.current.resetForm();
+      }
     } else {
       if (!question.type) {
         question.type = isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE;
@@ -435,6 +471,9 @@ const CreateQuizPage = () => {
     } else if (questionToEdit.type === QUIZ_TYPES.GUESS_A_NUMBER) {
       setEditingQuestion(questionToEdit);
       setSelectedQuizType(QUIZ_TYPES.GUESS_A_NUMBER);
+    } else if (questionToEdit.type === QUIZ_TYPES.MATH_QUIZ) {
+      setEditingQuestion(questionToEdit);
+      setSelectedQuizType(QUIZ_TYPES.MATH_QUIZ);
     } else {
       setEditingQuestion(questionToEdit);
       setIsAbcd(questionToEdit.type === QUESTION_TYPES.ABCD);
@@ -596,9 +635,9 @@ const CreateQuizPage = () => {
   const handleAddExistingQuestions = (selectedQuestions) => {
     const newQuestions = selectedQuestions.map(question => {
       const baseQuestion = {
-        question: question.text,
+        question: question.text || question.question || '',
         type: question.type,
-        timeLimit: question.length,
+        timeLimit: question.length || question.timeLimit,
         category: question.category,
         id: Date.now() + Math.random(),
         copy_of: question.copy_of || question.id,
@@ -619,6 +658,17 @@ const CreateQuizPage = () => {
           ...baseQuestion,
           answer: question.number_answer || question.answer || 0,
         };
+      } else if (question.type === QUESTION_TYPES.MATH_QUIZ) {
+        // Special handling for math quiz questions
+        return {
+          ...baseQuestion,
+          sequences: question.sequences?.map(seq => ({
+            id: Date.now() + Math.random(),
+            equation: seq.equation || '',
+            answer: seq.answer || '',
+            length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT
+          })) || []
+        };
       } else if (question.type === QUESTION_TYPES.ABCD || question.type === QUESTION_TYPES.TRUE_FALSE) {
         return {
           ...baseQuestion,
@@ -626,7 +676,9 @@ const CreateQuizPage = () => {
           correctAnswer: question.answers.findIndex(a => a.isCorrect)
         };
       }
-    });
+      
+      return baseQuestion; // Fallback case
+    }).filter(q => q); // Filter out any undefined values
     
     setQuestions([...questions, ...newQuestions]);
   };
@@ -669,6 +721,7 @@ const CreateQuizPage = () => {
             <MenuItem value={QUIZ_TYPES.ABCD}>ABCD, Pravda/lež</MenuItem>
             <MenuItem value={QUIZ_TYPES.OPEN_ANSWER}>Otevřená odpověď</MenuItem>
             <MenuItem value={QUIZ_TYPES.GUESS_A_NUMBER}>Hádej číslo</MenuItem>
+            <MenuItem value={QUIZ_TYPES.MATH_QUIZ}>Matematické rovnice</MenuItem>
             <MenuItem value="other" disabled>Další typy (Připravujeme)</MenuItem>
           </Select>
           <TextField
@@ -778,6 +831,12 @@ const CreateQuizPage = () => {
                   />
                 ) : selectedQuizType === QUIZ_TYPES.GUESS_A_NUMBER ? (
                   <GuessANumberForm
+                    ref={formRef}
+                    onSubmit={handleAddQuestion}
+                    editQuestion={editingQuestion}
+                  />
+                ) : selectedQuizType === QUIZ_TYPES.MATH_QUIZ ? (
+                  <MathQuizForm
                     ref={formRef}
                     onSubmit={handleAddQuestion}
                     editQuestion={editingQuestion}

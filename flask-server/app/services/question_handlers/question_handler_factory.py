@@ -5,6 +5,7 @@ from .abcd_handler import AbcdQuestionHandler
 from .true_false_handler import TrueFalseQuestionHandler
 from .open_answer_handler import OpenAnswerQuestionHandler
 from .guess_a_number_handler import GuessANumberQuestionHandler
+from .math_quiz_handler import MathQuizQuestionHandler
 
 class QuestionHandlerFactory:
     """Factory for creating the appropriate question handler based on question type."""
@@ -43,8 +44,8 @@ class QuestionHandlerFactory:
             QUESTION_TYPES["TRUE_FALSE"]: TrueFalseQuestionHandler(),
             QUESTION_TYPES["OPEN_ANSWER"]: OpenAnswerQuestionHandler(),
             QUESTION_TYPES["GUESS_A_NUMBER"]: GuessANumberQuestionHandler(),
+            QUESTION_TYPES["MATH_QUIZ"]: MathQuizQuestionHandler(),
             # TODO: Add handlers for other question types as they are implemented
             # QUESTION_TYPES["BLIND_MAP"]: BlindMapQuestionHandler(),
             # QUESTION_TYPES["DRAWING"]: DrawingQuestionHandler(),
-            # QUESTION_TYPES["MATH_QUIZ"]: MathQuizQuestionHandler(),
         }

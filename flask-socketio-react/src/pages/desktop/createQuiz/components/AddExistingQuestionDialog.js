@@ -24,6 +24,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { QUESTION_TYPES, QUIZ_TYPES } from '../../../../constants/quizValidation';
 import QuestionCard from './QuestionCard';
 import { scrollbarStyle } from '../../../../utils/scrollbarStyle';
+import { QUIZ_VALIDATION } from '../../../../constants/quizValidation';
 
 const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
   const [search, setSearch] = useState('');
@@ -36,6 +37,12 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [expandedQuestionId, setExpandedQuestionId] = useState(null);
+  
+  // Reset expanded question when the dialog closes or filters change
+  useEffect(() => {
+    setExpandedQuestionId(null);
+  }, [open, search, questionSource, questionTypes]);
 
   const fetchQuestions = async (pageNum = 1, append = false) => {
     try {
@@ -160,6 +167,57 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
     onClose();
   };
 
+  const handleAddExistingQuestions = (selectedQuestions) => {
+    const newQuestions = selectedQuestions.map(question => {
+      const baseQuestion = {
+        question: question.text || '',
+        type: question.type,
+        timeLimit: question.length,
+        category: question.category,
+        id: Date.now() + Math.random(),
+        copy_of: question.copy_of || question.id,
+        is_copy: true
+      };
+      
+      if (question.type === QUESTION_TYPES.OPEN_ANSWER) {
+        return {
+          ...baseQuestion,
+          answer: question.answer || question.open_answer || '',
+          mediaType: question.mediaType || question.media_type,
+          mediaUrl: question.mediaUrl || question.media_url,
+          showImageGradually: question.showImageGradually || question.show_image_gradually || false,
+          fileName: question.fileName || (question.mediaUrl ? question.mediaUrl.split('/').pop() : '')
+        };
+      } else if (question.type === QUESTION_TYPES.GUESS_A_NUMBER) {
+        return {
+          ...baseQuestion,
+          answer: question.number_answer || question.answer || 0,
+        };
+      } else if (question.type === QUESTION_TYPES.MATH_QUIZ) {
+        // Special handling for math quiz questions
+        return {
+          ...baseQuestion,
+          sequences: question.sequences?.map(seq => ({
+            id: Date.now() + Math.random(),
+            equation: seq.equation || '',
+            answer: seq.answer || '',
+            length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT
+          })) || []
+        };
+      } else if (question.type === QUESTION_TYPES.ABCD || question.type === QUESTION_TYPES.TRUE_FALSE) {
+        return {
+          ...baseQuestion,
+          answers: question.answers.map(a => a.text),
+          correctAnswer: question.answers.findIndex(a => a.isCorrect)
+        };
+      }
+      
+      return baseQuestion;
+    });
+    
+    onAddQuestions(newQuestions);
+  };
+
   const filteredQuestions = questions.filter(question => {
     if (!question) return false;
     
@@ -240,6 +298,7 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
               <MenuItem value={QUESTION_TYPES.TRUE_FALSE}>Pravda/Lež</MenuItem>
               <MenuItem value={QUESTION_TYPES.OPEN_ANSWER}>Otevřená odpověď</MenuItem>
               <MenuItem value={QUESTION_TYPES.GUESS_A_NUMBER}>Hádej číslo</MenuItem>
+              <MenuItem value={QUESTION_TYPES.MATH_QUIZ}>Matematické rovnice</MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -273,6 +332,8 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
                     question={question}
                     isSelected={true}
                     onToggleSelect={handleToggleQuestion}
+                    expandedQuestionId={expandedQuestionId}
+                    onExpandToggle={setExpandedQuestionId}
                   />
                 ))}
               </List>
@@ -301,6 +362,8 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
                   question={question}
                   isSelected={false}
                   onToggleSelect={handleToggleQuestion}
+                  expandedQuestionId={expandedQuestionId}
+                  onExpandToggle={setExpandedQuestionId}
                 />
               ))}
             {filteredQuestions.length === 0 && (

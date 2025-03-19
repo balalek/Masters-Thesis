@@ -456,10 +456,11 @@ class QuizService:
 
             # Create question data in a format compatible with handlers
             question_data = {
-                "question": original_q["question"],
+                # Only include question field if it exists in the original question
+                **({"question": original_q["question"]} if "question" in original_q else {"question": ""}),
                 "type": original_q["type"],
-                "category": original_q["category"],
-                "timeLimit": original_q["length"],
+                "category": original_q.get("category", ""),
+                "timeLimit": original_q.get("length", ""),
                 "copy_of": original_q.get("copy_of") or original_q["_id"],
             }
 
@@ -474,6 +475,10 @@ class QuizService:
             elif original_q["type"] == QUESTION_TYPES["GUESS_A_NUMBER"]:
                 question_data.update({
                     "answer": original_q.get("number_answer", 0)
+                })
+            elif original_q["type"] == QUESTION_TYPES["MATH_QUIZ"]:
+                question_data.update({
+                    "sequences": original_q.get("sequences", [])
                 })
             else:  # ABCD or TRUE_FALSE
                 question_data.update({

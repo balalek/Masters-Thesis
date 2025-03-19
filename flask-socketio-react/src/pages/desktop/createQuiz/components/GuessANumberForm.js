@@ -13,7 +13,7 @@ const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, re
   const initialFormData = editQuestion || {
     question: '',
     answer: '',
-    timeLimit: 30,
+    timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
     category: '',
   };
 
@@ -26,7 +26,7 @@ const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, re
       setFormData({
         question: editQuestion.question || '',
         answer: editQuestion.answer || editQuestion.number_answer || '',
-        timeLimit: editQuestion.timeLimit || 30,
+        timeLimit: editQuestion.timeLimit || QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
         category: editQuestion.category || '',
       });
     }
@@ -81,7 +81,7 @@ const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, re
     setFormData({
       question: '',
       answer: '',
-      timeLimit: 30,
+      timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
       category: '',
     });
     setErrors({});

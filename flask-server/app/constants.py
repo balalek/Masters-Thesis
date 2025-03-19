@@ -31,7 +31,12 @@ QUIZ_VALIDATION = {
     "ANSWER_MAX_LENGTH": 50,
     "TIME_LIMIT_MIN": 5,
     "TIME_LIMIT_MAX": 120,
+    "TIME_LIMIT_DEFAULT": 30,
+    "TIME_LIMIT_MIN_MATH": 5,
+    "TIME_LIMIT_MAX_MATH": 60,
+    "TIME_LIMIT_DEFAULT_MATH": 10,
     'QUIZ_NAME_MAX_LENGTH': 200,
+    'MIN_SEQUENCES': 3,
     "MEDIA_FILE_SIZE_LIMIT": 5 * 1024 * 1024,  # 5MB
     "ALLOWED_IMAGE_TYPES": ["image/jpeg", "image/png", "image/gif"],
     "ALLOWED_AUDIO_TYPES": ["audio/mpeg", "audio/wav", "audio/ogg"]

@@ -20,8 +20,8 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
 
   const initialFormData = editQuestion || {
     question: '',
-    answers: ['', '', '', ''],
-    correctAnswer: 0,
+    answers: isAbcd ? Array(4).fill('') : ['Pravda', 'Lež'],
+    correctAnswer: null, // Changed from 0 to null to have no default selected answer
     timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
     category: '',
     isTrueFalse: !isAbcd,
@@ -45,7 +45,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
       ...prev,
       isTrueFalse: !isAbcd,
       answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Lež'],
-      correctAnswer: 0,
+      correctAnswer: null,
       type: newType,
     }));
   }, [isAbcd]);
@@ -72,7 +72,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
 
     // Required fields validation
     if (!formData.question.trim()) {
-      newErrors.question = 'Otázka je povinná';
+      newErrors.question = isAbcd ? 'Otázka je povinná' : 'Tvrzení je povinné';
       isValid = false;
     }
 
@@ -120,6 +120,14 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
       isValid = false;
     }
 
+    // Validate that a correct answer is selected
+    if (formData.correctAnswer === null) {
+      newErrors.correctAnswer = isAbcd ? 
+        'Vyberte správnou odpověď' : 
+        'Vyberte zda je tvrzení pravdivé nebo nepravdivé';
+      isValid = false;
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -157,7 +165,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
     const newFormData = {
       question: '',
       answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Lež'],
-      correctAnswer: 0,
+      correctAnswer: null,
       timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
       category: '',
       isTrueFalse: !isAbcd,
@@ -204,7 +212,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
     }}>
       <TextField
         fullWidth
-        label="Otázka"
+        label={isAbcd ? "Otázka" : "Tvrzení"}
         value={formData.question}
         onChange={(e) => setFormData({ ...formData, question: e.target.value })}
         error={!!errors.question}
@@ -240,10 +248,17 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
               </Box>
             </Box>
           ))}
+          
+          {/* Add error message for ABCD form when no correct answer is selected */}
+          {errors.correctAnswer && (
+            <FormHelperText error sx={{ mt: 1, ml: 2 }}>
+              {errors.correctAnswer}
+            </FormHelperText>
+          )}
         </Box>
       ) : (
-        <FormControl>
-          <FormLabel>Správná odpověď</FormLabel>
+        <FormControl error={!!errors.correctAnswer}>
+          <FormLabel>Je tvrzení pravdivé?</FormLabel>
           <RadioGroup
             value={formData.correctAnswer}
             onChange={(e) => setFormData({ ...formData, correctAnswer: Number(e.target.value) })}
@@ -251,6 +266,9 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
             <FormControlLabel value={0} control={<Radio />} label="Pravda" />
             <FormControlLabel value={1} control={<Radio />} label="Lež" />
           </RadioGroup>
+          {errors.correctAnswer && (
+            <FormHelperText error>{errors.correctAnswer}</FormHelperText>
+          )}
         </FormControl>
       )}
 

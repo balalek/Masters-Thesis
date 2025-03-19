@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ListItem,
   ListItemText,
@@ -7,10 +7,10 @@ import {
   IconButton,
   Collapse,
   Box,
-  Stack
+  Stack,
+  Chip
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { QUESTION_TYPES } from '../../../../constants/quizValidation';
@@ -18,13 +18,15 @@ import { QUESTION_TYPES } from '../../../../constants/quizValidation';
 const QuestionCard = ({ 
   question, 
   isSelected, 
-  onToggleSelect 
+  onToggleSelect,
+  expandedQuestionId,
+  onExpandToggle
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
+  const isExpanded = expandedQuestionId === question.id;
+  
   const handleExpandClick = (event) => {
     event.stopPropagation();
-    setIsExpanded(!isExpanded);
+    onExpandToggle(isExpanded ? null : question.id);
   };
 
   // Determine question type label
@@ -38,9 +40,96 @@ const QuestionCard = ({
         return 'Otevřená odpověď';
       case QUESTION_TYPES.GUESS_A_NUMBER:
         return 'Hádej číslo';
+      case QUESTION_TYPES.MATH_QUIZ:
+        return 'Matematické rovnice';
       default: 
         return question.type;
     }
+  };
+
+  // Render appropriate content based on question type
+  const renderContent = () => {
+    if (question.type === QUESTION_TYPES.MATH_QUIZ) {
+      // Improved, more compact display for Math Quiz questions
+      return (
+        <Box sx={{ 
+          p: 2, 
+          pl: 4,
+          bgcolor: 'action.hover',
+          borderBottom: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Stack spacing={1}>
+            {question.sequences?.slice(0, 5).map((seq, index) => (
+              <Box 
+                key={index}
+                sx={{ 
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <Typography variant="body2">
+                  {seq.equation} = <span style={{ color: '#4caf50', fontWeight: 500 }}>{seq.answer}</span>
+                </Typography>
+              </Box>
+            ))}
+            {question.sequences && question.sequences.length > 5 && (
+              <Typography variant="body2" color="text.secondary">
+                +{question.sequences.length - 5} více rovnic...
+              </Typography>
+            )}
+          </Stack>
+        </Box>
+      );
+    }
+
+    // For other question types, use the standard answers display
+    return (
+      <Box sx={{ 
+        p: 2, 
+        pl: 4,
+        bgcolor: 'action.hover',
+        borderBottom: '1px solid',
+        borderColor: 'divider'
+      }}>
+        <Stack spacing={1}>
+          {question.answers.map((answer, index) => (
+            <Box 
+              key={index}
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
+              {answer.isCorrect ? 
+                <CheckCircleIcon color="success" fontSize="small" /> : 
+                <CancelIcon color="error" fontSize="small" />
+              }
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: answer.isCorrect ? 500 : 400,
+                  color: 'text.primary' // Ensure text is using default color
+                }}
+              >
+                {answer.text}
+              </Typography>
+            </Box>
+          ))}
+          
+          {/* Show media type info for open answers if available */}
+          {question.type === QUESTION_TYPES.OPEN_ANSWER && question.media_type && (
+            <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+              {question.media_type === 'image' 
+                ? `Obrázek${question.show_image_gradually ? ' (postupné odkrývání)' : ''}` 
+                : 'Audio'}
+            </Typography>
+          )}
+        </Stack>
+      </Box>
+    );
   };
 
   return (
@@ -77,16 +166,20 @@ const QuestionCard = ({
       >
         <ListItemText
           primary={
-            <Typography 
-              component="div" 
-              variant="body1" 
-              sx={{ 
-                fontWeight: isSelected ? 500 : 400,
-                mb: 0.5
-              }}
-            >
-              {question.text}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography 
+                component="div" 
+                variant="body1" 
+                sx={{ 
+                  fontWeight: isSelected ? 500 : 400,
+                  mb: 0.5
+                }}
+              >
+                {question.type === QUESTION_TYPES.MATH_QUIZ 
+                  ? 'Matematické rovnice' 
+                  : question.text}
+              </Typography>
+            </Box>
           }
           secondary={
             <Typography 
@@ -111,49 +204,7 @@ const QuestionCard = ({
         />
       </ListItem>
       <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-        <Box sx={{ 
-          p: 2, 
-          pl: 4,
-          bgcolor: 'action.hover',
-          borderBottom: '1px solid',
-          borderColor: 'divider'
-        }}>
-          <Stack spacing={1}>
-            {question.answers.map((answer, index) => (
-              <Box 
-                key={index}
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  gap: 1
-                }}
-              >
-                {answer.isCorrect ? 
-                  <CheckCircleIcon color="success" fontSize="small" /> : 
-                  <CancelIcon color="error" fontSize="small" />
-                }
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: answer.isCorrect ? 500 : 400,
-                    color: 'text.primary' // Ensure text is using default color
-                  }}
-                >
-                  {answer.text}
-                </Typography>
-              </Box>
-            ))}
-            
-            {/* Show media type info for open answers if available */}
-            {question.type === QUESTION_TYPES.OPEN_ANSWER && question.media_type && (
-              <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-                {question.media_type === 'image' 
-                  ? `Obrázek${question.show_image_gradually ? ' (postupné odkrývání)' : ''}` 
-                  : 'Audio'}
-              </Typography>
-            )}
-          </Stack>
-        </Box>
+        {renderContent()}
       </Collapse>
     </>
   );

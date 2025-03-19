@@ -1,7 +1,7 @@
 from bson import ObjectId
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
-from .constants import QUESTION_TYPES
+from .constants import QUESTION_TYPES, QUIZ_VALIDATION
 
 class QuestionMetadata:
     def __init__(self, times_used: int = 0, average_correct_rate: float = 0.0):
@@ -21,7 +21,7 @@ class Question:
         type: str,
         options: List[str] = None,  # Make optional for open answers
         answer: int = None,         # Make optional for open answers
-        length: int = 30,
+        length: int = QUIZ_VALIDATION["TIME_LIMIT_DEFAULT"],
         category: str = None,
         part_of: Optional[ObjectId] = None,  # Add part_of parameter to store quiz ID
         created_by: Optional[str] = None,  # Add created_by parameter to store device ID
@@ -34,7 +34,9 @@ class Question:
         media_url: Optional[str] = None,
         show_image_gradually: bool = False,
         # Add new fields for guess a number
-        number_answer: Optional[float] = None
+        number_answer: Optional[float] = None,
+        # Add new fields for math quiz
+        sequences: Optional[List[Dict[str, Any]]] = None
     ):
         self._id = _id or ObjectId()
         self.question = question
@@ -54,6 +56,8 @@ class Question:
         self.show_image_gradually = show_image_gradually
         # Add guess a number fields
         self.number_answer = number_answer
+        # Add math quiz fields
+        self.sequences = sequences or []
 
     def to_dict(self):
         base_dict = {
@@ -84,6 +88,10 @@ class Question:
         elif self.type == QUESTION_TYPES["GUESS_A_NUMBER"]:
             base_dict.update({
                 "number_answer": self.number_answer
+            })
+        elif self.type == QUESTION_TYPES["MATH_QUIZ"]:
+            base_dict.update({
+                "sequences": self.sequences
             })
             
         return base_dict

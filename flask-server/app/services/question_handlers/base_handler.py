@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 from ...db import db
 from ...models import QuestionMetadata
+from ...constants import QUIZ_VALIDATION
 
 class BaseQuestionHandler:
     """Base class for handling different question types."""
@@ -41,7 +42,7 @@ class BaseQuestionHandler:
         question_dict = {
             "question": question_data["question"],
             "type": self.question_type,
-            "length": question_data.get("timeLimit", question_data.get("length", 30)),
+            "length": question_data.get("timeLimit", question_data.get("length", QUIZ_VALIDATION["TIME_LIMIT_DEFAULT"])),
             "category": question_data["category"],
             "part_of": quiz_id,
             "created_by": device_id,
@@ -77,8 +78,8 @@ class BaseQuestionHandler:
             'question': question['question'],
             'type': question['type'],
             'category': question['category'],
-            'length': question.get('length', 30),
-            'timeLimit': question.get('length', 30),
+            'length': question.get('length', QUIZ_VALIDATION["TIME_LIMIT_DEFAULT"]),
+            'timeLimit': question.get('length', QUIZ_VALIDATION["TIME_LIMIT_DEFAULT"]),
             'quizName': quiz_name,
             'timesPlayed': question.get('metadata', {}).get('timesUsed', 0),
             'copy_of': str(question['copy_of']) if question.get('copy_of') else None,  # Add copy_of reference

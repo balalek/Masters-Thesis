@@ -16,7 +16,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null, onUplo
   const initialFormData = editQuestion || {
     question: '',
     answer: '',
-    timeLimit: 30,
+    timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
     category: '',
     mediaType: null, // 'image' or 'audio' or null
     mediaUrl: null,
@@ -34,7 +34,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null, onUplo
       setFormData({
         question: editQuestion.question || '',
         answer: editQuestion.answer || '',
-        timeLimit: editQuestion.timeLimit || 30,
+        timeLimit: editQuestion.timeLimit || QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
         category: editQuestion.category || '',
         mediaType: editQuestion.mediaType || null,
         mediaUrl: editQuestion.mediaUrl || null,
@@ -129,7 +129,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null, onUplo
     setFormData({
       question: '',
       answer: '',
-      timeLimit: 30,
+      timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
       category: '',
       mediaType: null,
       mediaUrl: null,

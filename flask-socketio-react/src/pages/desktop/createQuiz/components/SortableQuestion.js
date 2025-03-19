@@ -1,11 +1,11 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Box, Typography, IconButton, Paper } from '@mui/material';
+import { Box, Typography, IconButton, Paper, Divider } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import EditIcon from '@mui/icons-material/Edit';
-import { QUESTION_TYPES } from '../../../../constants/quizValidation';
+import { QUESTION_TYPES, QUIZ_TYPES } from '../../../../constants/quizValidation';
 
 const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDragging }) => {
   const {
@@ -28,7 +28,59 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
   };
 
   const renderAnswers = () => {
-    if (question.type === QUESTION_TYPES.OPEN_ANSWER) {
+    // Add console.log to debug question type and structure
+    // Debug logs removed for production
+    
+    if (question.type === QUESTION_TYPES.MATH_QUIZ || question.type === QUIZ_TYPES.MATH_QUIZ) {
+      // Check for both possible type values to be safe
+      return (
+        <Box sx={{ width: '100%' }}>
+          {question.sequences && question.sequences.length > 0 ? (
+            question.sequences.map((seq, seqIndex) => (
+              <Box
+                key={seqIndex}
+                sx={{
+                  p: 1,
+                  my: 0.5,
+                  bgcolor: 'action.hover',
+                  borderRadius: 1,
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Typography align="left">
+                  {seq.equation}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Typography 
+                    align="right" 
+                    sx={{ 
+                      color: 'success.main',
+                      fontWeight: 'bold',
+                      minWidth: '30px'
+                    }}
+                  >
+                    = {seq.answer}
+                  </Typography>
+                  <Typography 
+                    variant="body2"
+                    sx={{ 
+                      color: 'text.secondary',
+                      minWidth: '30px'
+                    }}
+                  >
+                    {seq.length}s
+                  </Typography>
+                </Box>
+              </Box>
+            ))
+          ) : (
+            <Typography color="error">No equation sequences found</Typography>
+          )}
+        </Box>
+      );
+    } else if (question.type === QUESTION_TYPES.OPEN_ANSWER) {
       return (
         <>
           <Box
@@ -113,9 +165,14 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
           justifyContent: 'space-between',
           py: 1
         }}>
-          <IconButton size="small" onClick={() => onDelete?.(question.id)}>
-            <DeleteIcon />
+          <IconButton 
+            size="small" 
+            color="info"
+            onClick={() => onEdit?.(question)}
+          >
+            <EditIcon />
           </IconButton>
+
           <IconButton 
             size="small" 
             sx={{ cursor: 'grab' }} 
@@ -126,12 +183,11 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
           >
             <DragIndicatorIcon />
           </IconButton>
-          <IconButton 
-            size="small" 
-            onClick={() => onEdit?.(question)}
-          >
-            <EditIcon />
+
+          <IconButton size="small" color="error" onClick={() => onDelete?.(question.id)}>
+            <DeleteIcon />
           </IconButton>
+
         </Box>
         
         <Box sx={{ pr: 5, textAlign: 'left' }}>
@@ -142,10 +198,13 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
             {renderAnswers()}
           </Box>
           
-          <Box sx={{ mt: 2, display: 'flex', gap: 2, color: 'text.secondary' }}>
-            <Typography variant="body2">Čas: {question.timeLimit}s</Typography>
-            <Typography variant="body2">Kategorie: {question.category}</Typography>
-          </Box>
+          {/* Hide time and category for math quiz questions */}
+          {question.type !== QUESTION_TYPES.MATH_QUIZ && (
+            <Box sx={{ mt: 2, display: 'flex', gap: 2, color: 'text.secondary' }}>
+              <Typography variant="body2">Čas: {question.timeLimit}s</Typography>
+              <Typography variant="body2">Kategorie: {question.category}</Typography>
+            </Box>
+          )}
         </Box>
       </Paper>
     </Box>
