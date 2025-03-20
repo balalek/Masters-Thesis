@@ -212,6 +212,12 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
             <Box sx={{ mt: 2, display: 'flex', gap: 2, color: 'text.secondary' }}>
               <Typography variant="body2">Čas: {question.length}s na hráče</Typography>
             </Box>
+          ) : question.type === QUESTION_TYPES.DRAWING ? (
+            // Show time and rounds for drawing questions
+            <Box sx={{ mt: 2, display: 'flex', gap: 2, color: 'text.secondary' }}>
+              <Typography variant="body2">Čas: {question.length || question.timeLimit}s na hráče</Typography>
+              <Typography variant="body2">Počet kol: {question.rounds || 1}</Typography>
+            </Box>
           ) : (
             // Default display for other question types
             <Box sx={{ mt: 2, display: 'flex', gap: 2, color: 'text.secondary' }}>

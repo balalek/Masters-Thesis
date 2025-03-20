@@ -24,10 +24,14 @@ const QuestionPreview = ({
   // Safety check for valid questions
   const validQuestions = questions?.filter(q => q && q.id) || [];
 
-  // Check if quiz contains standalone Word Chain without other question types
+  // Check if quiz contains standalone Word Chain or Drawing without other question types
   const isStandaloneWordChain = 
     questions.length === 1 && 
     questions[0].type === QUIZ_TYPES.WORD_CHAIN;
+    
+  const isStandaloneDrawing = 
+    questions.length === 1 && 
+    questions[0].type === QUIZ_TYPES.DRAWING;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
@@ -44,6 +48,16 @@ const QuestionPreview = ({
               sx={{ mb: 2 }}
             >
               Slovní řetěz nelze vytvořit jako samostatný kvíz. Přidejte alespoň jednu otázku jiného typu pro vytvoření kombinovaného kvízu.
+            </Alert>
+          )}
+
+          {/* Show warning for standalone Drawing */}
+          {isStandaloneDrawing && (
+            <Alert 
+              severity="warning" 
+              sx={{ mb: 2 }}
+            >
+              Kreslení nelze vytvořit jako samostatný kvíz. Přidejte alespoň jednu otázku jiného typu pro vytvoření kombinovaného kvízu.
             </Alert>
           )}
 

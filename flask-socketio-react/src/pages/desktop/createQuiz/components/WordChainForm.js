@@ -10,20 +10,26 @@ import InfoIcon from '@mui/icons-material/Info';
 import { QUIZ_VALIDATION } from '../../../../constants/quizValidation';
 
 const WordChainForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) => {
-  const initialFormData = editQuestion || {
+  // Initialize with default values, not with editQuestion
+  const [formData, setFormData] = useState({
     length: QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME,
-    rounds: QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS // Always 1
-  };
-
-  const [formData, setFormData] = useState(initialFormData);
+    rounds: QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS
+  });
   const [errors, setErrors] = useState({});
 
-  // Handle editing
+  // Update formData when editQuestion changes
   useEffect(() => {
     if (editQuestion) {
+      console.log("Updating form with editQuestion:", editQuestion);
       setFormData({
         length: editQuestion.length || QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME,
-        rounds: QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS // Always 1, even when editing
+        rounds: QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS // Always 1
+      });
+    } else {
+      // Reset to defaults when not editing
+      setFormData({
+        length: QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME,
+        rounds: QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS
       });
     }
   }, [editQuestion]);

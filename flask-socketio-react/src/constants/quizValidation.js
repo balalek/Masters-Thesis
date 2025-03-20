@@ -20,6 +20,14 @@ export const QUIZ_VALIDATION = {
     MAX_TIME: 60,      // Changed max to 60
     DEFAULT_TIME: 40
   },
+  DRAWING: {
+    MIN_ROUNDS: 1,
+    MAX_ROUNDS: 3,
+    DEFAULT_ROUNDS: 1,
+    MIN_TIME: 30,
+    MAX_TIME: 120,
+    DEFAULT_TIME: 60
+  },
   QUIZ_NAME_MAX_LENGTH: 200,
   MEDIA_FILE_SIZE_LIMIT: 5 * 1024 * 1024, // 5MB
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif'],

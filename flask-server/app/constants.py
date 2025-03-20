@@ -43,6 +43,13 @@ QUIZ_VALIDATION = {
     'WORD_CHAIN_MIN_TIME': 20,
     'WORD_CHAIN_MAX_TIME': 60,
     'WORD_CHAIN_DEFAULT_TIME': 40,
+    # Add Drawing Quiz validation constants
+    'DRAWING_MIN_ROUNDS': 1,
+    'DRAWING_MAX_ROUNDS': 3,
+    'DRAWING_DEFAULT_ROUNDS': 1,
+    'DRAWING_MIN_TIME': 30,
+    'DRAWING_MAX_TIME': 120,
+    'DRAWING_DEFAULT_TIME': 60,
     "MEDIA_FILE_SIZE_LIMIT": 5 * 1024 * 1024,  # 5MB
     "ALLOWED_IMAGE_TYPES": ["image/jpeg", "image/png", "image/gif"],
     "ALLOWED_AUDIO_TYPES": ["audio/mpeg", "audio/wav", "audio/ogg"]

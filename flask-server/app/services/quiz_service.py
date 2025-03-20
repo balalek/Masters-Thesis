@@ -4,7 +4,7 @@ from bson import ObjectId
 from typing import List, Dict, Any, Optional, Set
 from ..utils import convert_mongo_doc, get_device_id
 from datetime import datetime
-from ..constants import QUESTION_TYPES, QUIZ_TYPES
+from ..constants import QUESTION_TYPES, QUIZ_TYPES, QUIZ_VALIDATION
 from .local_storage_service import LocalStorageService
 from .question_handlers.question_handler_factory import QuestionHandlerFactory
 from .cloudinary_service import CloudinaryService
@@ -133,15 +133,15 @@ class QuizService:
         # Start with basic query
         query = {}
 
-        # Always exclude Word Chain questions
-        query['type'] = {'$ne': QUESTION_TYPES["WORD_CHAIN"]}
+        # Always exclude Word Chain and Drawing questions
+        query['type'] = {'$nin': [QUESTION_TYPES["WORD_CHAIN"], QUESTION_TYPES["DRAWING"]]}
 
         # Apply question type filter if not 'all'
         if question_type != 'all':
-            # Need to modify the query to include both the type filter and the Word Chain exclusion
+            # Need to modify the query to include both the type filter and the exclusions
             query['type'] = {
                 '$eq': question_type,
-                '$ne': QUESTION_TYPES["WORD_CHAIN"]
+                '$nin': [QUESTION_TYPES["WORD_CHAIN"], QUESTION_TYPES["DRAWING"]]
             }
             
         # Apply search query if provided
@@ -467,12 +467,24 @@ class QuizService:
                 **({"question": original_q["question"]} if "question" in original_q else {"question": ""}),
                 "type": original_q["type"],
                 "category": original_q.get("category", ""),
+                "length": original_q.get("length", ""),
                 "timeLimit": original_q.get("length", ""),
                 "copy_of": original_q.get("copy_of") or original_q["_id"],
             }
-
+            
+            # Add specific fields for Word Chain and Drawing questions
+            if original_q["type"] == QUESTION_TYPES["WORD_CHAIN"]:
+                question_data.update({
+                    "rounds": original_q.get("rounds", QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_ROUNDS']),
+                    "length": original_q.get("length", QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_TIME'])
+                })
+            elif original_q["type"] == QUESTION_TYPES["DRAWING"]:
+                question_data.update({
+                    "rounds": original_q.get("rounds", QUIZ_VALIDATION['DRAWING_DEFAULT_ROUNDS']),
+                    "length": original_q.get("length", QUIZ_VALIDATION['DRAWING_DEFAULT_TIME'])
+                })
             # Add type-specific fields based on question type
-            if original_q["type"] == QUESTION_TYPES["OPEN_ANSWER"]:
+            elif original_q["type"] == QUESTION_TYPES["OPEN_ANSWER"]:
                 question_data.update({
                     "answer": original_q.get("open_answer", ""),
                     "mediaType": original_q.get("media_type"),
