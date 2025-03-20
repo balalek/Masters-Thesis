@@ -458,6 +458,33 @@ const DesktopHomePage = () => {
           </Button>
         </Box>
 
+        {/* Add notice when WORD_CHAIN type is selected */}
+        {(selectedType === QUIZ_TYPES.WORD_CHAIN || selectedType === QUIZ_TYPES.DRAWING) && (
+          <Paper 
+            elevation={2} 
+            sx={{ 
+              p: 3, 
+              mb: 4, 
+              mt: 2, 
+              borderRadius: 2, 
+              backgroundColor: 'info.lighter',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Box sx={{ ml: 1, width: '100%' }}>
+              <Typography variant="h5" fontWeight={600} sx={{ mb: 1 }}>
+                {selectedType === QUIZ_TYPES.WORD_CHAIN 
+                  ? "Informace o Slovním řetězu" 
+                  : "Informace o kreslení"}
+              </Typography>
+              <Typography variant="body1" sx={{ fontSize: '1.1rem' }}>
+                Tento typ kvízu lze spustit pouze v rámci rychlé hry, nebo může být součástí kombinovaného kvízu.
+              </Typography>
+            </Box>
+          </Paper>
+        )}
+
         {/* Show different content based on selected tab */}
         {activeTab === 2 ? (
           // Unfinished quizzes tab content - now using QuizListItem
@@ -529,7 +556,7 @@ const DesktopHomePage = () => {
               </Box>
             )}
             
-            {!loading && filteredQuizzes.length === 0 && (
+            {!loading && filteredQuizzes.length === 0 && selectedType != QUIZ_TYPES.WORD_CHAIN && selectedType != QUIZ_TYPES.DRAWING && (
               <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
                 {searchQuery 
                   ? 'Nenalezeny žádné kvízy odpovídající vašemu vyhledávání'

@@ -12,11 +12,21 @@ export const QUIZ_VALIDATION = {
     MAX: 60,
     DEFAULT: 10
   },
+  WORD_CHAIN: {
+    MIN_ROUNDS: 1,
+    MAX_ROUNDS: 1,     // Changed max to 1
+    DEFAULT_ROUNDS: 1,
+    MIN_TIME: 20,
+    MAX_TIME: 60,      // Changed max to 60
+    DEFAULT_TIME: 40
+  },
   QUIZ_NAME_MAX_LENGTH: 200,
   MEDIA_FILE_SIZE_LIMIT: 5 * 1024 * 1024, // 5MB
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif'],
   ALLOWED_AUDIO_TYPES: ['audio/mpeg', 'audio/wav', 'audio/ogg'],
 };
+
+export const MAX_PLAYERS = 10;
 
 export const QUIZ_CATEGORIES = [
   'Historie',
@@ -53,6 +63,7 @@ export const QUESTION_TYPES = {
   ABCD: 'ABCD',
   TRUE_FALSE: 'TRUE_FALSE',
   OPEN_ANSWER: 'OPEN_ANSWER',
+  WORD_CHAIN: 'WORD_CHAIN',
   BLIND_MAP: 'BLIND_MAP',
   DRAWING: 'DRAWING',
   MATH_QUIZ: 'MATH_QUIZ',

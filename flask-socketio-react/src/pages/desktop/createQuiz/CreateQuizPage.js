@@ -7,6 +7,7 @@ import AddExistingQuestionDialog from './components/AddExistingQuestionDialog';
 import OpenAnswerForm from './components/OpenAnswerForm';
 import GuessANumberForm from './components/GuessANumberForm';
 import MathQuizForm from './components/MathQuizForm';
+import WordChainForm from './components/WordChainForm';  // Add this import
 import {
   DndContext,
   closestCenter,
@@ -186,7 +187,7 @@ const CreateQuizPage = () => {
               _id: q._id,
               question: q.question || '', // Default empty string for math quiz
               type: q.type,
-              timeLimit: q.length,
+              timeLimit: q.length || q.timeLimit, // Use either length or timeLimit field
               category: q.category || '', // Default empty string for math quiz
               copy_of: q.copy_of,
               modified: false
@@ -217,6 +218,13 @@ const CreateQuizPage = () => {
                   answer: seq.answer || '',
                   length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT
                 })) || []
+              };
+            } else if (q.type === QUESTION_TYPES.WORD_CHAIN) {
+              // Add special handling for Word Chain question type
+              return {
+                ...baseQuestion,
+                length: q.length || QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME,
+                rounds: q.rounds || QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS
               };
             } else if (q.type === QUESTION_TYPES.ABCD || q.type === QUESTION_TYPES.TRUE_FALSE) {
               return {
@@ -387,6 +395,28 @@ const CreateQuizPage = () => {
       if (formRef.current) {
         formRef.current.resetForm();
       }
+    } else if (selectedQuizType === QUIZ_TYPES.WORD_CHAIN) {
+      // Add handler for Word Chain
+      const newQuestion = {
+        ...question,
+        id: editingQuestion ? editingQuestion.id : Date.now(),
+        _id: editingQuestion ? editingQuestion._id : undefined,
+        type: QUIZ_TYPES.WORD_CHAIN,
+        length: question.length, 
+        modified: editingQuestion ? true : false,
+        copy_of: editingQuestion && editingQuestion.modified ? null : editingQuestion?.copy_of || null,
+      };
+
+      if (editingQuestion) {
+        setQuestions(questions.map(q => q.id === editingQuestion.id ? newQuestion : q));
+      } else {
+        setQuestions([...questions, newQuestion]);
+      }
+      
+      setEditingQuestion(null);
+      if (formRef.current) {
+        formRef.current.resetForm();
+      }
     } else {
       if (!question.type) {
         question.type = isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE;
@@ -474,6 +504,9 @@ const CreateQuizPage = () => {
     } else if (questionToEdit.type === QUIZ_TYPES.MATH_QUIZ) {
       setEditingQuestion(questionToEdit);
       setSelectedQuizType(QUIZ_TYPES.MATH_QUIZ);
+    } else if (questionToEdit.type === QUIZ_TYPES.WORD_CHAIN) {
+      setEditingQuestion(questionToEdit);
+      setSelectedQuizType(QUIZ_TYPES.WORD_CHAIN);
     } else {
       setEditingQuestion(questionToEdit);
       setIsAbcd(questionToEdit.type === QUESTION_TYPES.ABCD);
@@ -557,6 +590,17 @@ const CreateQuizPage = () => {
 
     if (questions.length === 0) {
       alert('Přidejte alespoň jednu otázku');
+      return;
+    }
+
+    // Add validation for standalone Word Chain quiz
+    const allWordChain = questions.every(q => q.type === "WORD_CHAIN");
+    if (allWordChain && questions.length === 1) {
+      setSnackbar({
+        open: true,
+        message: 'Slovní řetěz nemůže být samostatný kvíz. Přidejte otázky jiného typu a vytvořte kombinovaný kvíz.',
+        severity: 'error'
+      });
       return;
     }
 
@@ -683,6 +727,11 @@ const CreateQuizPage = () => {
     setQuestions([...questions, ...newQuestions]);
   };
 
+  // Add this function near other helper functions to check if Word Chain already exists
+  const hasWordChainQuestion = (questions) => {
+    return questions.some(q => q.type === QUIZ_TYPES.WORD_CHAIN);
+  };
+
   return (
     <Container 
       maxWidth="xl" 
@@ -722,6 +771,7 @@ const CreateQuizPage = () => {
             <MenuItem value={QUIZ_TYPES.OPEN_ANSWER}>Otevřená odpověď</MenuItem>
             <MenuItem value={QUIZ_TYPES.GUESS_A_NUMBER}>Hádej číslo</MenuItem>
             <MenuItem value={QUIZ_TYPES.MATH_QUIZ}>Matematické rovnice</MenuItem>
+            <MenuItem value={QUIZ_TYPES.WORD_CHAIN}>Slovní řetěz</MenuItem>
             <MenuItem value="other" disabled>Další typy (Připravujeme)</MenuItem>
           </Select>
           <TextField
@@ -841,6 +891,12 @@ const CreateQuizPage = () => {
                     onSubmit={handleAddQuestion}
                     editQuestion={editingQuestion}
                   />
+                ) : selectedQuizType === QUIZ_TYPES.WORD_CHAIN ? (
+                  <WordChainForm
+                    ref={formRef}
+                    onSubmit={handleAddQuestion}
+                    editQuestion={editingQuestion}
+                  />
                 ) : null}
               </Box>
 
@@ -849,12 +905,14 @@ const CreateQuizPage = () => {
                   variant="contained" 
                   fullWidth
                   onClick={handleAddQuestionClick}
-                  // Use direct ref check to see if file is uploading
-                  disabled={isUploading || loading}
+                  // Use direct ref check to see if file is uploading, and disable if already have Word Chain
+                  disabled={isUploading || loading || (selectedQuizType === QUIZ_TYPES.WORD_CHAIN && hasWordChainQuestion(questions) && !editingQuestion)}
                 >
                   {isUploading 
                     ? 'Nahrávání souboru...' 
-                    : (editingQuestion ? 'Aktualizovat otázku' : 'Přidat otázku')}
+                    : (selectedQuizType === QUIZ_TYPES.WORD_CHAIN && hasWordChainQuestion(questions) && !editingQuestion)
+                      ? 'Pouze jeden Slovní řetěz na kvíz'
+                      : (editingQuestion ? 'Aktualizovat otázku' : 'Přidat otázku')}
                 </Button>
               </Box>
             </Box>

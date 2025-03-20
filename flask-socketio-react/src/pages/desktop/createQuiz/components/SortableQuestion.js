@@ -27,10 +27,7 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
     opacity: isSortableDragging ? 0.4 : 1,
   };
 
-  const renderAnswers = () => {
-    // Add console.log to debug question type and structure
-    // Debug logs removed for production
-    
+  const renderQuestionContent = () => {
     if (question.type === QUESTION_TYPES.MATH_QUIZ || question.type === QUIZ_TYPES.MATH_QUIZ) {
       // Check for both possible type values to be safe
       return (
@@ -192,16 +189,33 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
         
         <Box sx={{ pr: 5, textAlign: 'left' }}>
           <Typography variant="h6">Otázka {index + 1}</Typography>
-          <Typography sx={{ mt: 1 }}>{question.question}</Typography>
+          {question.type === QUESTION_TYPES.MATH_QUIZ || question.type === QUIZ_TYPES.MATH_QUIZ ? (
+            <Typography sx={{ mt: 1 }}>Matematické rovnice</Typography>
+          ) : question.type === QUESTION_TYPES.WORD_CHAIN || question.type === QUIZ_TYPES.WORD_CHAIN ? (
+            <Typography sx={{ mt: 1 }}>Slovní řetěz</Typography>
+          ) : question.type === QUESTION_TYPES.DRAWING || question.type === QUIZ_TYPES.DRAWING ? (
+            <Typography sx={{ mt: 1 }}>Kreslení</Typography>
+          ) : (
+            <Typography sx={{ mt: 1 }}>{question.question}</Typography>
+          )}
           
           <Box sx={{ mt: 2 }}>
-            {renderAnswers()}
+            {renderQuestionContent()}
           </Box>
           
-          {/* Hide time and category for math quiz questions */}
-          {question.type !== QUESTION_TYPES.MATH_QUIZ && (
+          {/* Conditionally show different information based on question type */}
+          {question.type === QUESTION_TYPES.MATH_QUIZ ? (
+            // Hide time and category for math quiz questions
+            null
+          ) : question.type === QUESTION_TYPES.WORD_CHAIN ? (
+            // Show only time for word chain, rounds is always 1
             <Box sx={{ mt: 2, display: 'flex', gap: 2, color: 'text.secondary' }}>
-              <Typography variant="body2">Čas: {question.timeLimit}s</Typography>
+              <Typography variant="body2">Čas: {question.length}s na hráče</Typography>
+            </Box>
+          ) : (
+            // Default display for other question types
+            <Box sx={{ mt: 2, display: 'flex', gap: 2, color: 'text.secondary' }}>
+              <Typography variant="body2">Čas: {question.length || question.timeLimit}s</Typography>
               <Typography variant="body2">Kategorie: {question.category}</Typography>
             </Box>
           )}

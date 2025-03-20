@@ -15,7 +15,7 @@ class QuizService:
         """Create or update a question and return its reference data"""
         # Validate question type
         question_type = question_data.get("type")
-        if question_type not in QUESTION_TYPES.values():
+        if (question_type not in QUESTION_TYPES.values()):
             raise ValueError(f"Neplatný typ otázky: {question_type}")
         
         # Get the appropriate handler for this question type
@@ -133,9 +133,16 @@ class QuizService:
         # Start with basic query
         query = {}
 
+        # Always exclude Word Chain questions
+        query['type'] = {'$ne': QUESTION_TYPES["WORD_CHAIN"]}
+
         # Apply question type filter if not 'all'
         if question_type != 'all':
-            query['type'] = question_type
+            # Need to modify the query to include both the type filter and the Word Chain exclusion
+            query['type'] = {
+                '$eq': question_type,
+                '$ne': QUESTION_TYPES["WORD_CHAIN"]
+            }
             
         # Apply search query if provided
         if search_query:

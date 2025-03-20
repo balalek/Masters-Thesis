@@ -37,6 +37,12 @@ QUIZ_VALIDATION = {
     "TIME_LIMIT_DEFAULT_MATH": 10,
     'QUIZ_NAME_MAX_LENGTH': 200,
     'MIN_SEQUENCES': 3,
+    'WORD_CHAIN_MIN_ROUNDS': 1,
+    'WORD_CHAIN_MAX_ROUNDS': 1, # TODO carreful with this, if you change it, it may break the code (check it)
+    'WORD_CHAIN_DEFAULT_ROUNDS': 1,
+    'WORD_CHAIN_MIN_TIME': 20,
+    'WORD_CHAIN_MAX_TIME': 60,
+    'WORD_CHAIN_DEFAULT_TIME': 40,
     "MEDIA_FILE_SIZE_LIMIT": 5 * 1024 * 1024,  # 5MB
     "ALLOWED_IMAGE_TYPES": ["image/jpeg", "image/png", "image/gif"],
     "ALLOWED_AUDIO_TYPES": ["audio/mpeg", "audio/wav", "audio/ogg"]
@@ -61,7 +67,8 @@ QUESTION_TYPES = {
     "BLIND_MAP": "BLIND_MAP",    # TODO: Implement BlindMapQuestionHandler
     "DRAWING": "DRAWING",        # TODO: Implement DrawingQuestionHandler
     "MATH_QUIZ": "MATH_QUIZ",    # TODO: Implement MathQuizQuestionHandler
-    "GUESS_A_NUMBER": "GUESS_A_NUMBER"  # TODO: Implement GuessANumberQuestionHandler
+    "GUESS_A_NUMBER": "GUESS_A_NUMBER",  # TODO: Implement GuessANumberQuestionHandler
+    "WORD_CHAIN": "WORD_CHAIN"
 }
 
 QUIZ_CATEGORIES = [
