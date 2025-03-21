@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, useMediaQuery } from '@mui/material';
 import { lightTheme, darkTheme } from './themes';
 import DesktopHomePage from './pages/desktop/homePage/DesktopHomePage';
@@ -23,6 +23,10 @@ function App() {
       <div className="App">
         <BrowserRouter>
           <Routes>
+            {/* Add route to prevent React from handling map SVG requests */}
+            <Route path="/maps/*" element={null} />
+            
+            {/* Existing routes */}
             <Route path="/" element={<DesktopHomePage />} />
             <Route path="/play" element={<MobileJoinQuizRoom />} />
             <Route path="/mobile-game" element={<MobileGamePage />} />

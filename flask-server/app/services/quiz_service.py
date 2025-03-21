@@ -499,6 +499,17 @@ class QuizService:
                 question_data.update({
                     "sequences": original_q.get("sequences", [])
                 })
+            elif original_q["type"] == QUESTION_TYPES["BLIND_MAP"]:
+                question_data.update({
+                    "cityName": original_q.get("city_name", ""),
+                    "anagram": original_q.get("anagram", ""),
+                    "locationX": original_q.get("location_x", 0),
+                    "locationY": original_q.get("location_y", 0),
+                    "mapType": original_q.get("map_type", "cz"),
+                    "clue1": original_q.get("clue1", ""),
+                    "clue2": original_q.get("clue2", ""),
+                    "clue3": original_q.get("clue3", "")
+                })
             else:  # ABCD or TRUE_FALSE
                 question_data.update({
                     "answers": original_q.get("options", []),

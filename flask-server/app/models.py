@@ -36,7 +36,16 @@ class Question:
         # Add new fields for guess a number
         number_answer: Optional[float] = None,
         # Add new fields for math quiz
-        sequences: Optional[List[Dict[str, Any]]] = None
+        sequences: Optional[List[Dict[str, Any]]] = None,
+        # Add new fields for blind map
+        city_name: Optional[str] = None,
+        anagram: Optional[str] = None,
+        location_x: Optional[float] = None,
+        location_y: Optional[float] = None,
+        map_type: Optional[str] = None,
+        clue1: Optional[str] = None,
+        clue2: Optional[str] = None,
+        clue3: Optional[str] = None
     ):
         self._id = _id or ObjectId()
         self.question = question
@@ -58,6 +67,15 @@ class Question:
         self.number_answer = number_answer
         # Add math quiz fields
         self.sequences = sequences or []
+        # Add blind map fields
+        self.city_name = city_name
+        self.anagram = anagram
+        self.location_x = location_x
+        self.location_y = location_y
+        self.map_type = map_type
+        self.clue1 = clue1
+        self.clue2 = clue2
+        self.clue3 = clue3
 
     def to_dict(self):
         base_dict = {
@@ -92,6 +110,17 @@ class Question:
         elif self.type == QUESTION_TYPES["MATH_QUIZ"]:
             base_dict.update({
                 "sequences": self.sequences
+            })
+        elif self.type == QUESTION_TYPES["BLIND_MAP"]:
+            base_dict.update({
+                "city_name": self.city_name,
+                "anagram": self.anagram,
+                "location_x": self.location_x,
+                "location_y": self.location_y,
+                "map_type": self.map_type,
+                "clue1": self.clue1,
+                "clue2": self.clue2,
+                "clue3": self.clue3
             })
             
         return base_dict

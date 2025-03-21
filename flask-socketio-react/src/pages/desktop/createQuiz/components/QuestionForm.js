@@ -11,61 +11,88 @@ import {
   Autocomplete,
   FormHelperText,
   Alert,
-  Slider // Add this import
+  Slider
 } from '@mui/material';
 import { QUIZ_VALIDATION, QUIZ_CATEGORIES, QUESTION_TYPES } from '../../../../constants/quizValidation';
 
 const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref) => {
   const answerLetters = ['A', 'B', 'C', 'D'];
 
-  const initialFormData = editQuestion || {
+  // Initialize with consistent default values
+  const [formData, setFormData] = useState({
     question: '',
     answers: isAbcd ? Array(4).fill('') : ['Pravda', 'Lež'],
-    correctAnswer: null, // Changed from 0 to null to have no default selected answer
-    timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
+    correctAnswer: null,
+    length: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT, // Use length consistently
     category: '',
     isTrueFalse: !isAbcd,
     type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
-  };
-
-  const [formData, setFormData] = useState(initialFormData);
+  });
 
   const [errors, setErrors] = useState({
     question: '',
     answers: ['', '', '', ''],
-    timeLimit: '',
+    length: '', // Changed from timeLimit to length
     category: ''
   });
 
   const [backendError, setBackendError] = useState('');
 
+  // Update form when isAbcd changes - keep question, category, and length
   useEffect(() => {
     const newType = isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE;
-    setFormData(prev => ({
-      ...prev,
-      isTrueFalse: !isAbcd,
-      answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Lež'],
-      correctAnswer: null,
-      type: newType,
-    }));
+    
+    setFormData(prev => {
+      // Keep existing values for common fields
+      const updatedData = {
+        ...prev,
+        isTrueFalse: !isAbcd,
+        type: newType,
+      };
+
+      // Only update answers format if we're switching question types
+      if ((isAbcd && prev.isTrueFalse) || (!isAbcd && !prev.isTrueFalse)) {
+        updatedData.answers = isAbcd ? Array(4).fill('') : ['Pravda', 'Lež'];
+        updatedData.correctAnswer = null; // Reset correct answer when changing type
+      }
+
+      return updatedData;
+    });
   }, [isAbcd]);
 
+  // Update form when editing a question - only run on initial load or when editQuestion changes
   useEffect(() => {
     if (editQuestion) {
       const questionType = editQuestion.answers.length === 2 ? QUESTION_TYPES.TRUE_FALSE : QUESTION_TYPES.ABCD;
-      setFormData(prev => ({
-        ...editQuestion,
+      
+      setFormData({
+        question: editQuestion.question || '',
+        answers: editQuestion.answers || [],
+        correctAnswer: editQuestion.correctAnswer,
+        length: editQuestion.length || editQuestion.timeLimit || QUIZ_VALIDATION.TIME_LIMIT.DEFAULT, 
+        category: editQuestion.category || '',
         isTrueFalse: editQuestion.answers.length === 2,
         type: questionType,
+      });
+    } else {
+      // Only reset when not editing (not on type change)
+      setFormData(prev => ({
+        question: '',
+        answers: isAbcd ? Array(4).fill('') : ['Pravda', 'Lež'],
+        correctAnswer: null,
+        length: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
+        category: '',
+        isTrueFalse: !isAbcd,
+        type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
       }));
     }
-  }, [editQuestion]);
+  }, [editQuestion]); // Remove isAbcd dependency from this effect
 
   const validateForm = () => {
     const newErrors = {
       question: '',
       answers: ['', '', '', ''],
-      timeLimit: '',
+      length: '', // Changed from timeLimit to length
       category: ''
     };
     let isValid = true;
@@ -83,8 +110,8 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
       }
     });
 
-    if (!formData.timeLimit) {
-      newErrors.timeLimit = 'Časový limit je povinný';
+    if (!formData.length) {
+      newErrors.length = 'Časový limit je povinný';
       isValid = false;
     }
 
@@ -108,9 +135,9 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
     });
 
     // Time limit validation
-    if (formData.timeLimit < QUIZ_VALIDATION.TIME_LIMIT.MIN || 
-        formData.timeLimit > QUIZ_VALIDATION.TIME_LIMIT.MAX) {
-      newErrors.timeLimit = `Časový limit musí být mezi ${QUIZ_VALIDATION.TIME_LIMIT.MIN}-${QUIZ_VALIDATION.TIME_LIMIT.MAX} vteřinami`;
+    if (formData.length < QUIZ_VALIDATION.TIME_LIMIT.MIN || 
+        formData.length > QUIZ_VALIDATION.TIME_LIMIT.MAX) {
+      newErrors.length = `Časový limit musí být mezi ${QUIZ_VALIDATION.TIME_LIMIT.MIN}-${QUIZ_VALIDATION.TIME_LIMIT.MAX} vteřinami`;
       isValid = false;
     }
 
@@ -162,22 +189,20 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
   };
 
   const resetForm = () => {
-    const newFormData = {
+    setFormData({
       question: '',
       answers: isAbcd ? ['', '', '', ''] : ['Pravda', 'Lež'],
       correctAnswer: null,
-      timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
+      length: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
       category: '',
       isTrueFalse: !isAbcd,
       type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
-    };
-    
-    setFormData(newFormData);
+    });
     
     setErrors({
       question: '',
       answers: ['', '', '', ''],
-      timeLimit: '',
+      length: '',
       category: ''
     });
     setBackendError('');
@@ -186,10 +211,11 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
   useImperativeHandle(ref, () => ({
     submitForm: async () => {
       if (validateForm()) {
-        // Ensure type is set before submission
+        // Ensure type is set before submission and map length to timeLimit for backend compatibility
         const dataToSubmit = {
           ...formData,
-          type: formData.type || (isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE)
+          type: formData.type || (isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE),
+          timeLimit: formData.length // Add timeLimit for backward compatibility
         };
         
         const backendValid = await checkQuestionWithBackend(dataToSubmit);
@@ -274,11 +300,11 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
 
       <Box sx={{ px: 2, width: '99%' }}> {/* Adjust width and padding */}
         <Typography gutterBottom>
-          Časový limit: {formData.timeLimit} vteřin
+          Časový limit: {formData.length} vteřin
         </Typography>
         <Slider
-          value={formData.timeLimit}
-          onChange={(e, newValue) => setFormData({ ...formData, timeLimit: newValue })}
+          value={formData.length}
+          onChange={(e, newValue) => setFormData({ ...formData, length: newValue })}
           min={QUIZ_VALIDATION.TIME_LIMIT.MIN}
           max={QUIZ_VALIDATION.TIME_LIMIT.MAX}
           valueLabelDisplay="auto"
@@ -295,6 +321,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
             }
           }}
         />
+        {errors.length && <Typography color="error" variant="caption">{errors.length}</Typography>}
       </Box>
 
       <Autocomplete

@@ -1,3 +1,4 @@
+// Quiz validation constants
 export const QUIZ_VALIDATION = {
   QUESTION_MAX_LENGTH: 100,
   ANSWER_MAX_LENGTH: 50,
@@ -36,6 +37,7 @@ export const QUIZ_VALIDATION = {
 
 export const MAX_PLAYERS = 10;
 
+// Categories for questions with types ABCD, True/False, Open Answer, Guess a Number
 export const QUIZ_CATEGORIES = [
   'Historie',
   'Zeměpis',
@@ -54,7 +56,7 @@ export const QUIZ_CATEGORIES = [
   'Různé'
 ];
 
-// Add constant quiz types
+// Quiz types constants
 export const QUIZ_TYPES = {
   ABCD: 'ABCD',
   OPEN_ANSWER: 'OPEN_ANSWER',
@@ -66,7 +68,7 @@ export const QUIZ_TYPES = {
   COMBINED_QUIZ: 'COMBINED_QUIZ'
 };
 
-// Add constant question types
+// Question types constants
 export const QUESTION_TYPES = {
   ABCD: 'ABCD',
   TRUE_FALSE: 'TRUE_FALSE',
@@ -78,7 +80,7 @@ export const QUESTION_TYPES = {
   GUESS_A_NUMBER: 'GUESS_A_NUMBER'
 };
 
-// Translate quiz types to Czech
+// Translated quiz types to Czech
 export const QUIZ_TYPE_TRANSLATIONS = {
   [QUIZ_TYPES.ABCD]: 'ABCD kvíz',
   [QUIZ_TYPES.OPEN_ANSWER]: 'Otevřené odpovědi',

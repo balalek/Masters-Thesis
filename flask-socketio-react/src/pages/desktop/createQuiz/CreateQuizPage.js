@@ -9,6 +9,7 @@ import GuessANumberForm from './components/GuessANumberForm';
 import MathQuizForm from './components/MathQuizForm';
 import WordChainForm from './components/WordChainForm';  // Add this import
 import DrawingForm from './components/DrawingForm'; // Add this import
+import BlindMapForm from './components/BlindMapForm'; // Add this import
 import {
   DndContext,
   closestCenter,
@@ -449,6 +450,26 @@ const CreateQuizPage = () => {
       if (formRef.current) {
         formRef.current.resetForm();
       }
+    } else if (selectedQuizType === QUIZ_TYPES.BLIND_MAP) {
+      const newQuestion = {
+        ...question,
+        id: editingQuestion ? editingQuestion.id : Date.now(),
+        _id: editingQuestion ? editingQuestion._id : undefined,
+        type: QUIZ_TYPES.BLIND_MAP,
+        modified: editingQuestion ? true : false,
+        copy_of: editingQuestion && editingQuestion.modified ? null : editingQuestion?.copy_of || null,
+      };
+
+      if (editingQuestion) {
+        setQuestions(questions.map(q => q.id === editingQuestion.id ? newQuestion : q));
+      } else {
+        setQuestions([...questions, newQuestion]);
+      }
+      
+      setEditingQuestion(null);
+      if (formRef.current) {
+        formRef.current.resetForm();
+      }
     } else {
       if (!question.type) {
         question.type = isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE;
@@ -542,6 +563,9 @@ const CreateQuizPage = () => {
     } else if (questionToEdit.type === QUIZ_TYPES.DRAWING) {
       setEditingQuestion(questionToEdit);
       setSelectedQuizType(QUIZ_TYPES.DRAWING);
+    } else if (questionToEdit.type === QUIZ_TYPES.BLIND_MAP) {
+      setEditingQuestion(questionToEdit);
+      setSelectedQuizType(QUIZ_TYPES.BLIND_MAP);
     } else {
       setEditingQuestion(questionToEdit);
       setIsAbcd(questionToEdit.type === QUESTION_TYPES.ABCD);
@@ -824,6 +848,7 @@ const CreateQuizPage = () => {
             <MenuItem value={QUIZ_TYPES.MATH_QUIZ}>Matematické rovnice</MenuItem>
             <MenuItem value={QUIZ_TYPES.WORD_CHAIN}>Slovní řetěz</MenuItem>
             <MenuItem value={QUIZ_TYPES.DRAWING}>Kreslení</MenuItem>
+            <MenuItem value={QUIZ_TYPES.BLIND_MAP}>Slepá mapa</MenuItem>
             <MenuItem value="other" disabled>Další typy (Připravujeme)</MenuItem>
           </Select>
           <TextField
@@ -951,6 +976,12 @@ const CreateQuizPage = () => {
                   />
                 ) : selectedQuizType === QUIZ_TYPES.DRAWING ? (
                   <DrawingForm
+                    ref={formRef}
+                    onSubmit={handleAddQuestion}
+                    editQuestion={editingQuestion}
+                  />
+                ) : selectedQuizType === QUIZ_TYPES.BLIND_MAP ? (
+                  <BlindMapForm
                     ref={formRef}
                     onSubmit={handleAddQuestion}
                     editQuestion={editingQuestion}

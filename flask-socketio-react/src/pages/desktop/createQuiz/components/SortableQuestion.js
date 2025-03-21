@@ -119,6 +119,52 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
           </Typography>
         </Box>
       );
+    } else if (question.type === QUESTION_TYPES.BLIND_MAP){
+      return (
+        <>
+          <Box
+            sx={{
+              p: 1,
+              my: 0.5,
+              bgcolor: 'success.light',
+              borderRadius: 1,
+              width: '100%'  // Make box full width
+            }}
+          >
+            <Typography align="left">
+              Správná odpověď: {question.cityName}
+            </Typography>
+          </Box>
+          {question.anagram && (
+            <Box
+              sx={{
+                p: 1,
+                my: 0.5,
+                bgcolor: 'action.hover',
+                borderRadius: 1,
+                width: '100%'
+              }}
+            >
+              <Typography align="left">
+                Přesmyčka: {question.anagram}
+              </Typography>
+            </Box>
+          )}
+          <Box sx={{ mt: 1 }}>
+            <Typography variant="body2">
+              Mapa: {question.mapType === 'cz' ? 'Česká republika' : 'Evropa'}
+            </Typography>
+          </Box>
+          {(question.clue1 || question.clue2 || question.clue3) && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Nápovědy:</Typography>
+              {question.clue1 && <Typography variant="body2">1. {question.clue1}</Typography>}
+              {question.clue2 && <Typography variant="body2">2. {question.clue2}</Typography>}
+              {question.clue3 && <Typography variant="body2">3. {question.clue3}</Typography>}
+            </Box>
+          )}
+        </>
+      );
     }
 
     return question.answers?.map((answer, ansIndex) => (
