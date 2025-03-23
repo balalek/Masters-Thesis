@@ -55,7 +55,13 @@ QUIZ_VALIDATION = {
     # Open Answer Quiz validation constants
     "MEDIA_FILE_SIZE_LIMIT": 5 * 1024 * 1024,  # 5MB
     "ALLOWED_IMAGE_TYPES": ["image/jpeg", "image/png", "image/gif"],
-    "ALLOWED_AUDIO_TYPES": ["audio/mpeg", "audio/wav", "audio/ogg"]
+    "ALLOWED_AUDIO_TYPES": ["audio/mpeg", "audio/wav", "audio/ogg"],
+    # Blind Map validation constants
+    "BLIND_MAP_RADIUS_PRESETS": {
+        "EASY": {"exact": 0.045},  # One extra scoring zone
+        "HARD": {"exact": 0.03}                  # Only exact scoring
+    },
+    "BLIND_MAP_DEFAULT_PRESET": "HARD",
 }
 
 # Quiz type constants

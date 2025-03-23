@@ -43,6 +43,7 @@ class Question:
         location_x: Optional[float] = None,
         location_y: Optional[float] = None,
         map_type: Optional[str] = None,
+        radius_preset: Optional[str] = None,  # Add radius_preset parameter
         clue1: Optional[str] = None,
         clue2: Optional[str] = None,
         clue3: Optional[str] = None
@@ -73,6 +74,7 @@ class Question:
         self.location_x = location_x
         self.location_y = location_y
         self.map_type = map_type
+        self.radius_preset = radius_preset  # Add radius_preset field
         self.clue1 = clue1
         self.clue2 = clue2
         self.clue3 = clue3
@@ -118,6 +120,7 @@ class Question:
                 "location_x": self.location_x,
                 "location_y": self.location_y,
                 "map_type": self.map_type,
+                "radius_preset": self.radius_preset,  # Add radius_preset to the dict
                 "clue1": self.clue1,
                 "clue2": self.clue2,
                 "clue3": self.clue3

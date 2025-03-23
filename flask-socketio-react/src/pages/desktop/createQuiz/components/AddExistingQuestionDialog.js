@@ -73,6 +73,10 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
           answers = [{ text: `Správná odpověď: ${q.open_answer || ''}`, isCorrect: true }];
         } else if (!answers && q.type === QUESTION_TYPES.GUESS_A_NUMBER) {
           answers = [{ text: `Správná odpověď: ${q.number_answer || '0'}`, isCorrect: true }];
+        } else if (!answers && q.type === QUESTION_TYPES.BLIND_MAP) {
+          // Add console log to debug the blind map data
+          console.log('Processing blind map question:', q);
+          answers = [{ text: `Správná odpověď: ${q.city_name || q.cityName || 'Není uvedeno'}`, isCorrect: true }];
         } else if (!answers && q.options) {
           answers = q.options.map((text, index) => ({
             text,
@@ -97,6 +101,18 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
           questionData.fileName = q.media_url ? q.media_url.split('/').pop() : '';
         } else if (q.type === QUESTION_TYPES.GUESS_A_NUMBER) {
           questionData.answer = q.number_answer || 0;
+        } else if (q.type === QUESTION_TYPES.BLIND_MAP) {
+          // Add BlindMap specific fields
+          questionData.cityName = q.city_name || q.cityName || '';
+          questionData.city_name = q.city_name || q.cityName || '';
+          questionData.anagram = q.anagram || '';
+          questionData.locationX = q.location_x || q.locationX || 0;
+          questionData.locationY = q.location_y || q.locationY || 0;
+          questionData.mapType = q.map_type || q.mapType || 'cz';
+          questionData.radiusPreset = q.radius_preset || q.radiusPreset || 'HARD';
+          questionData.clue1 = q.clue1 || '';
+          questionData.clue2 = q.clue2 || '';
+          questionData.clue3 = q.clue3 || '';
         }
         
         return questionData;
@@ -163,28 +179,48 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
   };
 
   const handleAddSelected = () => {
-    onAddQuestions(selectedQuestions);
+    // Use the transformation logic before adding questions
+    handleAddExistingQuestions(selectedQuestions);
     onClose();
   };
 
   const handleAddExistingQuestions = (selectedQuestions) => {
+    console.log('Selected questions to add:', selectedQuestions);
+    
     const newQuestions = selectedQuestions.map(question => {
+      // Create base question with all original fields
       const baseQuestion = {
-        question: question.text || '',
+        question: question.text || question.question || '',
         type: question.type,
-        timeLimit: question.length,
-        category: question.category,
+        timeLimit: question.length || question.timeLimit || 30,
+        category: question.category || '',
         id: Date.now() + Math.random(),
-        copy_of: question.copy_of || question.id,
+        copy_of: question.copy_of || question._id || question.id,
         is_copy: true
       };
       
-      if (question.type === QUESTION_TYPES.OPEN_ANSWER) {
+      if (question.type === QUESTION_TYPES.BLIND_MAP) {
+        console.log('Processing Blind Map Question:', question);
+        return {
+          ...baseQuestion,
+          text: "Slepá mapa",  // Preserve text field
+          cityName: question.cityName || question.city_name || '',
+          anagram: question.anagram || '',
+          locationX: question.coords ? question.coords[0] : (question.locationX || question.location_x || 0),
+          locationY: question.coords ? question.coords[1] : (question.locationY || question.location_y || 0),
+          mapType: question.mapType || question.map_type || 'cz',
+          radiusPreset: question.radiusPreset || question.radius_preset || 'HARD',
+          clue1: question.clue1 || '',
+          clue2: question.clue2 || '',
+          clue3: question.clue3 || '',
+          length: question.length || question.timeLimit || 30,
+        };
+      } else if (question.type === QUESTION_TYPES.OPEN_ANSWER) {
         return {
           ...baseQuestion,
           answer: question.answer || question.open_answer || '',
-          mediaType: question.mediaType || question.media_type,
-          mediaUrl: question.mediaUrl || question.media_url,
+          mediaType: question.mediaType || question.media_type || '',
+          mediaUrl: question.mediaUrl || question.media_url || '',
           showImageGradually: question.showImageGradually || question.show_image_gradually || false,
           fileName: question.fileName || (question.mediaUrl ? question.mediaUrl.split('/').pop() : '')
         };
@@ -194,7 +230,6 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
           answer: question.number_answer || question.answer || 0,
         };
       } else if (question.type === QUESTION_TYPES.MATH_QUIZ) {
-        // Special handling for math quiz questions
         return {
           ...baseQuestion,
           sequences: question.sequences?.map(seq => ({
@@ -205,16 +240,27 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
           })) || []
         };
       } else if (question.type === QUESTION_TYPES.ABCD || question.type === QUESTION_TYPES.TRUE_FALSE) {
+        // DEBUG THE SOURCE DATA
+        console.log(`Processing ${question.type} question:`, JSON.stringify(question.answers));
+        
+        // Fix: Don't transform just directly use the answers as they are
         return {
           ...baseQuestion,
-          answers: question.answers.map(a => a.text),
-          correctAnswer: question.answers.findIndex(a => a.isCorrect)
+          answers: Array.isArray(question.answers) 
+            ? question.answers.map(a => a.text)
+            : [],
+          correctAnswer: Array.isArray(question.answers) 
+            ? question.answers.findIndex(a => a.isCorrect) 
+            : 0
         };
       }
       
+      // Default case - return the base question with all original properties
       return baseQuestion;
     });
     
+    // Log the transformed questions for debugging
+    console.log('Transformed questions:', newQuestions);
     onAddQuestions(newQuestions);
   };
 
@@ -266,12 +312,14 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
             placeholder="Hledat otázky..."
             value={search}
             onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }
             }}
             size="medium"
           />
@@ -299,6 +347,7 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
               <MenuItem value={QUESTION_TYPES.OPEN_ANSWER}>Otevřená odpověď</MenuItem>
               <MenuItem value={QUESTION_TYPES.GUESS_A_NUMBER}>Hádej číslo</MenuItem>
               <MenuItem value={QUESTION_TYPES.MATH_QUIZ}>Matematické rovnice</MenuItem>
+              <MenuItem value={QUESTION_TYPES.BLIND_MAP}>Slepá mapa</MenuItem>
             </Select>
           </FormControl>
         </Box>

@@ -9,7 +9,7 @@ import GuessANumberForm from './components/GuessANumberForm';
 import MathQuizForm from './components/MathQuizForm';
 import WordChainForm from './components/WordChainForm';  // Add this import
 import DrawingForm from './components/DrawingForm'; // Add this import
-import BlindMapForm from './components/BlindMapForm'; // Add this import
+import BlindMapForm from './components/blindMap/BlindMapForm';
 import {
   DndContext,
   closestCenter,
@@ -234,6 +234,24 @@ const CreateQuizPage = () => {
                 ...baseQuestion,
                 length: q.length || QUIZ_VALIDATION.DRAWING.DEFAULT_TIME,
                 rounds: q.rounds || QUIZ_VALIDATION.DRAWING.DEFAULT_ROUNDS
+              };
+            } else if (q.type === QUESTION_TYPES.BLIND_MAP) {
+              // Rearrange clues to avoid gaps when editing blind map questions
+              const nonEmptyClues = [q.clue1, q.clue2, q.clue3]
+                .filter(clue => clue && clue.trim() !== '')
+                .concat(['', '', '']); // Add empty placeholders
+              
+              return {
+                ...baseQuestion,
+                cityName: q.city_name || '',
+                anagram: q.anagram || '',
+                locationX: q.location_x || 0,
+                locationY: q.location_y || 0,
+                mapType: q.map_type || 'cz',
+                radiusPreset: q.radius_preset || 'HARD',
+                clue1: nonEmptyClues[0] || '',
+                clue2: nonEmptyClues[1] || '',
+                clue3: nonEmptyClues[2] || ''
               };
             } else if (q.type === QUESTION_TYPES.ABCD || q.type === QUESTION_TYPES.TRUE_FALSE) {
               return {
@@ -747,54 +765,9 @@ const CreateQuizPage = () => {
   };
 
   const handleAddExistingQuestions = (selectedQuestions) => {
-    const newQuestions = selectedQuestions.map(question => {
-      const baseQuestion = {
-        question: question.text || question.question || '',
-        type: question.type,
-        timeLimit: question.length || question.timeLimit,
-        category: question.category,
-        id: Date.now() + Math.random(),
-        copy_of: question.copy_of || question.id,
-        is_copy: true
-      };
-      
-      if (question.type === QUESTION_TYPES.OPEN_ANSWER) {
-        return {
-          ...baseQuestion,
-          answer: question.answer || question.open_answer || '',
-          mediaType: question.mediaType || question.media_type,
-          mediaUrl: question.mediaUrl || question.media_url,
-          showImageGradually: question.showImageGradually || question.show_image_gradually || false,
-          fileName: question.fileName || (question.mediaUrl ? question.mediaUrl.split('/').pop() : '')
-        };
-      } else if (question.type === QUESTION_TYPES.GUESS_A_NUMBER) {
-        return {
-          ...baseQuestion,
-          answer: question.number_answer || question.answer || 0,
-        };
-      } else if (question.type === QUESTION_TYPES.MATH_QUIZ) {
-        // Special handling for math quiz questions
-        return {
-          ...baseQuestion,
-          sequences: question.sequences?.map(seq => ({
-            id: Date.now() + Math.random(),
-            equation: seq.equation || '',
-            answer: seq.answer || '',
-            length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT
-          })) || []
-        };
-      } else if (question.type === QUESTION_TYPES.ABCD || question.type === QUESTION_TYPES.TRUE_FALSE) {
-        return {
-          ...baseQuestion,
-          answers: question.answers.map(a => a.text),
-          correctAnswer: question.answers.findIndex(a => a.isCorrect)
-        };
-      }
-      
-      return baseQuestion; // Fallback case
-    }).filter(q => q); // Filter out any undefined values
-    
-    setQuestions([...questions, ...newQuestions]);
+    // The questions are already transformed by AddExistingQuestionDialog
+    // Don't process them again, just add them directly to the questions state
+    setQuestions([...questions, ...selectedQuestions]);
   };
 
   // Add this function near other helper functions to check if Word Chain already exists

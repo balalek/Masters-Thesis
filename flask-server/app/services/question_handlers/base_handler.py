@@ -77,7 +77,7 @@ class BaseQuestionHandler:
             '_id': str(question['_id']),
             'question': question['question'],
             'type': question['type'],
-            'category': question['category'],
+            'category': question.get('category', ''),  # Use get() with default empty string
             'length': question.get('length', QUIZ_VALIDATION["TIME_LIMIT_DEFAULT"]),
             'timeLimit': question.get('length', QUIZ_VALIDATION["TIME_LIMIT_DEFAULT"]),
             'quizName': quiz_name,

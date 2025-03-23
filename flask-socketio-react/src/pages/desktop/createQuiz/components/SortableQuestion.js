@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Box, Typography, IconButton, Paper, Divider } from '@mui/material';
@@ -8,6 +8,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import { QUESTION_TYPES, QUIZ_TYPES } from '../../../../constants/quizValidation';
 
 const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDragging }) => {
+  // Add debugging logs when component renders or question changes
+  useEffect(() => {
+  }, [question, index]);
+
   const {
     attributes,
     listeners,
@@ -150,13 +154,8 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
               </Typography>
             </Box>
           )}
-          <Box sx={{ mt: 1 }}>
-            <Typography variant="body2">
-              Mapa: {question.mapType === 'cz' ? 'Česká republika' : 'Evropa'}
-            </Typography>
-          </Box>
           {(question.clue1 || question.clue2 || question.clue3) && (
-            <Box sx={{ mt: 1 }}>
+            <Box sx={{ mt: 2 }}>
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Nápovědy:</Typography>
               {question.clue1 && <Typography variant="body2">1. {question.clue1}</Typography>}
               {question.clue2 && <Typography variant="body2">2. {question.clue2}</Typography>}
@@ -166,7 +165,7 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
         </>
       );
     }
-
+    
     return question.answers?.map((answer, ansIndex) => (
       <Box
         key={ansIndex}
@@ -268,7 +267,18 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
             // Default display for other question types
             <Box sx={{ mt: 2, display: 'flex', gap: 2, color: 'text.secondary' }}>
               <Typography variant="body2">Čas: {question.length || question.timeLimit}s</Typography>
-              <Typography variant="body2">Kategorie: {question.category}</Typography>
+              {question.type === QUESTION_TYPES.BLIND_MAP ? (
+                <>
+                  <Typography variant="body2">
+                    Mapa: {question.mapType === 'cz' ? 'Česká republika' : 'Evropa'}
+                  </Typography>
+                  <Typography variant="body2">
+                    Náročnost: {question.radiusPreset === 'EASY' ? 'Snadnější' : 'Obtížnější'}
+                  </Typography>
+                </>
+              ) : (
+                question.category && <Typography variant="body2">Kategorie: {question.category}</Typography>
+              )}
             </Box>
           )}
         </Box>

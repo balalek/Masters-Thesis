@@ -182,7 +182,7 @@ class QuizService:
                 quiz = db.quizzes.find_one({'_id': question['part_of']}) if question.get('part_of') else None
                 is_public = quiz and quiz.get('is_public', False)
                 
-                if (is_public):
+                if is_public:
                     # If original question is public, use it
                     handler = QuestionHandlerFactory.get_handler(question['type'])
                     question_data = handler.format_for_frontend(question, quiz['name'] if quiz else 'Unknown Quiz')

@@ -33,6 +33,15 @@ export const QUIZ_VALIDATION = {
   MEDIA_FILE_SIZE_LIMIT: 5 * 1024 * 1024, // 5MB
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif'],
   ALLOWED_AUDIO_TYPES: ['audio/mpeg', 'audio/wav', 'audio/ogg'],
+  
+  // Add Blind Map validation constants
+  BLIND_MAP: {
+    RADIUS_PRESETS: {
+      EASY: { exact: 0.045 },    // One extra scoring zone
+      HARD: { exact: 0.03 }                  // Only exact scoring
+    },
+    DEFAULT_PRESET: 'HARD'
+  },
 };
 
 export const MAX_PLAYERS = 10;

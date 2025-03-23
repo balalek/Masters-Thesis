@@ -442,8 +442,10 @@ const DesktopHomePage = () => {
             placeholder="Hledat kvíz..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />,
+            slotProps={{
+              input: {
+                startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />
+              }
             }}
             fullWidth
             sx={{ flex: 1 }}

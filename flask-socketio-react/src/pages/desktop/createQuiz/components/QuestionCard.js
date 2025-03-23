@@ -42,6 +42,8 @@ const QuestionCard = ({
         return 'Hádej číslo';
       case QUESTION_TYPES.MATH_QUIZ:
         return 'Matematické rovnice';
+      case QUESTION_TYPES.BLIND_MAP:
+        return 'Slepá mapa';
       default: 
         return question.type;
     }
@@ -78,6 +80,49 @@ const QuestionCard = ({
               <Typography variant="body2" color="text.secondary">
                 +{question.sequences.length - 5} více rovnic...
               </Typography>
+            )}
+          </Stack>
+        </Box>
+      );
+    }
+
+    if (question.type === QUESTION_TYPES.BLIND_MAP) {
+      return (
+        <Box sx={{ 
+          p: 2, 
+          pl: 4,
+          bgcolor: 'action.hover',
+          borderBottom: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Stack spacing={1}>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
+              <Typography variant="body2">
+                {question.anagram || 'Přesmyčka není uvedena'} = <span style={{ color: '#4caf50', fontWeight: 500 }}>{question.cityName || question.city_name || 'Město není uvedeno'}</span>
+              </Typography>
+            </Box>
+            
+            {isExpanded && (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  gap: 1,
+                  mt: 1
+                }}
+              >
+                <Typography variant="body2">
+                  Mapa: {question.mapType === 'cz' ? 'Česká republika' : 'Evropa'}
+                  {(question.clue1 || question.clue2 || question.clue3) && 
+                    `, Nápovědy: ${[question.clue1, question.clue2, question.clue3].filter(Boolean).length}`}
+                </Typography>
+              </Box>
             )}
           </Stack>
         </Box>
