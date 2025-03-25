@@ -4,6 +4,7 @@ import { getSocket, getServerTime } from '../../../utils/socket';
 import ABCDQuiz from '../../../components/desktop/quizTypes/ABCDQuiz';
 import TrueFalseQuiz from '../../../components/desktop/quizTypes/TrueFalseQuiz';
 import QuestionPreview from '../../../components/desktop/QuestionPreview';
+import OpenAnswerQuiz from '../../../components/desktop/quizTypes/OpenAnswerQuiz';
 
 function GamePage() {
   const location = useLocation();
@@ -12,24 +13,36 @@ function GamePage() {
   const [question, setQuestion] = useState(null);
   const [isLastQuestion, setIsLastQuestion] = useState(false);
   const [showQuestionPreview, setShowQuestionPreview] = useState(true);
+  const [allAnswersReceived, setAllAnswersReceived] = useState(false);
+  const [showingResults, setShowingResults] = useState(false);
+  const [nextQuestionData, setNextQuestionData] = useState(null);
   const { showGameAt } = location.state || {};
 
   useEffect(() => {
     const socket = getSocket();
 
     socket.on('all_answers_received', (data) => {
-      console.log('Received scores data:', data.scores); // Debug log
-      navigate('/scores', { 
-        state: { 
-          scores: data.scores,  // This now contains either team data or individual scores
-          correctAnswer: data.correct_answer, 
-          answerCounts: data.answer_counts, 
-          isLastQuestion: isLastQuestion,
-          question: question,
-          showQuestionPreviewAt: data.show_question_preview_at,
-          isRemote: data.is_remote  // Add this line
-        } 
-      });
+      console.log('Received all_answers_received data:', data);
+      
+      // Create navigation state with the question's existing type
+      const navigationState = {
+        scores: data.scores,
+        correctAnswer: data.correct_answer,
+        question: question, // Use the existing question object with its type
+        isLastQuestion: isLastQuestion,
+        showQuestionPreviewAt: data.show_question_preview_at,
+        isRemote: data.is_remote
+      };
+      
+      // Add the appropriate data based on question type
+      if (question?.type === 'OPEN_ANSWER') {
+        navigationState.question.playerAnswers = data.player_answers || [];
+      } else {
+        navigationState.answerCounts = data.answer_counts;
+      }
+      
+      // Navigate to scores page with appropriate data
+      navigate('/scores', { state: navigationState });
     });
 
     return () => {
@@ -99,11 +112,18 @@ function GamePage() {
   if (!question) return <div>Chybička se vloudila...</div>;
 
   const renderQuizType = () => {
-    switch (question?.type) {
+    if (!question) return null;
+    
+    switch (question.type) {
       case 'TRUE_FALSE':
         return <TrueFalseQuiz 
           question={question} 
           answersCount={answersCount}
+          question_end_time={location.state?.question_end_time}
+        />;
+      case 'OPEN_ANSWER':
+        return <OpenAnswerQuiz 
+          question={question} 
           question_end_time={location.state?.question_end_time}
         />;
       case 'ABCD':

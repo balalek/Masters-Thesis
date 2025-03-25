@@ -5,7 +5,7 @@ import { Box, Typography, IconButton, Paper, Divider } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import EditIcon from '@mui/icons-material/Edit';
-import { QUESTION_TYPES, QUIZ_TYPES } from '../../../../constants/quizValidation';
+import { QUESTION_TYPES, QUIZ_TYPES } from '../../../../../constants/quizValidation';
 
 const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDragging }) => {
   // Add debugging logs when component renders or question changes

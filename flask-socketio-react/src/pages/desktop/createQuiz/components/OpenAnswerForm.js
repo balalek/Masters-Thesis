@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { QUIZ_VALIDATION, QUIZ_CATEGORIES } from '../../../../constants/quizValidation';
 
-const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null, onUploadStateChange }, ref) => {
+const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) => {
   const initialFormData = editQuestion || {
     question: '',
     answer: '',
@@ -129,7 +129,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null, onUplo
     setFormData({
       question: '',
       answer: '',
-      timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
+      length: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
       category: '',
       mediaType: null,
       mediaUrl: null,

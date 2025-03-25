@@ -25,6 +25,9 @@ PREVIEW_TIME = 3000  # TODO 5 seconds in milliseconds
 START_GAME_TIME = 2000  # TODO 5 seconds in milliseconds
 WAITING_TIME = 10
 
+# Points
+POINTS_FOR_CORRECT_ANSWER = 50
+
 # Quiz validation constants
 QUIZ_VALIDATION = {
     "QUESTION_MAX_LENGTH": 100,

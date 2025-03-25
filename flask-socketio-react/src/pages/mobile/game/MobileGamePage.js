@@ -8,7 +8,8 @@ import Loading from '../../../components/mobile/Loading';
 import MobileFinalScore from '../../../components/mobile/MobileFinalScore';
 import ABCDQuizMobile from '../../../components/mobile/quizTypes/ABCDQuizMobile';
 import TrueFalseQuizMobile from '../../../components/mobile/quizTypes/TrueFalseQuizMobile';
-import TooLateAnswer from '../../../components/mobile/TooLateAnswer';  // Add this import
+import TooLateAnswer from '../../../components/mobile/TooLateAnswer';
+import OpenAnswerQuizMobile from '../../../components/mobile/quizTypes/OpenAnswerQuizMobile';
 
 const MobileGamePage = () => {
   const location = useLocation();
@@ -45,7 +46,16 @@ const MobileGamePage = () => {
       setIsCorrect(data.correct);
       setPointsEarned(data.points_earned);
       setTotalPoints(data.total_points);
-      setLoading(true);     // Add this line to prevent more answers
+      
+      // Always show result for correct answers, regardless of question type
+      if (data.correct) {
+        setShowResult(true);
+        setLoading(true);
+      } else if (question?.type !== 'OPEN_ANSWER') {
+        // For incorrect answers in non-open questions, also show the result
+        setShowResult(true);
+        setLoading(true);
+      }
     });
 
     socket.on('all_answers_received', (data) => {
@@ -94,6 +104,18 @@ const MobileGamePage = () => {
     setLoading(true);
   };
 
+  const handleOpenAnswer = (answer) => {
+    const socket = getSocket();
+    const now = getServerTime();
+    
+    // Submit the open answer without setting loading state
+    socket.emit('submit_open_answer', {
+      player_name: playerName,
+      answer: answer,
+      answer_time: now
+    });
+  };
+
   if (showFinalScore && finalScoreData) {
     return (
       <MobileFinalScore
@@ -107,6 +129,7 @@ const MobileGamePage = () => {
 
   if (showResult) {
     if (isCorrect === null) {
+
       return <TooLateAnswer total_points={totalPoints} />;
     }
     return isCorrect ? 
@@ -129,6 +152,8 @@ const MobileGamePage = () => {
         return <TrueFalseQuizMobile onAnswer={handleAnswer} />;
       case 'ABCD':
         return <ABCDQuizMobile onAnswer={handleAnswer} />;
+      case 'OPEN_ANSWER':
+        return <OpenAnswerQuizMobile onAnswer={handleOpenAnswer} />;
       default:
         console.warn('Unknown question type:', questionType); // Debug log
         return <ABCDQuizMobile onAnswer={handleAnswer} />;

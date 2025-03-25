@@ -21,10 +21,10 @@ import {
   ToggleButton
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { QUESTION_TYPES, QUIZ_TYPES } from '../../../../constants/quizValidation';
+import { QUESTION_TYPES, QUIZ_TYPES } from '../../../../../constants/quizValidation';
 import QuestionCard from './QuestionCard';
-import { scrollbarStyle } from '../../../../utils/scrollbarStyle';
-import { QUIZ_VALIDATION } from '../../../../constants/quizValidation';
+import { scrollbarStyle } from '../../../../../utils/scrollbarStyle';
+import { QUIZ_VALIDATION } from '../../../../../constants/quizValidation';
 
 const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
   const [search, setSearch] = useState('');

@@ -100,8 +100,9 @@ def start_game():
     # The questions are already JSON-serializable
     game_state.questions = quiz["questions"]
     game_state.current_question = 0
-    game_state.answers_received = 0
-    game_state.answer_counts = [0, 0, 0, 0]
+    # Reset state for the next question
+    game_state.reset_question_state()
+
     
     current_time = int(time() * 1000)
     game_start_time = current_time + START_GAME_TIME  # 5 seconds from now
@@ -128,11 +129,12 @@ def next_question():
     if game_state.current_question is None or game_state.current_question + 1 >= len(game_state.questions):
         return jsonify({"error": "No more questions"}), 400
     
+    # Reset state for the next question
+    game_state.reset_question_state()
+    
+    # Move to the next question
     game_state.current_question += 1
-    game_state.answers_received = 0
-    game_state.answer_counts = [0, 0, 0, 0]
-    game_state.current_question_metadata_updated = False
-
+    
     next_question = game_state.questions[game_state.current_question]
     is_last_question = game_state.current_question + 1 == len(game_state.questions)
 

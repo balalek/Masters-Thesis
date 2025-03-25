@@ -7,8 +7,8 @@ import {
   Tooltip
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { QUIZ_VALIDATION } from '../../../../constants/quizValidation';
-import { scrollbarStyle } from '../../../../utils/scrollbarStyle';
+import { QUIZ_VALIDATION } from '../../../../../constants/quizValidation';
+import { scrollbarStyle } from '../../../../../utils/scrollbarStyle';
 import {
   DndContext,
   closestCenter,

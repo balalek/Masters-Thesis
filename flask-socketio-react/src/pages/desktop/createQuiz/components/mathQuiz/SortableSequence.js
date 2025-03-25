@@ -13,7 +13,7 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import InfoIcon from '@mui/icons-material/Info';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { QUIZ_VALIDATION } from '../../../../constants/quizValidation';
+import { QUIZ_VALIDATION } from '../../../../../constants/quizValidation';
 
 const SortableSequence = ({ 
   sequence, 

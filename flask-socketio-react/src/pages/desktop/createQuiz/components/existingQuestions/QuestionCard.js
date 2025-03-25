@@ -13,7 +13,7 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { QUESTION_TYPES } from '../../../../constants/quizValidation';
+import { QUESTION_TYPES } from '../../../../../constants/quizValidation';
 
 const QuestionCard = ({ 
   question, 

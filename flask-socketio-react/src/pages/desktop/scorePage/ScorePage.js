@@ -4,6 +4,7 @@ import { Box, Button, Typography } from '@mui/material';
 import { getSocket, getServerTime } from '../../../utils/socket';
 import ABCDAnswers from '../../../components/desktop/answerTypes/ABCDAnswers';
 import TrueFalseAnswers from '../../../components/desktop/answerTypes/TrueFalseAnswers';
+import OpenAnswerResult from '../../../components/desktop/answerTypes/OpenAnswerResult';
 import Leaderboard from '../../../components/desktop/Leaderboard';
 
 const ScorePage = () => {
@@ -123,20 +124,40 @@ const ScorePage = () => {
       });
   };
 
+  // Add logging to inspect what question data we're receiving
+  useEffect(() => {
+    console.log('ScorePage question data:', {
+      type: question?.type,
+      correctAnswer,
+      answerCounts,
+      playerAnswers: question?.playerAnswers || []
+    });
+  }, [question, correctAnswer, answerCounts]);
+
   const renderAnswers = () => {
-    switch (question?.type) {
+    // Simply use the question's type property directly
+    const questionType = question?.type || 'ABCD'; // Default to ABCD if no type
+    
+    switch (questionType) {
+      case 'OPEN_ANSWER':
+        return <OpenAnswerResult 
+          question={{
+            ...question,
+            correctAnswer: correctAnswer
+          }} 
+        />;
       case 'TRUE_FALSE':
         return <TrueFalseAnswers 
           question={question} 
           correctAnswer={correctAnswer} 
-          answerCounts={answerCounts} 
+          answerCounts={answerCounts || [0, 0]} 
         />;
       case 'ABCD':
       default:
         return <ABCDAnswers 
           question={question} 
           correctAnswer={correctAnswer} 
-          answerCounts={answerCounts} 
+          answerCounts={answerCounts || [0, 0, 0, 0]} 
         />;
     }
   };

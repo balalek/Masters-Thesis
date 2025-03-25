@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, useBeforeUnload } from 'react-router-dom';
 import { Box, TextField, Select, MenuItem, Typography, Button, Container, Snackbar, Alert } from '@mui/material';
 import QuestionForm from './components/QuestionForm';
-import QuestionPreview from './components/QuestionPreview';
-import AddExistingQuestionDialog from './components/AddExistingQuestionDialog';
+import QuestionPreview from './components/questionPreview/QuestionPreview';
+import AddExistingQuestionDialog from './components/existingQuestions/AddExistingQuestionDialog';
 import OpenAnswerForm from './components/OpenAnswerForm';
 import GuessANumberForm from './components/GuessANumberForm';
-import MathQuizForm from './components/MathQuizForm';
-import WordChainForm from './components/WordChainForm';  // Add this import
-import DrawingForm from './components/DrawingForm'; // Add this import
+import MathQuizForm from './components/mathQuiz/MathQuizForm';
+import WordChainForm from './components/WordChainForm';
+import DrawingForm from './components/DrawingForm';
 import BlindMapForm from './components/blindMap/BlindMapForm';
 import {
   DndContext,

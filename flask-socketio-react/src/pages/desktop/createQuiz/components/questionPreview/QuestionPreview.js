@@ -6,7 +6,7 @@ import {
 } from '@dnd-kit/sortable';
 import { DragOverlay } from '@dnd-kit/core';
 import SortableQuestion from './SortableQuestion';
-import { QUIZ_TYPES } from '../../../../constants/quizValidation';
+import { QUIZ_TYPES } from '../../../../../constants/quizValidation';
 
 const QuestionPreview = ({ 
   questions = [], 

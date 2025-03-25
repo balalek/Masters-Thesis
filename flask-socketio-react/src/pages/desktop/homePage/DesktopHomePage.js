@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, Typography, TextField, IconButton, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel, Tab, Tabs, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, Alert, Paper, Divider, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import ShareIcon from '@mui/icons-material/Share';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import QuizIcon from '@mui/icons-material/Abc';
 import MapIcon from '@mui/icons-material/Map';
@@ -13,9 +12,7 @@ import Filter1Icon from '@mui/icons-material/Filter1';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import QuestionAnswerIcon from '@mui/icons-material/EditNote';
 import SearchIcon from '@mui/icons-material/Search';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import QuizListItem from '../../../components/desktop/home/QuizListItem';
+import QuizListItem from './QuizListItem';
 import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
 
 const QuizTypeButton = ({ icon: Icon, label, value, selected, onChange }) => (
