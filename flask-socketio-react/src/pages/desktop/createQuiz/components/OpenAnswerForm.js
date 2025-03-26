@@ -16,7 +16,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
   const initialFormData = editQuestion || {
     question: '',
     answer: '',
-    timeLimit: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
+    length: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
     category: '',
     mediaType: null, // 'image' or 'audio' or null
     mediaUrl: null,
@@ -34,7 +34,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       setFormData({
         question: editQuestion.question || '',
         answer: editQuestion.answer || '',
-        timeLimit: editQuestion.timeLimit || QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
+        length: editQuestion.timeLimit || editQuestion.length || QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
         category: editQuestion.category || '',
         mediaType: editQuestion.mediaType || null,
         mediaUrl: editQuestion.mediaUrl || null,
@@ -65,9 +65,9 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       newErrors.category = 'Kategorie je povinná';
     }
 
-    if (formData.timeLimit < QUIZ_VALIDATION.TIME_LIMIT.MIN || 
-        formData.timeLimit > QUIZ_VALIDATION.TIME_LIMIT.MAX) {
-      newErrors.timeLimit = `Časový limit musí být mezi ${QUIZ_VALIDATION.TIME_LIMIT.MIN}-${QUIZ_VALIDATION.TIME_LIMIT.MAX} vteřinami`;
+    if (formData.length < QUIZ_VALIDATION.TIME_LIMIT.MIN || 
+        formData.length > QUIZ_VALIDATION.TIME_LIMIT.MAX) {
+      newErrors.length = `Časový limit musí být mezi ${QUIZ_VALIDATION.TIME_LIMIT.MIN}-${QUIZ_VALIDATION.TIME_LIMIT.MAX} vteřinami`;
     }
 
     if (mediaFile && mediaFile.size > QUIZ_VALIDATION.MEDIA_FILE_SIZE_LIMIT) {
@@ -214,11 +214,11 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
 
       <Box sx={{ px: 2, width: '99%' }}>
         <Typography gutterBottom>
-          Časový limit: {formData.timeLimit} vteřin
+          Časový limit: {formData.length} vteřin
         </Typography>
         <Slider
-          value={formData.timeLimit}
-          onChange={(e, newValue) => setFormData({ ...formData, timeLimit: newValue })}
+          value={formData.length}
+          onChange={(e, newValue) => setFormData({ ...formData, length: newValue })}
           min={QUIZ_VALIDATION.TIME_LIMIT.MIN}
           max={QUIZ_VALIDATION.TIME_LIMIT.MAX}
           valueLabelDisplay="auto"

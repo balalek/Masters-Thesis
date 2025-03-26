@@ -10,6 +10,10 @@ import ABCDQuizMobile from '../../../components/mobile/quizTypes/ABCDQuizMobile'
 import TrueFalseQuizMobile from '../../../components/mobile/quizTypes/TrueFalseQuizMobile';
 import TooLateAnswer from '../../../components/mobile/TooLateAnswer';
 import OpenAnswerQuizMobile from '../../../components/mobile/quizTypes/OpenAnswerQuizMobile';
+import GuessANumberQuizMobile from '../../../components/mobile/quizTypes/GuessANumberQuizMobile';
+import TeamCaptainGuessNumberMobile from '../../../components/mobile/quizTypes/TeamCaptainGuessNumberMobile';
+import MoreLessVoteMobile from '../../../components/mobile/quizTypes/MoreLessVoteMobile';
+import GuessANumberPlacement from '../../../components/mobile/GuessANumberPlacement';
 
 const MobileGamePage = () => {
   const location = useLocation();
@@ -28,6 +32,12 @@ const MobileGamePage = () => {
   const [finalScoreData, setFinalScoreData] = useState(null);
   const playerName = location.state?.playerName || 'Unknown Player';
   const [showButtons, setShowButtons] = useState(true);
+  const [playerRole, setPlayerRole] = useState('player'); // 'player', 'captain', 'voter'
+  const [teamName, setTeamName] = useState(null); // 'blue' or 'red'
+  const [quizPhase, setQuizPhase] = useState(1); // For guess-a-number quiz phases
+  const [firstTeamAnswer, setFirstTeamAnswer] = useState(null);
+  const [guessPlacementData, setGuessPlacementData] = useState(null);
+  const [showGuessPlacement, setShowGuessPlacement] = useState(false);
 
   useEffect(() => {
     const socket = getSocket();
@@ -37,15 +47,32 @@ const MobileGamePage = () => {
       setQuestion(data.question);
       setLoading(true);
       setShowResult(false);
+      setGuessPlacementData(null);
+      setShowGuessPlacement(false);
       setIsCorrect(null);
       setShowButtons(false);  // Hide buttons initially
     });
 
     socket.on('answer_correctness', (data) => {
-      console.log('answer_correctness event received in MobileGamePage:', data);
       setIsCorrect(data.correct);
       setPointsEarned(data.points_earned);
       setTotalPoints(data.total_points);
+
+      // Handle guess-a-number placement data
+      if (data.guessResult && data.correct !== null) {
+        setGuessPlacementData(data.guessResult);
+        setShowGuessPlacement(true);
+        setLoading(true);
+        return; // Early return to avoid showing regular result screens
+      } else if (data.guessResult && data.correct === null) {
+        // Handle the case where the answer is too late
+        setGuessPlacementData(null); // Clear previous data
+        setShowGuessPlacement(false);
+        setIsCorrect(null); // null triggers the "too late" screen
+        setShowResult(true);
+        setLoading(true); // Stop the loading spinner
+        return;
+      }
       
       // Always show result for correct answers, regardless of question type
       if (data.correct) {
@@ -60,7 +87,13 @@ const MobileGamePage = () => {
 
     socket.on('all_answers_received', (data) => {
       console.log('all_answers_received event received in MobileGamePage');
-      setShowResult(true);
+      
+      // Skip setting showResult for GUESS_A_NUMBER questions
+      // This prevents overriding the placement visualization
+      if (question?.type !== 'GUESS_A_NUMBER') {
+        console.log('Setting showResult to true for all_answers_received');
+        setShowResult(true);
+      }
       
       // Calculate delay until buttons should show
       const now = getServerTime();
@@ -95,7 +128,28 @@ const MobileGamePage = () => {
       socket.off('navigate_to_final_score');
       socket.off('game_reset');
     };
-  }, [navigate, playerName, finalScoreData]);
+  }, [navigate, playerName, finalScoreData, question]);
+
+  // Add a new effect for quiz-specific roles
+  useEffect(() => {
+    const socket = getSocket();
+    socket.on('player_role_update', (data) => {
+      setPlayerRole(data.role);
+      setTeamName(data.team);
+      
+      if (data.quizPhase) {
+        setQuizPhase(data.quizPhase);
+      }
+      
+      if (data.firstTeamAnswer !== undefined) {
+        setFirstTeamAnswer(data.firstTeamAnswer);
+      }
+    });
+
+    return () => {
+      socket.off('player_role_update');
+    };
+  }, []);
 
   const handleAnswer = (index) => {
     const socket = getSocket();
@@ -116,6 +170,45 @@ const MobileGamePage = () => {
     });
   };
 
+  // Special handlers for guess-a-number quiz
+  const handleNumberGuess = (value) => {
+    const socket = getSocket();
+    const now = getServerTime();
+    
+    socket.emit('submit_number_guess', {
+      player_name: playerName,
+      value: value,
+      answer_time: now
+    });
+    
+    // Only set loading for regular players, not captains or voters
+    if (playerRole === 'player') {
+      setLoading(true);
+    }
+  };
+
+  const handleCaptainChoice = (finalAnswer) => {
+    const socket = getSocket();
+    
+    socket.emit('submit_captain_choice', {
+      player_name: playerName,
+      team: teamName,
+      final_answer: finalAnswer
+    });
+    
+    setLoading(true);
+  };
+
+  const handleMoreLessVote = (vote) => {
+    const socket = getSocket();
+    
+    socket.emit('submit_more_less_vote', {
+      player_name: playerName,
+      team: teamName,
+      vote: vote
+    });
+  };
+
   if (showFinalScore && finalScoreData) {
     return (
       <MobileFinalScore
@@ -126,6 +219,19 @@ const MobileGamePage = () => {
       />
     );
   }
+
+    // Add condition for GuessANumberPlacement
+    if (showGuessPlacement && guessPlacementData) {
+      return <GuessANumberPlacement 
+        points_earned={pointsEarned}
+        total_points={totalPoints}
+        placement={guessPlacementData.placement}
+        totalPlayers={guessPlacementData.totalPlayers}
+        accuracy={guessPlacementData.accuracy}
+        yourGuess={guessPlacementData.yourGuess}
+        correctAnswer={guessPlacementData.correctAnswer}
+      />;
+    }
 
   if (showResult) {
     if (isCorrect === null) {
@@ -154,6 +260,21 @@ const MobileGamePage = () => {
         return <ABCDQuizMobile onAnswer={handleAnswer} />;
       case 'OPEN_ANSWER':
         return <OpenAnswerQuizMobile onAnswer={handleOpenAnswer} />;
+      case 'GUESS_A_NUMBER':
+        // Different components based on player role and phase
+        if (playerRole === 'captain' && quizPhase === 1) {
+          return <TeamCaptainGuessNumberMobile 
+            onAnswer={handleCaptainChoice} 
+            teamName={teamName} 
+          />;
+        } else if (playerRole === 'voter' && quizPhase === 2) {
+          return <MoreLessVoteMobile 
+            onAnswer={handleMoreLessVote}
+            firstTeamAnswer={firstTeamAnswer}
+          />;
+        } else {
+          return <GuessANumberQuizMobile onAnswer={handleNumberGuess} />;
+        }
       default:
         console.warn('Unknown question type:', questionType); // Debug log
         return <ABCDQuizMobile onAnswer={handleAnswer} />;

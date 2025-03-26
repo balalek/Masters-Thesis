@@ -5,6 +5,7 @@ import ABCDQuiz from '../../../components/desktop/quizTypes/ABCDQuiz';
 import TrueFalseQuiz from '../../../components/desktop/quizTypes/TrueFalseQuiz';
 import QuestionPreview from '../../../components/desktop/QuestionPreview';
 import OpenAnswerQuiz from '../../../components/desktop/quizTypes/OpenAnswerQuiz';
+import GuessANumberQuiz from '../../../components/desktop/quizTypes/GuessANumberQuiz';
 
 function GamePage() {
   const location = useLocation();
@@ -126,13 +127,20 @@ function GamePage() {
           question={question} 
           question_end_time={location.state?.question_end_time}
         />;
+      case 'GUESS_A_NUMBER':
+        return <GuessANumberQuiz 
+          question={question} 
+          question_end_time={location.state?.question_end_time}
+        />;
       case 'ABCD':
-      default:
         return <ABCDQuiz 
           question={question} 
           answersCount={answersCount}
           question_end_time={location.state?.question_end_time}
         />;
+      default:
+        console.error('Unknown question type:', question.type);
+        return <div>Unsupported question type: {question.type}</div>;
     }
   };
 

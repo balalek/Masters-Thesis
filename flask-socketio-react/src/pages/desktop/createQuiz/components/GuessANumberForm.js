@@ -26,7 +26,7 @@ const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, re
       setFormData({
         question: editQuestion.question || '',
         answer: editQuestion.answer || editQuestion.number_answer || '',
-        timeLimit: editQuestion.timeLimit || QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
+        timeLimit: editQuestion.timeLimit || editQuestion.length || QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
         category: editQuestion.category || '',
       });
     }

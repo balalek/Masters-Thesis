@@ -6,6 +6,7 @@ import ABCDAnswers from '../../../components/desktop/answerTypes/ABCDAnswers';
 import TrueFalseAnswers from '../../../components/desktop/answerTypes/TrueFalseAnswers';
 import OpenAnswerResult from '../../../components/desktop/answerTypes/OpenAnswerResult';
 import Leaderboard from '../../../components/desktop/Leaderboard';
+import GuessNumberResult from '../../../components/desktop/answerTypes/GuessNumberResult';
 
 const ScorePage = () => {
   const location = useLocation();
@@ -151,6 +152,15 @@ const ScorePage = () => {
           question={question} 
           correctAnswer={correctAnswer} 
           answerCounts={answerCounts || [0, 0]} 
+        />;
+      case 'GUESS_A_NUMBER':
+        return <GuessNumberResult 
+          question={question}
+          correctAnswer={correctAnswer}
+          playerGuesses={question.playerGuesses || []}
+          teamMode={question.teamMode}
+          firstTeamAnswer={question.firstTeamAnswer}
+          secondTeamVote={question.secondTeamVote}
         />;
       case 'ABCD':
       default:

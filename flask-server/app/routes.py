@@ -82,14 +82,55 @@ def start_game():
         team_assignments = request.json.get('teamAssignments', {})
         game_state.blue_team = team_assignments.get('blue', [])
         game_state.red_team = team_assignments.get('red', [])
+        
+        # Get captain indices from the request
+        captain_indices = request.json.get('captainIndices', {})
+        blue_captain_index = captain_indices.get('blue', 0)  # Default to 0 if not provided
+        red_captain_index = captain_indices.get('red', 0)    # Default to 0 if not provided
+        
+        # Store the captain indices in game state
+        game_state.blue_captain_index = blue_captain_index
+        game_state.red_captain_index = red_captain_index
+        
+        # Get the actual captain names using the indices
+        blue_captain = game_state.blue_team[blue_captain_index] if game_state.blue_team and len(game_state.blue_team) > blue_captain_index else None
+        red_captain = game_state.red_team[red_captain_index] if game_state.red_team and len(game_state.red_team) > red_captain_index else None
+        
         game_state.team_scores = {'blue': 0, 'red': 0}
 
         if len(game_state.blue_team) == 0 or len(game_state.red_team) == 0:
             return jsonify({"error": "V každém týmu musí být alespoň jeden hráč"}), 400
         
+        # Set initial active team (blue team starts)
+        game_state.active_team = 'blue'
+        
+        # Initialize player roles for Guess a Number
+        for player_name in game_state.players:
+            # Determine the team and role
+            if player_name in game_state.blue_team:
+                team = 'blue'
+                # Player is captain if they match the blue captain name
+                role = 'captain' if player_name == blue_captain else 'player'
+            elif player_name in game_state.red_team:
+                team = 'red'
+                # Player is captain if they match the red captain name
+                role = 'captain' if player_name == red_captain else 'player'
+            else:
+                team = None
+                role = 'player'
+                
+            # Send role information to the player
+            socketio.emit('player_role_update', {
+                'role': role,
+                'team': team,
+                'quizPhase': 1  # Start with phase 1
+            }, room=player_name)
+        
         print("\n=== Team Mode Debug ===")
         print(f"Blue Team: {game_state.blue_team}")
+        print(f"Blue Captain: {blue_captain} (index {blue_captain_index})")
         print(f"Red Team: {game_state.red_team}")
+        print(f"Red Captain: {red_captain} (index {red_captain_index})")
         print("=====================\n")
 
     # Get the selected quiz from MongoDB
@@ -102,7 +143,19 @@ def start_game():
     game_state.current_question = 0
     # Reset state for the next question
     game_state.reset_question_state()
-
+    
+    # For team games with Guess a Number questions, set the first phase
+    if game_state.is_team_mode and len(game_state.questions) > 0:
+        first_question = game_state.questions[0]
+        if first_question.get('type') == 'GUESS_A_NUMBER':
+            game_state.number_guess_phase = 1
+            
+            # Let the desktop know about the game mode
+            socketio.emit('game_mode_info', {
+                'isTeamMode': True,
+                'currentTeam': game_state.active_team,
+                'phase': 1
+            })
     
     current_time = int(time() * 1000)
     game_start_time = current_time + START_GAME_TIME  # 5 seconds from now
@@ -137,6 +190,49 @@ def next_question():
     
     next_question = game_state.questions[game_state.current_question]
     is_last_question = game_state.current_question + 1 == len(game_state.questions)
+
+    # For Guess a Number in team mode, initialize the phase
+    if game_state.is_team_mode and next_question.get('type') == 'GUESS_A_NUMBER':
+        game_state.number_guess_phase = 1
+        
+        # Make sure active_team is set before switching
+        if game_state.active_team is None:
+            print("WARNING: active_team was None in next_question, defaulting to 'blue'")
+            game_state.active_team = 'blue'
+        else:
+            # Switch active team from the previous question
+            game_state.active_team = 'red' if game_state.active_team == 'blue' else 'blue'
+            
+        # Initialize the team_player_guesses dictionary if needed
+        if 'blue' not in game_state.team_player_guesses:
+            game_state.team_player_guesses['blue'] = []
+        if 'red' not in game_state.team_player_guesses:
+            game_state.team_player_guesses['red'] = []
+        
+        # Update player roles
+        for player_name in game_state.players:
+            if player_name in game_state.blue_team:
+                team = 'blue'
+                role = 'captain' if player_name == game_state.blue_team[0] else 'player'
+            elif player_name in game_state.red_team:
+                team = 'red'
+                role = 'captain' if player_name == game_state.red_team[0] else 'player'
+            else:
+                team = None
+                role = 'player'
+                
+            socketio.emit('player_role_update', {
+                'role': role,
+                'team': team,
+                'quizPhase': 1
+            }, room=player_name)
+        
+        # Update desktop display
+        socketio.emit('game_mode_info', {
+            'isTeamMode': True,
+            'currentTeam': game_state.active_team,
+            'phase': 1
+        })
 
     socketio.emit('next_question', {
         "question": next_question,

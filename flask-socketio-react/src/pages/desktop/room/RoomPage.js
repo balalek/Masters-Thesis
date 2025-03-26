@@ -114,6 +114,11 @@ const RoomPage = () => {
         blue: blueTeam.map(player => player.name),
         red: redTeam.map(player => player.name)
       } : null,
+      // Add captain indices to the payload
+      captainIndices: selectedMode === 'team' ? {
+        blue: blueTeamCaptainIndex,
+        red: redTeamCaptainIndex
+      } : null,
       isRemote: false,
       quizId: quizId  // Add quiz ID to payload
     };
@@ -141,6 +146,11 @@ const RoomPage = () => {
       teamAssignments: selectedMode === 'team' ? {
         blue: blueTeam.map(player => player.name),
         red: redTeam.map(player => player.name)
+      } : null,
+      // Add captain indices to the payload
+      captainIndices: selectedMode === 'team' ? {
+        blue: blueTeamCaptainIndex,
+        red: redTeamCaptainIndex
       } : null,
       isRemote: true,
       quizId: quizId  // Add quiz ID to payload
