@@ -1,2 +1,3 @@
 flask-socketio-react/node_modules
 .env
+.idea

@@ -209,11 +209,23 @@ const FinalScorePage = () => {
   const sortedPlayers = Object.entries(scores)
     .sort(([,a], [,b]) => b.score - a.score);
 
-  const topThree = sortedPlayers.slice(0, 3);
-  const restPlayers = sortedPlayers.slice(3);
-  const isSmallGroup = sortedPlayers.length <= 3;
+  // Create the podium array (2nd place, 1st place, 3rd place)
+  const podium = [];
+  if (sortedPlayers.length > 0) podium[1] = sortedPlayers[0]; // 1st place in middle
+  if (sortedPlayers.length > 1) podium[0] = sortedPlayers[1]; // 2nd place on left
+  if (sortedPlayers.length > 2) podium[2] = sortedPlayers[2]; // 3rd place on right
+  
+  // Players at positions 4-10
+  const remainingPlayers = sortedPlayers.slice(3, 10);
+  
+  // Check if we only have up to 3 players
+  const hasOnlyTopThree = sortedPlayers.length <= 3;
 
-  const trophyColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
+  // Size multipliers based on placement - Increase sizes when only top 3 players
+  const baseMultipliers = [0.9, 1, 0.8]; // For 2nd, 1st, 3rd place
+  const enlargedMultipliers = [1.2, 1.4, 1.1]; // Enlarged for when only top 3 exist
+  const sizeMultipliers = hasOnlyTopThree ? enlargedMultipliers : baseMultipliers;
+  const trophyColors = ['#C0C0C0', '#FFD700', '#CD7F32']; // Silver, Gold, Bronze
 
   return (
     <Box sx={{ 
@@ -221,8 +233,8 @@ const FinalScorePage = () => {
       padding: 3, 
       display: 'flex', 
       flexDirection: 'column', 
-      gap: 2,
-      width: '100%' // Ensure full width
+      width: '100%',
+      overflow: 'hidden'
     }}>
       {/* Header with title and close button */}
       <Box sx={{ 
@@ -247,139 +259,165 @@ const FinalScorePage = () => {
         )}
       </Box>
 
-      {/* Top Players */}
+      {/* Podium - Top Players (2-1-3 arrangement) */}
       <Box sx={{ 
         display: 'flex', 
         justifyContent: 'center', 
-        gap: isSmallGroup ? '15%' : '10%',
-        mb: 3,
+        alignItems: 'center',
+        gap: hasOnlyTopThree ? '10%' : '8%',
         width: '100%',
-        px: 8,
-        flex: isSmallGroup ? 1 : 'none', // Take full height if small group
-        alignItems: isSmallGroup ? 'center' : 'flex-start'
+        px: 4,
+        flex: hasOnlyTopThree ? 1.5 : 1, // Give more space when only top 3
       }}>
-        {topThree.map(([playerName, data], index) => (
-          <Box
-            key={playerName}
-            sx={{
-              width: isSmallGroup ? '300px' : '200px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: isSmallGroup ? 3 : 1.5
-            }}
-          >
-            {/* Small Trophy */}
-            <EmojiEventsIcon 
-              sx={{ 
-                fontSize: isSmallGroup ? '60px' : '40px',
-                color: trophyColors[index],
-                filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.2))',
-              }} 
-            />
-
-            {/* Player Avatar */}
-            <Avatar
+        {[0, 1, 2].map((position) => {
+          const player = podium[position];
+          const placement = position === 0 ? 2 : position === 1 ? 1 : 3;
+          const sizeMultiplier = sizeMultipliers[position];
+          const isEmpty = !player;
+          
+          return (
+            <Box
+              key={position}
               sx={{
-                width: isSmallGroup ? 120 : 80,
-                height: isSmallGroup ? 120 : 80,
-                bgcolor: data.color,
-                fontSize: isSmallGroup ? '3rem' : '2rem',
-                color: 'white'
+                width: `${250 * sizeMultiplier}px`,
+                height: `${380 * sizeMultiplier}px`,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: hasOnlyTopThree ? 3 : 2,
+                opacity: isEmpty ? 0.3 : 1,
+                transition: 'all 0.3s ease',
               }}
             >
-              {playerName.charAt(0).toUpperCase()}
-            </Avatar>
+              {/* Trophy - Bigger when only top 3 */}
+              <EmojiEventsIcon 
+                sx={{ 
+                  fontSize: `${hasOnlyTopThree ? 80 : 60 * sizeMultiplier}px`,
+                  color: trophyColors[position],
+                  filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.2))',
+                  mb: hasOnlyTopThree ? 2 : 1,
+                }} 
+              />
 
-            {/* Player Name and Score */}
-            <Typography 
-              variant={isSmallGroup ? "h4" : "h6"}
-              sx={{ 
-                fontWeight: 'medium',
-                textAlign: 'center',
-                maxWidth: '100%',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {playerName}
-            </Typography>
-            <Typography 
-              variant={isSmallGroup ? "h3" : "body1"}
-              sx={{ 
-                fontFamily: 'monospace',
-                fontWeight: 'bold'
-              }}
-            >
-              {data.score} bodů
-            </Typography>
-          </Box>
-        ))}
+              {/* Player Avatar - Bigger when only top 3 */}
+              <Avatar
+                sx={{
+                  width: `${120 * sizeMultiplier}px`,
+                  height: `${120 * sizeMultiplier}px`,
+                  bgcolor: isEmpty ? 'grey.500' : player[1].color,
+                  fontSize: `${3 * sizeMultiplier}rem`,
+                  color: 'white',
+                  mb: hasOnlyTopThree ? 2 : 1,
+                  boxShadow: isEmpty ? 'none' : 
+                    hasOnlyTopThree ? 
+                    `0 4px 20px ${player?.[1].color}80` : 
+                    `0 2px 12px ${player?.[1].color}60`,
+                }}
+              >
+                {isEmpty ? '?' : player[0].charAt(0).toUpperCase()}
+              </Avatar>
+
+              {/* Placement and Name */}
+              <Typography 
+                variant={hasOnlyTopThree ? "h3" : "h4"}
+                sx={{ 
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  maxWidth: '100%',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontSize: `${(hasOnlyTopThree ? 1.8 : 1.5) * sizeMultiplier}rem`,
+                }}
+              >
+                {isEmpty ? "-" : `${placement}. ${player[0]}`}
+              </Typography>
+
+              {/* Score - Bigger when only top 3 */}
+              <Typography 
+                variant={hasOnlyTopThree ? "h4" : "h5"}
+                sx={{ 
+                  fontFamily: 'monospace',
+                  fontWeight: 'bold',
+                  fontSize: `${(hasOnlyTopThree ? 1.6 : 1.3) * sizeMultiplier}rem`,
+                }}
+              >
+                {isEmpty ? "-" : `${player[1].score} bodů`}
+              </Typography>
+            </Box>
+          );
+        })}
       </Box>
 
-      {/* Rest of the Players - only show if there are more than 3 players */}
-      {!isSmallGroup && restPlayers.length > 0 && (
-        <Container sx={{ maxWidth: '1200px !important', width: '100%' }}>
-          {restPlayers.map(([playerName, data], index) => (
+      {/* Players 4-10 displayed as a "train" */}
+      {remainingPlayers.length > 0 && (
+        <Box sx={{ 
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center', // Center items vertically in the train section
+          width: '100%',
+          mt: 2,
+          mb: 4,
+          gap: 0,
+          flexWrap: 'wrap',
+          flex: 0.5,
+        }}>
+          {remainingPlayers.map(([playerName, data], index) => (
             <Box
               key={playerName}
               sx={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                gap: 4,
-                mb: 1,
-                p: 1,
-                pr: 2,
-                backgroundColor: 'rgba(255,255,255,0.05)',
-                borderRadius: 1
+                justifyContent: 'center', // Center items vertically within each player card
+                width: '220px',
+                height: '160px', // Define fixed height
+                mb: 2,
               }}
             >
-              <Typography variant="h6" sx={{ minWidth: '60px' }}>
-                {index + 4}.
-              </Typography>
+              {/* Player Avatar */}
               <Avatar 
                 sx={{ 
-                  width: 40,
-                  height: 40,
+                  width: 70, 
+                  height: 70, 
                   bgcolor: data.color,
-                  fontSize: '1.1rem',
-                  color: 'white'
+                  fontSize: '1.8rem', 
+                  color: 'white',
+                  mb: 2,
+                  boxShadow: `0 2px 12px ${data.color}60`, // Added glow effect using player color
                 }}
               >
                 {playerName.charAt(0).toUpperCase()}
               </Avatar>
+              
+              {/* Placement and Name */}
               <Typography 
                 variant="h6" 
                 sx={{ 
-                  flex: 1,
-                  ml: 2,
-                  textAlign: 'left', // Add this
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  mb: 0.5
                 }}
               >
-                {playerName}
+                {index + 4}. {playerName}
               </Typography>
+              
+              {/* Score */}
               <Typography 
-                variant="h6" 
+                variant="subtitle1" 
                 sx={{ 
                   fontFamily: 'monospace',
                   fontWeight: 'bold',
-                  minWidth: '100px',
-                  textAlign: 'right',
-                  fontSize: '1.3rem',
-                  pr: 2
+                  fontSize: '1.1rem' 
                 }}
               >
-                {data.score}
+                {data.score} bodů
               </Typography>
             </Box>
           ))}
-        </Container>
+        </Box>
       )}
-
     </Box>
   );
 };

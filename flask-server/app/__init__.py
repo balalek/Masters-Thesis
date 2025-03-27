@@ -25,4 +25,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Import routes after app initialization to avoid circular imports
 from .routes import *
-from .socketio_events import *
+
+# Import socketio_events package (uses the new modular structure)
+from .socketio_events import init_socketio
+init_socketio(app)
