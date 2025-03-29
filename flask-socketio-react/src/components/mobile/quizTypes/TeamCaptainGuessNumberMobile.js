@@ -98,7 +98,7 @@ const TeamCaptainGuessNumberMobile = ({ onAnswer, teamName }) => {
         textAlign: 'center'
       }}>
         <Box sx={{ fontSize: '1.25rem', fontWeight: 'medium' }}>
-          Kapitán - vyber finální odpověď
+          Kapitáne, tvá odpověď je rozhodující pro tým
         </Box>
       </Box>
       

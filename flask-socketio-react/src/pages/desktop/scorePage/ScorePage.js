@@ -56,7 +56,8 @@ const ScorePage = () => {
                     question: data.question,
                     showGameAt: showQuestionPreviewAt + data.preview_time,
                     question_end_time: question_end_time,
-                    is_last_question: data.is_last_question 
+                    is_last_question: data.is_last_question,
+                    activeTeam: data.active_team
                   } 
                 });
               }
@@ -154,11 +155,10 @@ const ScorePage = () => {
           answerCounts={answerCounts || [0, 0]} 
         />;
       case 'GUESS_A_NUMBER':
-        return <GuessNumberResult 
-          question={question}
+        return <GuessNumberResult
           correctAnswer={correctAnswer}
           playerGuesses={question.playerGuesses || []}
-          teamMode={question.teamMode}
+          teamMode={scores.is_team_mode}
           firstTeamAnswer={question.firstTeamAnswer}
           secondTeamVote={question.secondTeamVote}
         />;

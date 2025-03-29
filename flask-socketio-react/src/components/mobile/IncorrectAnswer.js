@@ -2,8 +2,9 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CancelIcon from '@mui/icons-material/Cancel';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
-const IncorrectAnswer = ({ points_earned, total_points }) => {
+const IncorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult }) => {
   return (
     <Box
       sx={{
@@ -26,11 +27,27 @@ const IncorrectAnswer = ({ points_earned, total_points }) => {
           fontWeight: 'bold',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
-          mb: 3
+          mb: exactGuess ? 1 : 3
         }}
       >
-        Špatně!
+        {exactGuess ? 'Nevadí!' : 'Špatně!'}
       </Typography>
+      
+      {exactGuess && (
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            color: 'white', 
+            textAlign: 'center',
+            mb: 2,
+            px: 2
+          }}
+        >
+          Druhý tým uhádl přesnou odpověď!
+          <br />
+          Příště to určitě bude lepší.
+        </Typography>
+      )}
 
       <Typography 
         sx={{ 

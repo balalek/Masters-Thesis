@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Divider } from '@mui/material';
+import { Box, Typography, Paper, Button } from '@mui/material';
 import { getSocket, getServerTime } from '../../../utils/socket';
+import PhaseTransitionScreen from './PhaseTransitionScreen';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
-const GuessANumberQuiz = ({ question, question_end_time }) => {
+const GuessANumberQuiz = ({ activeTeam, question, question_end_time }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);
-  const [teamMode, setTeamMode] = useState(false);
-  const [currentTeam, setCurrentTeam] = useState(null); // 'blue' or 'red'
+  const [currentTeam, setCurrentTeam] = useState(activeTeam); // 'blue' or 'red' or null
   const [phase, setPhase] = useState(1); // 1 or 2
   const [firstTeamAnswer, setFirstTeamAnswer] = useState(null);
   const [secondTeamVotes, setSecondTeamVotes] = useState({ more: 0, less: 0 });
   const [guessCount, setGuessCount] = useState(0);
   const [teamGuesses, setTeamGuesses] = useState([]); // For displaying team member guesses
+  const [showTransition, setShowTransition] = useState(false);
+  const [transitionEndTime, setTransitionEndTime] = useState(null);
+  const [phaseEndTime, setPhaseEndTime] = useState(question_end_time); // Track phase-specific end time
   const socket = getSocket();
 
-  // Timer effect
+  // Timer effect - now uses phaseEndTime instead of question_end_time
   useEffect(() => {
-    if (question_end_time) {
+    if (phaseEndTime) {
       const timer = setInterval(() => {
         const now = getServerTime();
-        const remaining = Math.ceil((question_end_time - now) / 1000);
+        const remaining = Math.ceil((phaseEndTime - now) / 1000);
         
         if (remaining <= 0) {
           clearInterval(timer);
@@ -31,19 +36,10 @@ const GuessANumberQuiz = ({ question, question_end_time }) => {
 
       return () => clearInterval(timer);
     }
-  }, [question_end_time, socket]);
+  }, [phaseEndTime, socket]);
 
   // Socket listeners
   useEffect(() => {
-    // Listen for game mode settings
-    socket.on('game_mode_info', (data) => {
-      setTeamMode(data.isTeamMode);
-      if (data.isTeamMode) {
-        setCurrentTeam(data.currentTeam);
-        setPhase(data.phase || 1);
-      }
-    });
-
     // Listen for team guesses in phase 1
     socket.on('team_guess_submitted', (data) => {
       if (data.playerGuess) {
@@ -51,14 +47,23 @@ const GuessANumberQuiz = ({ question, question_end_time }) => {
       }
     });
 
-    // Listen for first team's final answer
-    socket.on('first_team_answer', (data) => {
-      setFirstTeamAnswer(data.answer);
-      setPhase(2); // Move to phase 2
-      setCurrentTeam(data.currentTeam); // Should be the second team
+    // Add this listener for phase transition
+    socket.on('phase_transition', (data) => {
+      setCurrentTeam(data.activeTeam);
+      setPhase(2);
+      setFirstTeamAnswer(data.firstTeamAnswer);
+      setShowTransition(true);
+      setTransitionEndTime(data.transitionEndTime);
+      setGuessCount(0); // Reset guess count for phase 2
+      
+      // Important: Set a new timer end time for phase 2
+      // Calculate the new end time for phase 2 based on the transition end time
+      // and the original question length
+      const newPhaseEndTime = data.transitionEndTime + (question.length * 1000);
+      setPhaseEndTime(newPhaseEndTime);
     });
 
-    // Listen for second team votes
+    // Listen for second team votes (phase 2)
     socket.on('second_team_vote', (data) => {
       setSecondTeamVotes(data.votes);
     });
@@ -69,81 +74,111 @@ const GuessANumberQuiz = ({ question, question_end_time }) => {
     });
 
     return () => {
-      socket.off('game_mode_info');
       socket.off('team_guess_submitted');
-      socket.off('first_team_answer');
+      socket.off('phase_transition');
       socket.off('second_team_vote');
       socket.off('guess_submitted');
+      socket.off('game_mode_info');
     };
-  }, [socket]);
+  }, [socket, question]);
 
   const renderPhase1Content = () => (
-    <Box sx={{ textAlign: 'center', mt: 4 }}>
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        Tým {currentTeam === 'blue' ? 'modrých' : 'červených'} hádá
-      </Typography>
-      
+    <Box sx={{ textAlign: 'center' }}>
       {teamGuesses.length > 0 && (
-        <Paper sx={{ p: 2, maxWidth: '500px', mx: 'auto', mb: 3 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>Tipy členů týmu:</Typography>
-          {teamGuesses.map((guess, index) => (
-            <Typography key={index} variant="body1">
-              {guess.playerName}: {guess.value}
-            </Typography>
-          ))}
-        </Paper>
+        <Box sx={{ maxWidth: '80%', mx: 'auto' }}>
+          <Typography variant="h4" sx={{ mb: 3, color: 'primary.main' }}>
+            Tipy členů týmu:
+          </Typography>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center',
+            gap: 2,
+            flexWrap: 'nowrap', // Ensure items stay on one line
+            overflow: 'visible' // Allow content to extend beyond container
+          }}>
+            {teamGuesses.map((guess, index) => (
+              <Box 
+                key={index}
+                sx={{ 
+                  bgcolor: 'rgba(59, 130, 246, 0.1)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  borderRadius: 2,
+                  px: 2,
+                  py: 2,
+                  mb: 4,
+                  minWidth: '200px',
+                  maxWidth: '250px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center'
+                }}
+              >
+                <Typography variant="h6" sx={{ color: 'text.primary', mb: 1 }}>
+                  {guess.playerName}
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                  {guess.value}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
       )}
-      
-      <Typography variant="body1" color="text.secondary">
-        Kapitán vybírá konečnou odpověď na svém zařízení
+      <Typography variant="h4" sx={{ mb: 3, px: 2 }}>
+        Kapitán týmu vybírá konečnou odpověď
       </Typography>
     </Box>
   );
 
   const renderPhase2Content = () => (
     <Box sx={{ textAlign: 'center', mt: 4 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>
-        Tým {currentTeam === 'blue' ? 'modrých' : 'červených'} rozhoduje
+      <Typography variant="h3" sx={{ mb: 5, px: 2 }}>
+        Je správná odpověď větší nebo menší než <span style={{ fontWeight: 'bold', fontSize: '60px', color: '#3B82F6' }}>{firstTeamAnswer}</span>?
       </Typography>
-      
-      <Paper sx={{ p: 3, maxWidth: '600px', mx: 'auto', mb: 4 }}>
-        <Typography variant="h4" sx={{ mb: 2 }}>
-          První tým tipoval: {firstTeamAnswer}
-        </Typography>
-        
-        <Typography variant="body1" sx={{ mb: 3 }}>
-          Je správná odpověď větší nebo menší?
-        </Typography>
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-around' }}>
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h3" color="primary" sx={{ fontWeight: 'bold' }}>
-              {secondTeamVotes.less}
-            </Typography>
-            <Typography variant="h6">MÉNĚ</Typography>
-          </Box>
-          
-          <Divider orientation="vertical" flexItem sx={{ mx: 4 }} />
-          
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h3" color="error" sx={{ fontWeight: 'bold' }}>
-              {secondTeamVotes.more}
-            </Typography>
-            <Typography variant="h6">VÍCE</Typography>
-          </Box>
-        </Box>
-      </Paper>
     </Box>
   );
+
+  if (showTransition) {
+    return (
+      <PhaseTransitionScreen 
+        question={question}
+        firstTeamAnswer={firstTeamAnswer}
+        activeTeam={currentTeam} // The opposite team
+        transitionEndTime={transitionEndTime}
+        onTransitionComplete={() => setShowTransition(false)}
+      />
+    );
+  }
 
   return (
     <Box sx={{ 
       display: 'flex', 
       flexDirection: 'column', 
       height: '100vh', 
-      p: 2 
+      p: 2,
+      justifyContent: 'space-between'
     }}>
-      {/* Center content grid */}
+      {/* Phase header */}
+      {currentTeam && (
+        <Box sx={{ pt: 1 }}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              textAlign: 'center', 
+              fontWeight: 'bold',
+              width: '100%'
+            }}
+          >
+            {phase === 2 ? (
+              <>2. fáze - rozhoduje tým <span style={{ color: currentTeam === 'blue' ? '#186CF6' : '#EF4444' }}>{currentTeam === 'blue' ? 'modrých' : 'červených'}</span></>
+            ) : (
+              <>1. fáze - hádá tým <span style={{ color: currentTeam === 'blue' ? '#186CF6' : '#EF4444' }}>{currentTeam === 'blue' ? 'modrých' : 'červených'}</span></>
+            )}
+          </Typography>
+        </Box>
+      )}
+
+      {/* Center content grid - exactly like TrueFalseQuiz */}
       <Box sx={{ 
         display: 'grid',
         gridTemplateColumns: 'auto 1fr auto',
@@ -168,33 +203,28 @@ const GuessANumberQuiz = ({ question, question_end_time }) => {
           </Typography>
         </Box>
 
-        {/* Question and game content */}
-        <Box sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          width: '100%'
-        }}>
+        {/* Question and phase 2 content */}
+        <Box sx={{ textAlign: 'center' }}>
           <Typography 
             variant="h2" 
             component="h1" 
             sx={{ 
               textAlign: 'center',
               lineHeight: 1.3,
-              fontWeight: 500,
-              mb: 4
+              fontWeight: 500
             }}
           >
             {question?.question}
           </Typography>
-
-          {teamMode ? (
-            phase === 1 ? renderPhase1Content() : renderPhase2Content()
-          ) : (
+          
+          {!currentTeam && (
             <Typography variant="h5" sx={{ textAlign: 'center', mt: 4 }}>
               Zadej svůj tip na svém telefonu
             </Typography>
           )}
+          
+          {/* Place phase 2 content directly under the question */}
+          {currentTeam && phase === 2 && renderPhase2Content()}
         </Box>
 
         {/* Answers count bubble */}
@@ -213,9 +243,80 @@ const GuessANumberQuiz = ({ question, question_end_time }) => {
             {guessCount}
           </Typography>
           <Typography variant="subtitle1" sx={{ color: '#3B82F6', mt:-1.5 }}>
-            {teamMode ? 'tipů' : 'odpovědí'}
+            {currentTeam ? 'tipů' : 'odpovědí'}
           </Typography>
         </Box>
+      </Box>
+
+      {/* Bottom content - phase 1 content only */}
+      <Box>
+        {/* Phase 1 content */}
+        {currentTeam && phase === 1 && (
+          <Box sx={{ mb: 4 }}>
+            {renderPhase1Content()}
+          </Box>
+        )}
+
+        {/* Button container - only show in phase 2 */}
+        {currentTeam && phase === 2 && (
+          <Box sx={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            justifyContent: 'center', 
+            gap: 2,
+            mt: 2
+          }}>
+            {/* Less button */}
+            <Button
+              variant="contained"
+              sx={{ 
+                backgroundColor: '#EF4444', 
+                color: 'white', 
+                flex: '1 1 45%',
+                height: '150px', 
+                fontSize: '2.5em', 
+                display: 'flex',
+                justifyContent: 'space-between', 
+                paddingLeft: 2,
+                paddingRight: 3,
+                textTransform: 'none'
+              }}
+            >
+              <ArrowDownwardIcon sx={{ fontSize: '1.5em !important', color: 'white' }} />
+              <Typography sx={{ fontSize: '1.25em', textAlign: 'center', fontWeight: 'bold', lineHeight: 1.2 }}>
+                MENŠÍ
+              </Typography>
+              <Typography variant="h2" sx={{ fontWeight: 'bold' }}>
+                {secondTeamVotes.less}
+              </Typography>
+            </Button>
+            
+            {/* More button */}
+            <Button
+              variant="contained"
+              sx={{ 
+                backgroundColor: '#186CF6', 
+                color: 'white', 
+                flex: '1 1 45%',
+                height: '150px', 
+                fontSize: '2.5em', 
+                display: 'flex',
+                justifyContent: 'space-between', 
+                paddingLeft: 2,
+                paddingRight: 3,
+                textTransform: 'none'
+              }}
+            >
+              <ArrowUpwardIcon sx={{ fontSize: '1.5em !important', color: 'white' }} />
+              <Typography sx={{ fontSize: '1.25em', textAlign: 'center', fontWeight: 'bold', lineHeight: 1.2 }}>
+                VĚTŠÍ
+              </Typography>
+              <Typography variant="h2" sx={{ fontWeight: 'bold' }}>
+                {secondTeamVotes.more}
+              </Typography>
+            </Button>
+          </Box>
+        )}
       </Box>
     </Box>
   );

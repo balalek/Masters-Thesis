@@ -101,31 +101,6 @@ def start_game():
         if len(game_state.blue_team) == 0 or len(game_state.red_team) == 0:
             return jsonify({"error": "V každém týmu musí být alespoň jeden hráč"}), 400
         
-        # Set initial active team (blue team starts)
-        game_state.active_team = 'blue'
-        
-        # Initialize player roles for Guess a Number
-        for player_name in game_state.players:
-            # Determine the team and role
-            if player_name in game_state.blue_team:
-                team = 'blue'
-                # Player is captain if they match the blue captain name
-                role = 'captain' if player_name == blue_captain else 'player'
-            elif player_name in game_state.red_team:
-                team = 'red'
-                # Player is captain if they match the red captain name
-                role = 'captain' if player_name == red_captain else 'player'
-            else:
-                team = None
-                role = 'player'
-                
-            # Send role information to the player
-            socketio.emit('player_role_update', {
-                'role': role,
-                'team': team,
-                'quizPhase': 1  # Start with phase 1
-            }, room=player_name)
-        
         print("\n=== Team Mode Debug ===")
         print(f"Blue Team: {game_state.blue_team}")
         print(f"Blue Captain: {blue_captain} (index {blue_captain_index})")
@@ -144,18 +119,10 @@ def start_game():
     # Reset state for the next question
     game_state.reset_question_state()
     
-    # For team games with Guess a Number questions, set the first phase
-    if game_state.is_team_mode and len(game_state.questions) > 0:
-        first_question = game_state.questions[0]
-        if first_question.get('type') == 'GUESS_A_NUMBER':
-            game_state.number_guess_phase = 1
-            
-            # Let the desktop know about the game mode
-            socketio.emit('game_mode_info', {
-                'isTeamMode': True,
-                'currentTeam': game_state.active_team,
-                'phase': 1
-            })
+    # Make sure active_team is properly set for team mode
+    if game_state.is_team_mode:
+        # Re-set active team to blue for the first question
+        game_state.active_team = 'blue'
     
     current_time = int(time() * 1000)
     game_start_time = current_time + START_GAME_TIME  # 5 seconds from now
@@ -163,18 +130,54 @@ def start_game():
     first_question = game_state.questions[game_state.current_question]
     game_state.question_start_time = game_start_time  + PREVIEW_TIME # Set the start time for the first question
 
+    # Create standard game data for the main display
+    standard_game_data = {
+        "question": first_question,
+        "show_first_question_preview": game_start_time,
+        "show_game_at": game_start_time + PREVIEW_TIME,
+        "active_team": game_state.active_team
+    }
+
+    # First send the standard event to all (especially for the main display)
     if game_state.is_remote:
-        socketio.emit('game_started_remote', {
+        socketio.emit('game_started_remote', standard_game_data)
+    else:
+        socketio.emit('game_started', standard_game_data)
+
+    # Then send personalized game started events to each player
+    for player_name in game_state.players:
+        # Determine the player's team and role
+        player_team = None
+        player_role = 'player'  # Default role
+        
+        if game_state.is_team_mode:
+            if player_name in game_state.blue_team:
+                player_team = 'blue'
+                # Player is captain if at the captain index
+                if game_state.blue_team.index(player_name) == game_state.blue_captain_index:
+                    player_role = 'captain'
+            elif player_name in game_state.red_team:
+                player_team = 'red'
+                # Player is captain if at the captain index
+                if game_state.red_team.index(player_name) == game_state.red_captain_index:
+                    player_role = 'captain'
+        
+        # Create player-specific game data
+        player_game_data = {
             "question": first_question,
-            "show_first_question_preview": game_start_time,  # When countdown ends and preview starts
-            "show_game_at": game_start_time + PREVIEW_TIME     # When preview ends and game starts
-        })
-    else:    
-        socketio.emit('game_started', {
-            "question": first_question,
-            "show_first_question_preview": game_start_time,  # When countdown ends and preview starts
-            "show_game_at": game_start_time + PREVIEW_TIME     # When preview ends and game starts
-        })
+            "show_first_question_preview": game_start_time,
+            "show_game_at": game_start_time + PREVIEW_TIME,
+            "team": player_team,
+            "active_team": game_state.active_team,
+            "role": player_role,  # Include the player's role
+            "quizPhase": 1  # Start with phase 1
+        }
+        
+        print(f"Player: {player_name}, Team: {player_team}, Role: {player_role}, Active Team: {game_state.active_team}")
+
+        # Send to the specific player's room
+        socketio.emit('game_started_mobile', player_game_data, room=player_name)
+    
     return jsonify({"message": "Game started"}), 200
 
 @app.route('/next_question', methods=['POST'])
@@ -201,47 +204,20 @@ def next_question():
             game_state.active_team = 'blue'
         else:
             # Switch active team from the previous question
-            game_state.active_team = 'red' if game_state.active_team == 'blue' else 'blue'
-            
-        # Initialize the team_player_guesses dictionary if needed
-        if 'blue' not in game_state.team_player_guesses:
-            game_state.team_player_guesses['blue'] = []
-        if 'red' not in game_state.team_player_guesses:
-            game_state.team_player_guesses['red'] = []
-        
-        # Update player roles
-        for player_name in game_state.players:
-            if player_name in game_state.blue_team:
-                team = 'blue'
-                role = 'captain' if player_name == game_state.blue_team[0] else 'player'
-            elif player_name in game_state.red_team:
-                team = 'red'
-                role = 'captain' if player_name == game_state.red_team[0] else 'player'
-            else:
-                team = None
-                role = 'player'
-                
-            socketio.emit('player_role_update', {
-                'role': role,
-                'team': team,
-                'quizPhase': 1
-            }, room=player_name)
-        
-        # Update desktop display
-        socketio.emit('game_mode_info', {
-            'isTeamMode': True,
-            'currentTeam': game_state.active_team,
-            'phase': 1
-        })
+            game_state.active_team = 'red' if game_state.active_team == 'red' else 'blue'
 
     socketio.emit('next_question', {
         "question": next_question,
-        "is_last_question": is_last_question
+        "is_last_question": is_last_question,
+        "active_team": game_state.active_team,
+        "quizPhase": 1,  # Start with phase 1 for the new question
     })
     return jsonify({
         "question": next_question,
         "is_last_question": is_last_question,
-        "preview_time": PREVIEW_TIME
+        "preview_time": PREVIEW_TIME,
+        "active_team": game_state.active_team,
+        "quizPhase": 1,  # Start with phase 1 for the new question
     }), 200
 
 @app.route('/reset_game', methods=['POST'])

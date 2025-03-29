@@ -3,7 +3,7 @@ import { Box, Typography, Paper, Avatar, Chip } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
-const GuessNumberResult = ({ question, correctAnswer, playerGuesses, teamMode, firstTeamAnswer, secondTeamVote }) => {
+const GuessNumberResult = ({ correctAnswer, playerGuesses, teamMode, firstTeamAnswer, secondTeamVote }) => {
   // Sort guesses by distance from correct answer if in free-for-all mode
   const sortedGuesses = teamMode ? 
     playerGuesses : 
@@ -66,7 +66,7 @@ const GuessNumberResult = ({ question, correctAnswer, playerGuesses, teamMode, f
               
               <Chip
                 icon={secondTeamVote === 'more' ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
-                label={secondTeamVote === 'more' ? 'VÍCE' : 'MÉNĚ'}
+                label={secondTeamVote === 'more' ? 'VĚTŠÍ' : 'MENŠÍ'}
                 color={isSecondTeamCorrect ? 'success' : 'error'}
                 sx={{ 
                   fontSize: '1.2rem', 

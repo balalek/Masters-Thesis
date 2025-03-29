@@ -14,6 +14,8 @@ import GuessANumberQuizMobile from '../../../components/mobile/quizTypes/GuessAN
 import TeamCaptainGuessNumberMobile from '../../../components/mobile/quizTypes/TeamCaptainGuessNumberMobile';
 import MoreLessVoteMobile from '../../../components/mobile/quizTypes/MoreLessVoteMobile';
 import GuessANumberPlacement from '../../../components/mobile/GuessANumberPlacement';
+import TeamWaitingScreen from '../../../components/mobile/TeamWaitingScreen';
+import PhaseTransitionMobile from '../../../components/mobile/PhaseTransitionMobile';
 
 const MobileGamePage = () => {
   const location = useLocation();
@@ -32,18 +34,24 @@ const MobileGamePage = () => {
   const [finalScoreData, setFinalScoreData] = useState(null);
   const playerName = location.state?.playerName || 'Unknown Player';
   const [showButtons, setShowButtons] = useState(true);
-  const [playerRole, setPlayerRole] = useState('player'); // 'player', 'captain', 'voter'
-  const [teamName, setTeamName] = useState(null); // 'blue' or 'red'
+  const playerRole = location.state?.gameData?.role || 'Unknown Role';
+  const teamName = location.state?.teamName ||'Unknown Team';
   const [quizPhase, setQuizPhase] = useState(1); // For guess-a-number quiz phases
   const [firstTeamAnswer, setFirstTeamAnswer] = useState(null);
   const [guessPlacementData, setGuessPlacementData] = useState(null);
   const [showGuessPlacement, setShowGuessPlacement] = useState(false);
+  const [activeTeam, setActiveTeam] = useState(location.state?.activeTeam);
+  const [showPhaseTransition, setShowPhaseTransition] = useState(false);
+  const [exactGuess, setExactGuess] = useState(false);
+  const [guessResult, setGuessResult] = useState(null);
 
   useEffect(() => {
     const socket = getSocket();
 
     socket.on('next_question', (data) => {
       console.log('next_question event received in MobileGamePage:', data);
+      setQuizPhase(1); // Reset quiz phase to 1 for new question
+      setActiveTeam(data.active_team);
       setQuestion(data.question);
       setLoading(true);
       setShowResult(false);
@@ -51,20 +59,25 @@ const MobileGamePage = () => {
       setShowGuessPlacement(false);
       setIsCorrect(null);
       setShowButtons(false);  // Hide buttons initially
+      
+      // For guess-a-number questions in team mode, update active team from question data TODO maybe delete
+      if (data.question.type === 'GUESS_A_NUMBER' && data.question.activeTeam) {
+        setActiveTeam(data.question.activeTeam);
+      }
     });
 
     socket.on('answer_correctness', (data) => {
       setIsCorrect(data.correct);
       setPointsEarned(data.points_earned);
       setTotalPoints(data.total_points);
-
-      // Handle guess-a-number placement data
-      if (data.guessResult && data.correct !== null) {
+      
+      // Handle guess-a-number placement data for free for all mode
+      if (data.guessResult && data.correct !== null && !data.exactGuess) {
         setGuessPlacementData(data.guessResult);
         setShowGuessPlacement(true);
         setLoading(true);
         return; // Early return to avoid showing regular result screens
-      } else if (data.guessResult && data.correct === null) {
+      } else if (data.guessResult && data.correct === null && !data.exactGuess) {
         // Handle the case where the answer is too late
         setGuessPlacementData(null); // Clear previous data
         setShowGuessPlacement(false);
@@ -72,6 +85,19 @@ const MobileGamePage = () => {
         setShowResult(true);
         setLoading(true); // Stop the loading spinner
         return;
+      }
+      
+      // Only set exactGuess and guessResult for team mode with exact guesses
+      // This avoids interfering with the free-for-all mode logic
+      if (data.exactGuess) {
+        setExactGuess(true);
+        setGuessResult(data.guessResult);
+      } else {
+        setExactGuess(false);
+        // Only clear guessResult if not in placement mode
+        if (!showGuessPlacement) {
+          setGuessResult(null);
+        }
       }
       
       // Always show result for correct answers, regardless of question type
@@ -88,9 +114,9 @@ const MobileGamePage = () => {
     socket.on('all_answers_received', (data) => {
       console.log('all_answers_received event received in MobileGamePage');
       
-      // Skip setting showResult for GUESS_A_NUMBER questions
-      // This prevents overriding the placement visualization
-      if (question?.type !== 'GUESS_A_NUMBER') {
+      // Skip setting showResult for GUESS_A_NUMBER questions in free-for-all mode only
+      // In team mode or for other question types, show the result
+      if (question?.type !== 'GUESS_A_NUMBER' || activeTeam) {
         console.log('Setting showResult to true for all_answers_received');
         setShowResult(true);
       }
@@ -121,21 +147,38 @@ const MobileGamePage = () => {
       });
     });
 
+    // Add listener for phase transition
+    socket.on('phase_transition', (data) => {
+      setFirstTeamAnswer(data.firstTeamAnswer);
+      setActiveTeam(data.activeTeam);
+      setShowPhaseTransition(true);
+      
+      // Calculate delay by subtracting current server time from end time
+      const now = getServerTime();
+      const delay = Math.max(0, data.transitionEndTime - now);
+      
+      // Hide transition after calculated delay
+      setTimeout(() => {
+        setShowPhaseTransition(false);
+        setLoading(false);
+        setQuizPhase(2);
+      }, delay);
+    });
+
     return () => {
       socket.off('next_question');
       socket.off('answer_correctness');
       socket.off('all_answers_received');
       socket.off('navigate_to_final_score');
       socket.off('game_reset');
+      socket.off('phase_transition');
     };
-  }, [navigate, playerName, finalScoreData, question]);
+  }, [navigate, playerName, finalScoreData, question, showGuessPlacement]);
 
   // Add a new effect for quiz-specific roles
   useEffect(() => {
     const socket = getSocket();
     socket.on('player_role_update', (data) => {
-      setPlayerRole(data.role);
-      setTeamName(data.team);
       
       if (data.quizPhase) {
         setQuizPhase(data.quizPhase);
@@ -233,14 +276,32 @@ const MobileGamePage = () => {
       />;
     }
 
+  // Add condition to show phase transition
+  if (showPhaseTransition) {
+    return <PhaseTransitionMobile 
+      firstTeamAnswer={firstTeamAnswer}
+      activeTeam={activeTeam}
+      teamName={teamName}
+    />;
+  }
+
   if (showResult) {
     if (isCorrect === null) {
-
       return <TooLateAnswer total_points={totalPoints} />;
     }
     return isCorrect ? 
-      <CorrectAnswer points_earned={pointsEarned} total_points={totalPoints} /> : 
-      <IncorrectAnswer points_earned={pointsEarned} total_points={totalPoints} />;
+      <CorrectAnswer 
+        points_earned={pointsEarned} 
+        total_points={totalPoints} 
+        exactGuess={exactGuess} 
+        guessResult={guessResult} 
+      /> : 
+      <IncorrectAnswer 
+        points_earned={pointsEarned} 
+        total_points={totalPoints} 
+        exactGuess={exactGuess} 
+        guessResult={guessResult} 
+      />;
   }
 
   if (loading) return <Loading />;
@@ -261,19 +322,37 @@ const MobileGamePage = () => {
       case 'OPEN_ANSWER':
         return <OpenAnswerQuizMobile onAnswer={handleOpenAnswer} />;
       case 'GUESS_A_NUMBER':
-        // Different components based on player role and phase
-        if (playerRole === 'captain' && quizPhase === 1) {
+        // Check if we're in free-for-all mode (not team mode)
+        if (teamName === 'Unknown Team' || teamName === null) {
+          // In free-for-all mode, always show the guess number interface
+          return <GuessANumberQuizMobile onAnswer={handleNumberGuess} />;
+        }
+        
+        // Team mode logic - different components based on phase, team, and role
+        if (playerRole === 'captain' && quizPhase === 1 && teamName === activeTeam) {
           return <TeamCaptainGuessNumberMobile 
             onAnswer={handleCaptainChoice} 
             teamName={teamName} 
           />;
-        } else if (playerRole === 'voter' && quizPhase === 2) {
+        } else if (quizPhase === 2 && teamName === activeTeam) {
+          // Any player in active team can vote in phase 2
           return <MoreLessVoteMobile 
             onAnswer={handleMoreLessVote}
             firstTeamAnswer={firstTeamAnswer}
           />;
-        } else {
+        } else if (quizPhase === 1 && teamName === activeTeam) {
+          // Regular player on active team in phase 1
           return <GuessANumberQuizMobile onAnswer={handleNumberGuess} />;
+        } else {
+          // Show the waiting screen for inactive teams
+          console.log('NULL! teamName:', teamName, 'activeTeam:', activeTeam);
+          return <TeamWaitingScreen 
+            phase={quizPhase} 
+            teamName={teamName}
+            message={quizPhase === 1 
+              ? "Čekej, až bude tvůj tým na řadě" 
+              : "Čekej, nyní hraje druhý tým"}
+          />;
         }
       default:
         console.warn('Unknown question type:', questionType); // Debug log

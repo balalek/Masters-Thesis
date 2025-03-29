@@ -27,14 +27,12 @@ class GameState:
         # Guess a Number specific state
         self.number_guess_phase = 1  # 1 = first team guessing, 2 = second team more/less
         self.first_team_final_answer = None  # The final answer from the first team
-        self.second_team_votes = {'more': 0, 'less': 0}  # Votes from second team
         self.team_player_guesses = {  # Individual team player guesses
             'blue': [], 
             'red': []
         }
         self.active_team = None  # Currently active team ('blue' or 'red')
-        self.team_captain_guesses = {}  # To store captain guesses
-        self.player_roles = {}  # Roles for guess-a-number (player, captain, voter)
+        self.voted_players = {}  # Players who have voted in the current question and what they voted for
 
     def reset(self):
         self.__init__()
@@ -42,7 +40,7 @@ class GameState:
     def reset_question_state(self):
         """Reset state between questions"""
         self.answers_received = 0
-        self.answer_counts = [0, 0, 0, 0]
+        self.answer_counts = [0, 0, 0, 0]  # We'll use indices 0 and 1 for more/less votes
         self.current_question_metadata_updated = False
         
         # Reset open answer specific state
@@ -56,11 +54,8 @@ class GameState:
         # Reset guess-a-number specific state
         self.number_guess_phase = 1
         self.first_team_final_answer = None
-        self.second_team_votes = {'more': 0, 'less': 0}
         self.team_player_guesses = {'blue': [], 'red': []}
-        self.active_team = None
-        self.team_captain_guesses = {}
-        self.player_roles = {}
+        self.voted_players = {}
 
 # Create singleton instance
 game_state = GameState()

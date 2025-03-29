@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { act, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Avatar } from '@mui/material';
 import { getSocket, getServerTime } from '../../utils/socket';
@@ -15,27 +15,27 @@ function WaitingRoom({ playerName, playerColor, onReset }) {  // Add onReset pro
     const delay = Math.max(0, data.show_game_at - now);
     
     setTimeout(() => {
-      console.log('Navigating to game');
       navigate('/mobile-game', { 
         state: { 
           playerName,
-          gameData: data 
+          gameData: data,
+          teamName: data.team,
+          activeTeam: data.active_team,
+          role: data.role
         } 
       });
     }, delay);
   };
 
   useEffect(() => {
-    socket.on('game_started', handleGameStart);
-    socket.on('game_started_remote', handleGameStart);
+    socket.on('game_started_mobile', handleGameStart);
     socket.on('game_reset', () => {
       onReset();  // Call the reset function from parent
     });
 
     return () => {
       socket.off('game_reset');
-      socket.off('game_started');
-      socket.off('game_started_remote');
+      socket.off('game_started_mobile');
     };
   }, [navigate, playerName, onReset]);
 

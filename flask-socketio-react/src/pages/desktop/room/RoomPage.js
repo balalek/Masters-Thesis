@@ -289,7 +289,8 @@ const RoomPage = () => {
         question: gameData.question,
         showGameAt: gameData.show_game_at,
         question_end_time: question_end_time,
-        isLastQuestion: false 
+        isLastQuestion: false,
+        activeTeam: gameData.active_team
       } 
     });
   };

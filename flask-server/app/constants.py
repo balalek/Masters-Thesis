@@ -21,12 +21,15 @@ AVAILABLE_COLORS = [
 MAX_PLAYERS = 10
 
 # Preview time in milliseconds
-PREVIEW_TIME = 3000  # TODO 5 seconds in milliseconds
+PREVIEW_TIME = 5000  # TODO 5 seconds in milliseconds
 START_GAME_TIME = 2000  # TODO 5 seconds in milliseconds
-WAITING_TIME = 10
+PHASE_TRANSITION_TIME = 500000  # TODO 5 seconds in milliseconds
+WAITING_TIME = 1000
 
 # Points
 POINTS_FOR_CORRECT_ANSWER = 50
+POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER = 150
+POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER_FIRST_PHASE = 300 # Double points in First phase of Guess a Number
 
 # Quiz validation constants
 QUIZ_VALIDATION = {

@@ -14,10 +14,8 @@ function GamePage() {
   const [question, setQuestion] = useState(null);
   const [isLastQuestion, setIsLastQuestion] = useState(false);
   const [showQuestionPreview, setShowQuestionPreview] = useState(true);
-  const [allAnswersReceived, setAllAnswersReceived] = useState(false);
-  const [showingResults, setShowingResults] = useState(false);
-  const [nextQuestionData, setNextQuestionData] = useState(null);
   const { showGameAt } = location.state || {};
+  const activeTeam = location.state?.activeTeam;
 
   useEffect(() => {
     const socket = getSocket();
@@ -90,7 +88,10 @@ function GamePage() {
   }, [location.state]);
 
   useEffect(() => {
-    if (location.state?.question_end_time) {
+    // First check if the question is not null, if yes, then wait for question to be set
+    if (question && location.state?.question_end_time && 
+      (question.type !== 'GUESS_A_NUMBER' || activeTeam === null)) {
+      console.log('Hello? question type:', question?.type);
       const timer = setTimeout(() => {
         const socket = getSocket();
         socket.emit('time_up');  // Emit time_up when timer ends
@@ -98,7 +99,7 @@ function GamePage() {
 
       return () => clearTimeout(timer);
     }
-  }, [location.state?.question_end_time]);
+  }, [location.state?.question_end_time, question, activeTeam]);
 
   if (showQuestionPreview) {
     return (
@@ -129,6 +130,7 @@ function GamePage() {
         />;
       case 'GUESS_A_NUMBER':
         return <GuessANumberQuiz 
+          activeTeam={activeTeam}
           question={question} 
           question_end_time={location.state?.question_end_time}
         />;
