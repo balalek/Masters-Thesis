@@ -19,6 +19,10 @@ const GuessNumberResult = ({ correctAnswer, playerGuesses, teamMode, firstTeamAn
     (correctAnswer < firstTeamAnswer && secondTeamVote === 'less') : 
     false;
 
+  // Determine which team won (first team wins if they guessed exactly, second team wins if they guessed correctly higher/lower)
+  const secondTeamWon = isSecondTeamCorrect;
+  const firstTeamWon = !secondTeamWon;
+
   return (
     <Box sx={{ p: 3 }}>
       {/* Correct answer display */}
@@ -44,126 +48,187 @@ const GuessNumberResult = ({ correctAnswer, playerGuesses, teamMode, firstTeamAn
       
       {/* Team mode results */}
       {teamMode && firstTeamAnswer && (
-        <Paper
-          elevation={2}
-          sx={{
-            p: 3,
-            mb: 4,
-            borderRadius: 2,
-            maxWidth: '800px',
-            mx: 'auto'
-          }}
-        >
-          <Typography variant="h5" gutterBottom>
-            Tip prvního týmu: {firstTeamAnswer}
-          </Typography>
-          
-          {secondTeamVote && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
-              <Typography variant="h5">
-                Druhý tým tipoval:
-              </Typography>
-              
-              <Chip
-                icon={secondTeamVote === 'more' ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
-                label={secondTeamVote === 'more' ? 'VĚTŠÍ' : 'MENŠÍ'}
-                color={isSecondTeamCorrect ? 'success' : 'error'}
-                sx={{ 
-                  fontSize: '1.2rem', 
-                  fontWeight: 'bold', 
-                  py: 2,
-                  px: 1
-                }}
-              />
-              
-              <Typography 
-                variant="h5" 
-                color={isSecondTeamCorrect ? 'success.main' : 'error.main'}
-                sx={{ fontWeight: 'bold' }}
-              >
-                {isSecondTeamCorrect ? '✓ Správně' : '✗ Špatně'}
-              </Typography>
-            </Box>
-          )}
-        </Paper>
-      )}
-      
-      {/* Player guesses - show top 5 closest in free-for-all mode */}
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="h5" gutterBottom>
-          {teamMode ? 'Tipy členů týmu:' : 'Nejbližší tipy:'}
-        </Typography>
-        
         <Box sx={{ 
           display: 'flex', 
-          flexDirection: 'column',
-          gap: 2,
+          flexDirection: { xs: 'column', md: 'row' }, 
+          gap: 3,
           maxWidth: '800px',
           mx: 'auto'
         }}>
-          {(teamMode ? sortedGuesses : sortedGuesses.slice(0, 5)).map((guess, index) => {
-            const distance = Math.abs(guess.value - correctAnswer);
-            let accuracy;
-            if (guess.value === correctAnswer) {
-              accuracy = '💯 Přesně!';
-            } else if (distance <= correctAnswer * 0.05) {
-              accuracy = '🎯 Velmi blízko!';
-            } else if (distance <= correctAnswer * 0.2) {
-              accuracy = '👍 Blízko';
-            } else {
-              accuracy = `${((1 - distance / correctAnswer) * 100).toFixed(0)}% přesné`;
-            }
-            
-            return (
-              <Paper 
-                key={index}
-                elevation={2}
+          {/* First team answer */}
+          <Paper
+            elevation={2}
+            sx={{
+              px: 4,
+              py: 2,
+              borderRadius: 2,
+              flex: 1,
+              border: firstTeamWon ? '3px solid #14A64A' : 'none',
+              backgroundColor: firstTeamWon ? 'rgba(20, 166, 74, 0.1)' : 'background.paper',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {firstTeamWon && (
+              <Chip 
+                label="VÍTĚZ" 
+                color="success" 
                 sx={{ 
-                  p: 2, 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  gap: 2,
-                  backgroundColor: guess.value === correctAnswer ? 'success.lighter' : 'background.paper'
+                  position: 'absolute', 
+                  top: -12, 
+                  right: 16, 
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem'
                 }}
-              >
-                {!teamMode && (
-                  <Typography variant="h5" sx={{ minWidth: '30px', textAlign: 'center' }}>
-                    {index + 1}.
-                  </Typography>
-                )}
-                
-                <Avatar 
+              />
+            )}
+            <Typography variant="h5" color="text.secondary" gutterBottom sx={{ fontSize: '1.8rem' }}>
+              Hádající tým
+            </Typography>
+            <Typography variant="h2" sx={{ fontWeight: 'bold', textAlign: 'center', my: 2 }}>
+              {firstTeamAnswer}
+            </Typography>
+          </Paper>
+          
+          {/* Second team answer - always show in team mode */}
+          <Paper
+            elevation={2}
+            sx={{
+              px: 4,
+              py: 2,
+              borderRadius: 2,
+              flex: 1,
+              border: secondTeamWon ? '3px solid #14A64A' : 'none',
+              backgroundColor: secondTeamWon ? 'rgba(20, 166, 74, 0.1)' : 'background.paper',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {secondTeamWon && (
+              <Chip 
+                label="VÍTĚZ" 
+                color="success" 
+                sx={{ 
+                  position: 'absolute', 
+                  top: -12, 
+                  right: 16, 
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem'
+                }}
+              />
+            )}
+            <Typography variant="h5" color="text.secondary" gutterBottom sx={{ fontSize: '1.8rem' }}>
+              Hlasující tým
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 2 }}>
+              {secondTeamVote ? (
+                <Chip
+                  icon={secondTeamVote === 'more' ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
+                  label={secondTeamVote === 'more' ? 'VĚTŠÍ' : 'MENŠÍ'}
+                  color={secondTeamWon ? 'success' : 'error'}
                   sx={{ 
-                    bgcolor: guess.playerColor || 'primary.main',
-                    width: 45,
-                    height: 45
+                    fontSize: '1.5rem', 
+                    fontWeight: 'bold', 
+                    py: 3,
+                    px: 2,
+                    '& .MuiChip-icon': {
+                      fontSize: '2rem'
+                    }
                   }}
-                >
-                  {guess.playerName.charAt(0).toUpperCase()}
-                </Avatar>
-                
-                <Typography variant="h6" sx={{ flex: 1 }}>
-                  {guess.playerName}
+                />
+              ) : (
+                <Typography variant="h4" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  Nehlasoval
                 </Typography>
-                
-                <Typography variant="h5" sx={{ fontWeight: 'bold', minWidth: '100px', textAlign: 'right' }}>
-                  {guess.value}
-                </Typography>
-                
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    opacity: 0.7,
-                    minWidth: '120px'
-                  }}
-                >
-                  {accuracy}
-                </Typography>
-              </Paper>
-            );
-          })}
+              )}
+            </Box>
+          </Paper>
         </Box>
-      </Box>
+      )}
+      
+      {/* Player guesses - only show in free-for-all mode */}
+      {!teamMode && sortedGuesses.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            Nejbližší tipy:
+          </Typography>
+          
+          <Box sx={{ 
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 3,
+            justifyContent: 'center',
+            maxWidth: '1200px',
+            mx: 'auto'
+          }}>
+            {sortedGuesses.slice(0, 3).map((guess, index) => {
+              const isExact = guess.value === correctAnswer;
+              return (
+                <Paper 
+                  key={index}
+                  elevation={3}
+                  sx={{ 
+                    p: 3, 
+                    display: 'flex', 
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 3,
+                    bgcolor: isExact ? 'rgba(20, 166, 74, 0.1)' : 'background.paper',
+                    border: isExact ? '2px solid #14A64A' : 'none',
+                    flex: '1 1 350px',
+                    maxWidth: '400px',
+                    borderRadius: 2,
+                    position: 'relative'
+                  }}
+                >
+                  {index === 0 && (
+                    <Chip 
+                      label="NEJBLÍŽE" 
+                      color="primary" 
+                      sx={{ 
+                        position: 'absolute', 
+                        top: -12, 
+                        right: 16, 
+                        fontWeight: 'bold',
+                        fontSize: '0.9rem'
+                      }}
+                    />
+                  )}
+                  <Avatar 
+                    sx={{ 
+                      bgcolor: guess.playerColor || 'primary.main',
+                      width: 65,
+                      height: 65,
+                      fontSize: '1.8rem',
+                      color: 'white',
+                      mr: 5
+                    }}
+                  >
+                    {guess.playerName.charAt(0).toUpperCase()}
+                  </Avatar>
+                  
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                      {guess.value}
+                    </Typography>
+                    
+                    <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                      {guess.playerName}
+                    </Typography>
+                  </Box>
+                </Paper>
+              );
+            })}
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 };

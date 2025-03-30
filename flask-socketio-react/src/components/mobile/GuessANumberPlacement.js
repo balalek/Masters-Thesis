@@ -5,32 +5,29 @@ import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import StarIcon from '@mui/icons-material/Star';
 import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 
-const GuessANumberPlacement = ({ points_earned, total_points, placement, totalPlayers, accuracy, yourGuess, correctAnswer }) => {
-  // Determine display color based on placement
+const GuessANumberPlacement = ({ points_earned, total_points, accuracy, yourGuess, correctAnswer }) => {
+  // Simple check for exact match based on accuracy text
+  const isExactMatch = accuracy === "Přesně!";
+  
+  // Determine display color based on exactness
   const getColor = () => {
-    if (placement === 1) return '#FFD700'; // Gold for 1st place
-    if (placement === 2) return '#C0C0C0'; // Silver for 2nd place
-    if (placement === 3) return '#CD7F32'; // Bronze for 3rd place
+    if (isExactMatch) return '#14A64A'; // Green for exact guess
     return '#3B82F6'; // Blue for others
   };
   
-  // Get icon based on placement
+  // Get icon based on accuracy text
   const getIcon = () => {
-    if (placement === 1) return <StarIcon sx={{ fontSize: '120px', color: 'white', mb: 2 }} />;
-    if (placement <= 3) return <MilitaryTechIcon sx={{ fontSize: '120px', color: 'white', mb: 2 }} />;
+    if (isExactMatch) {
+      return <StarIcon sx={{ fontSize: '120px', color: 'gold', mb: 2 }} />;
+    }
+    
+    if (accuracy === "Velmi přesné!" || accuracy === "Velmi blízko!") {
+      return <MilitaryTechIcon sx={{ fontSize: '120px', color: 'white', mb: 2 }} />;
+    }
+    
     return <PriorityHighIcon sx={{ fontSize: '120px', color: 'white', mb: 2 }} />;
   };
   
-  // Get placement message
-  const getMessage = () => {
-    if (placement === 1) return 'Nejbližší odpověď!';
-    if (placement === 2) return 'Druhá nejbližší!';
-    if (placement === 3) return 'Třetí nejbližší!';
-    
-    // For others, show simple placement info
-    return `${placement}. nejbližší z ${totalPlayers}`;
-  };
-
   return (
     <Box
       sx={{
@@ -40,65 +37,90 @@ const GuessANumberPlacement = ({ points_earned, total_points, placement, totalPl
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 2,
+        gap: 3,
         p: 3
       }}
     >
       {getIcon()}
       
-      <Typography 
-        variant="h3" 
-        sx={{ 
-          color: 'white', 
-          fontWeight: 'bold',
-          textAlign: 'center',
-          mb: 1
-        }}
-      >
-        {getMessage()}
-      </Typography>
-      
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        mb: 3,
-        mt: 1
-      }}>
-        <Typography 
-          sx={{ 
-            color: 'rgba(255,255,255,0.9)', 
-            fontSize: '1.1rem',
-            fontWeight: 'light'
-          }}
-        >
-          Tvůj tip: {yourGuess}
-        </Typography>
-        <Typography 
-          sx={{ 
-            color: 'rgba(255,255,255,0.9)', 
-            fontSize: '1.1rem',
-            fontWeight: 'light'
-          }}
-        >
-          Správná odpověď: {correctAnswer}
-        </Typography>
-        <Typography 
-          sx={{ 
-            color: 'white', 
-            fontSize: '1.2rem',
-            fontWeight: 'medium',
-            mt: 1
-          }}
-        >
-          Přesnost: {accuracy}
-        </Typography>
-      </Box>
+      {isExactMatch ? (
+        <>
+          <Typography 
+            variant="h1" 
+            sx={{ 
+              color: 'white', 
+              fontWeight: 'bold',
+              textAlign: 'center',
+              mb: 1,
+              fontSize: '3em',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}
+          >
+            Přesně!
+          </Typography>
+          
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              color: 'white', 
+              textAlign: 'center',
+              mb: 2,
+              px: 2
+            }}
+          >
+            GRATULACE!
+            <br />
+            Získáváte bonusové body!
+          </Typography>
+        </>
+      ) : (
+        <>
+          <Typography 
+            variant="h1" 
+            sx={{ 
+              color: 'white', 
+              fontWeight: 'bold',
+              textAlign: 'center',
+              mb: 1,
+              fontSize: '2.8em'
+            }}
+          >
+            Přesnost: {accuracy}
+          </Typography>
+          
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'center',
+            mb: 2
+          }}>
+            <Typography 
+              sx={{ 
+                color: 'rgba(255,255,255,0.9)', 
+                fontSize: '1.1rem',
+                fontWeight: 'light'
+              }}
+            >
+              Tvůj tip: {yourGuess}
+            </Typography>
+            <Typography 
+              sx={{ 
+                color: 'rgba(255,255,255,0.9)', 
+                fontSize: '1.1rem',
+                fontWeight: 'light'
+              }}
+            >
+              Správná odpověď: {correctAnswer}
+            </Typography>
+          </Box>
+        </>
+      )}
 
       <Typography 
         sx={{ 
           color: 'rgba(255,255,255,0.9)', 
-          fontSize: '2.5rem',
+          fontSize: '2.5em',
           fontFamily: 'monospace',
           fontWeight: 'light'
         }}
@@ -119,7 +141,7 @@ const GuessANumberPlacement = ({ points_earned, total_points, placement, totalPl
         <Typography 
           sx={{ 
             color: 'white', 
-            fontSize: '3.5rem',
+            fontSize: '3.5em',
             fontWeight: 'bold',
             fontFamily: 'monospace'
           }}

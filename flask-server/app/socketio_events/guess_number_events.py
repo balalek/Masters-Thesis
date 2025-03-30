@@ -4,7 +4,7 @@ Socket.IO events for Guess a Number questions
 from flask_socketio import emit
 from .. import socketio
 from ..game_state import game_state
-from ..constants import PHASE_TRANSITION_TIME, POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER, POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER_FIRST_PHASE
+from ..constants import PHASE_TRANSITION_TIME, POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER, POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER_FIRST_PHASE, POINTS_FOR_EXACT_ANSWER, POINTS_FOR_PLACEMENT
 from time import time
 from .utils import emit_all_answers_received, get_scores_data
 
@@ -18,8 +18,6 @@ def submit_number_guess(data):
     if current_question is None:
         emit('error', {"error": "Game not started"})
         return
-        
-    current_question_data = game_state.questions[current_question]
     
     # Check if we're in team mode
     if game_state.is_team_mode:
@@ -143,8 +141,8 @@ def submit_captain_choice(data):
     game_state.first_team_final_answer = final_answer
     
     # Get the correct answer
-    current_question_data = game_state.questions[game_state.current_question]
-    correct_answer = float(current_question_data.get('number_answer', 0))
+    current_question = game_state.questions[game_state.current_question]
+    correct_answer = float(current_question.get('number_answer', 0))
     
     # Check if the answer is exactly correct - special case!
     if abs(final_answer - correct_answer) < 0.0001:  # Use small epsilon for floating point comparison
@@ -153,10 +151,10 @@ def submit_captain_choice(data):
         game_state.team_scores[team] += double_points
         
         # Prepare question data for results page
-        current_question_data['teamMode'] = True
-        current_question_data['exactGuess'] = True  # Mark as exact guess for UI
-        current_question_data['firstTeamAnswer'] = final_answer
-        current_question_data['playerGuesses'] = game_state.team_player_guesses['blue'] + game_state.team_player_guesses['red']
+        current_question['teamMode'] = True
+        current_question['exactGuess'] = True  # Mark as exact guess for UI
+        current_question['firstTeamAnswer'] = final_answer
+        current_question['playerGuesses'] = game_state.team_player_guesses['blue'] + game_state.team_player_guesses['red']
         
         # Send correctness info to all players
         for player in game_state.players:
@@ -190,7 +188,8 @@ def submit_captain_choice(data):
         scores = get_scores_data()
         emit_all_answers_received(
             scores=scores,
-            correct_answer=correct_answer
+            correct_answer=correct_answer,
+            additional_data=current_question
         )
         return
     
@@ -319,8 +318,8 @@ def handle_tied_votes(captain_name):
 def handle_all_number_guesses_received():
     """Process all number guesses in free-for-all mode"""
     # Get the correct answer
-    current_question_data = game_state.questions[game_state.current_question]
-    correct_answer = float(current_question_data.get('number_answer', 0))
+    current_question = game_state.questions[game_state.current_question]
+    correct_answer = float(current_question.get('number_answer', 0))
     # Sort guesses by proximity to correct answer
     guesses = game_state.team_player_guesses.get('all', [])
     
@@ -335,14 +334,15 @@ def handle_all_number_guesses_received():
     send_individual_guess_results(sorted_guesses, correct_answer)
     
     # Prepare question data for results page
-    current_question_data['teamMode'] = False
-    current_question_data['playerGuesses'] = sorted_guesses
+    current_question['teamMode'] = False
+    current_question['playerGuesses'] = sorted_guesses
     
     # Emit results
     scores = get_scores_data()
     emit_all_answers_received(
         scores=scores,
-        correct_answer=correct_answer
+        correct_answer=correct_answer,
+        additional_data=current_question
     )
 
 # Free-for-all mode function to send individual results after all guesses are in or time is up
@@ -353,8 +353,11 @@ def send_individual_guess_results(sorted_guesses, correct_answer):
     print(f"DEBUG: Sending individual results to {total_players} players")
     print(f"DEBUG: Correct answer is {correct_answer}")
     
-    # Build a set of players who answered
+        # Build a set of players who answered
     players_who_answered = {guess['playerName'] for guess in sorted_guesses}
+    
+    # Base points per position (100 points distributed by rank)
+    base_points_per_player = POINTS_FOR_PLACEMENT // total_players if total_players > 0 else 0
     
     # Process the players who answered
     for index, guess in enumerate(sorted_guesses):
@@ -365,20 +368,27 @@ def send_individual_guess_results(sorted_guesses, correct_answer):
         # Calculate position (1-based index)
         placement = index + 1
         
-        # Calculate points based on how close the answer is
-        max_difference = correct_answer * 1.0  # 100% difference gets 0 points
-        normalized_diff = min(distance / max_difference, 1.0)
-        score = int(POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER * (1 - normalized_diff))
+        # Calculate points based on position (100, 90, 80, etc.)
+        position_points = max(10, POINTS_FOR_PLACEMENT - ((placement - 1) * base_points_per_player))
         
-        print(f"DEBUG: Player {player_name} - value: {value}, distance: {distance}, score: {score}")
+        # Calculate normalized difference as percentage
+        normalized_diff = min(distance / max(correct_answer, 0.001), 1.0) * 100
         
-        # Add speed bonus if very close (within 5%)
-        if normalized_diff < 0.05:
-            speed_points = 25  # Average speed bonus
-            score += speed_points
+        # Bonus points based on accuracy
+        bonus_points = 0
+        if distance == 0:  # Exact answer
+            bonus_points = POINTS_FOR_EXACT_ANSWER
+        elif normalized_diff <= 1:  # Within 1%
+            bonus_points = POINTS_FOR_EXACT_ANSWER * 0.75
+        elif normalized_diff <= 5:  # Within 5%
+            bonus_points = POINTS_FOR_EXACT_ANSWER * 0.5
+        elif normalized_diff <= 25:  # Within 25%
+            bonus_points = POINTS_FOR_EXACT_ANSWER * 0.25
         
-        # Make sure score is at least 10 points if they answered
-        score = max(10, score)
+        # Total score for this question
+        score = position_points + bonus_points
+        
+        print(f"DEBUG: Player {player_name} - value: {value}, distance: {distance}, position: {placement}, position_points: {position_points}, bonus: {bonus_points}, total: {score}")
         
         # Update player's score
         game_state.players[player_name]['score'] += score
@@ -386,12 +396,12 @@ def send_individual_guess_results(sorted_guesses, correct_answer):
         # Calculate accuracy description
         if distance == 0:
             accuracy_text = "Přesně!"
-        elif distance <= correct_answer * 0.01:
+        elif normalized_diff <= 1:
             accuracy_text = "Velmi přesné!"
-        elif distance <= correct_answer * 0.05:
+        elif normalized_diff <= 5:
             accuracy_text = "Velmi blízko!"
         else:
-            accuracy_percent = max(0, 100 - int((distance / max(correct_answer * 0.5, 1)) * 100))
+            accuracy_percent = max(0, 100 - int(normalized_diff * 2))  # Make percentage more user-friendly
             accuracy_text = f"{accuracy_percent}%"
         
         # Send placement and points to the player
@@ -451,8 +461,8 @@ def handle_all_votes_completed():
         final_vote = 'more' if more_votes > less_votes else 'less'
     
     # Get the correct answer
-    current_question_data = game_state.questions[game_state.current_question]
-    correct_answer = float(current_question_data.get('number_answer', 0))
+    current_question = game_state.questions[game_state.current_question]
+    correct_answer = float(current_question.get('number_answer', 0))
     
     # Check if the vote is correct
     is_correct = (correct_answer > game_state.first_team_final_answer and final_vote == 'more') or \
@@ -472,10 +482,10 @@ def handle_all_votes_completed():
         winning_team = first_team
     
     # Prepare question data for results page
-    current_question_data['teamMode'] = True
-    current_question_data['firstTeamAnswer'] = game_state.first_team_final_answer
-    current_question_data['secondTeamVote'] = final_vote
-    current_question_data['playerGuesses'] = game_state.team_player_guesses['blue'] + game_state.team_player_guesses['red']
+    current_question['teamMode'] = True
+    current_question['firstTeamAnswer'] = game_state.first_team_final_answer
+    current_question['secondTeamVote'] = final_vote
+    current_question['playerGuesses'] = game_state.team_player_guesses['blue'] + game_state.team_player_guesses['red']
     
     # Emit results
     scores = get_scores_data()
@@ -485,7 +495,8 @@ def handle_all_votes_completed():
     
     emit_all_answers_received(
         scores=scores,
-        correct_answer=correct_answer
+        correct_answer=correct_answer,
+        additional_data=current_question
     )
 
 def send_team_correctness_results(winning_team):
@@ -603,7 +614,8 @@ def handle_guess_number_time_up(scores):
                     # Emit results and return without proceeding to phase 2
                     emit_all_answers_received(
                         scores=scores,
-                        correct_answer=correct_answer
+                        correct_answer=correct_answer,
+                        additional_data=current_question
                     )
                     return
                 
@@ -656,7 +668,7 @@ def handle_guess_number_time_up(scores):
                 send_team_correctness_results(winning_team)
                 
                 # Prepare question data 
-                final_vote = "No votes" # Special case
+                final_vote = None # Special case
             else:
                 # Check for a tie
                 if more_votes == less_votes:
@@ -704,5 +716,6 @@ def handle_guess_number_time_up(scores):
     # Emit the question with updated data regardless of mode
     emit_all_answers_received(
         scores=scores,
-        correct_answer=correct_answer
+        correct_answer=correct_answer,
+        additional_data=current_question
     )

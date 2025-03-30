@@ -23,13 +23,17 @@ MAX_PLAYERS = 10
 # Preview time in milliseconds
 PREVIEW_TIME = 5000  # TODO 5 seconds in milliseconds
 START_GAME_TIME = 2000  # TODO 5 seconds in milliseconds
-PHASE_TRANSITION_TIME = 500000  # TODO 5 seconds in milliseconds
-WAITING_TIME = 1000
+PHASE_TRANSITION_TIME = 5000  # TODO 5 seconds in milliseconds
+WAITING_TIME = 10
 
-# Points
-POINTS_FOR_CORRECT_ANSWER = 50
+# Points for ABCD, True/False, Open Answer questions
+POINTS_FOR_CORRECT_ANSWER = 100
+# Team play for Guess a Number question
 POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER = 150
 POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER_FIRST_PHASE = 300 # Double points in First phase of Guess a Number
+# Free-for-all for Guess a Number question
+POINTS_FOR_PLACEMENT = 100
+POINTS_FOR_EXACT_ANSWER = 200
 
 # Quiz validation constants
 QUIZ_VALIDATION = {

@@ -36,9 +36,15 @@ function GamePage() {
       // Add the appropriate data based on question type
       if (question?.type === 'OPEN_ANSWER') {
         navigationState.question.playerAnswers = data.player_answers || [];
+      } else if (question?.type === 'GUESS_A_NUMBER') {
+        navigationState.question.playerGuesses = data.playerGuesses || [];
+        navigationState.question.teamMode = data.teamMode || false;
+        navigationState.question.firstTeamAnswer = data.firstTeamAnswer || null;
+        navigationState.question.secondTeamVote = data.secondTeamVote || null;
       } else {
         navigationState.answerCounts = data.answer_counts;
       }
+
       
       // Navigate to scores page with appropriate data
       navigate('/scores', { state: navigationState });
