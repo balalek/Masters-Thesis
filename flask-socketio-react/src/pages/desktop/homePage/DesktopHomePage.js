@@ -13,6 +13,7 @@ import ShuffleIcon from '@mui/icons-material/Shuffle';
 import QuestionAnswerIcon from '@mui/icons-material/EditNote';
 import SearchIcon from '@mui/icons-material/Search';
 import QuizListItem from './QuizListItem';
+import QuickPlayModal from '../../../components/desktop/QuickPlayModal';
 import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
 
 const QuizTypeButton = ({ icon: Icon, label, value, selected, onChange }) => (
@@ -81,6 +82,7 @@ const DesktopHomePage = () => {
   const [totalQuizzes, setTotalQuizzes] = useState(0);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [unfinishedQuizzes, setUnfinishedQuizzes] = useState([]);
+  const [quickPlayModalOpen, setQuickPlayModalOpen] = useState(false);
 
   const quizTypeIcons = {
     [QUIZ_TYPES.ABCD]: { icon: QuizIcon, label: QUIZ_TYPE_TRANSLATIONS[QUIZ_TYPES.ABCD] },
@@ -333,6 +335,37 @@ const DesktopHomePage = () => {
     }
   };
 
+  const handleQuickPlayClick = () => {
+    setQuickPlayModalOpen(true);
+  };
+
+  const handleStartQuickPlay = (config) => {
+    try {
+      // Activate quiz to allow players to join
+      fetch(`/activate_quiz`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      }).then(() => {
+        // Navigate to room page with quick play configuration
+        navigate('/room', { 
+          state: { 
+            quickPlayConfig: config
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error starting quick play game:', error);
+      setSnackbar({
+        open: true,
+        message: 'Nastala chyba při spouštění rychlé hry',
+        severity: 'error'
+      });
+    }
+    
+    // Close the modal
+    setQuickPlayModalOpen(false);
+  };
+
   return (
     <Box>
       {/* Header/Navigation Bar */}
@@ -451,6 +484,7 @@ const DesktopHomePage = () => {
             variant="contained"
             color="primary"
             startIcon={<PlayArrowIcon />}
+            onClick={handleQuickPlayClick}
             sx={{ whiteSpace: 'nowrap' }}
           >
             Rychlá hra
@@ -581,6 +615,14 @@ const DesktopHomePage = () => {
           <Button onClick={handleCreateCopy} variant="contained">Ano</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Quick Play Modal */}
+      <QuickPlayModal
+        open={quickPlayModalOpen}
+        onClose={() => setQuickPlayModalOpen(false)}
+        onStartGame={handleStartQuickPlay}
+        selectedType={selectedType !== 'all' ? selectedType : QUIZ_TYPES.DRAWING}
+      />
 
       <Snackbar
         open={snackbar.open}

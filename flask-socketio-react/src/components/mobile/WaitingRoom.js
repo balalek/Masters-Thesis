@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Avatar } from '@mui/material';
 import { getSocket, getServerTime } from '../../utils/socket';
 import Loading from './Loading';
+import { DRAWER_EXTRA_TIME } from '../../constants/quizValidation';
 
-function WaitingRoom({ playerName, playerColor, onReset }) {  // Add onReset prop
+function WaitingRoom({ playerName, playerColor, onReset }) {
   const navigate = useNavigate();
   const socket = getSocket();
   const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("Počkejte, než začne hra.");
 
   const handleGameStart = (data) => {
     setIsLoading(true);  // Show loading when game starts
@@ -21,10 +23,12 @@ function WaitingRoom({ playerName, playerColor, onReset }) {  // Add onReset pro
           gameData: data,
           teamName: data.team,
           activeTeam: data.active_team,
-          role: data.role
+          role: data.role,
+          isDrawer: data.is_drawer
         } 
       });
-    }, delay);
+    }, data.is_drawer ? Math.max(0, delay - DRAWER_EXTRA_TIME) : delay);
+
   };
 
   useEffect(() => {
@@ -39,7 +43,7 @@ function WaitingRoom({ playerName, playerColor, onReset }) {  // Add onReset pro
     };
   }, [navigate, playerName, onReset]);
 
-  if (isLoading) return <Loading />;
+  if (isLoading) return <Loading message={message} />;
 
   return (
     <Box sx={{ 
@@ -65,7 +69,7 @@ function WaitingRoom({ playerName, playerColor, onReset }) {  // Add onReset pro
         {playerName}
       </Typography>
       <Typography variant="body1" component="p">
-        Počkejte, než začne hra.
+        {message}
       </Typography>
     </Box>
   );

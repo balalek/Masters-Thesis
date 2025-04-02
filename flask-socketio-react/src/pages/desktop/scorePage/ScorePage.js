@@ -7,6 +7,7 @@ import TrueFalseAnswers from '../../../components/desktop/answerTypes/TrueFalseA
 import OpenAnswerResult from '../../../components/desktop/answerTypes/OpenAnswerResult';
 import Leaderboard from '../../../components/desktop/Leaderboard';
 import GuessNumberResult from '../../../components/desktop/answerTypes/GuessNumberResult';
+import DrawingAnswerResult from '../../../components/desktop/answerTypes/DrawingAnswerResult';
 
 const ScorePage = () => {
   const location = useLocation();
@@ -146,6 +147,15 @@ const ScorePage = () => {
           question={{
             ...question,
             correctAnswer: correctAnswer
+          }} 
+        />;
+      case 'DRAWING':
+        return <DrawingAnswerResult 
+          question={{
+            ...question,
+            correctAnswer: correctAnswer,
+            drawer: question.drawer || 'Unknown',
+            playerAnswers: question.playerAnswers || []
           }} 
         />;
       case 'TRUE_FALSE':

@@ -24,8 +24,9 @@ export const QUIZ_VALIDATION = {
   DRAWING: {
     MIN_ROUNDS: 1,
     MAX_ROUNDS: 3,
+    MAX_ROUNDS_QUICK_PLAY: 10,
     DEFAULT_ROUNDS: 1,
-    MIN_TIME: 30,
+    MIN_TIME: 10,
     MAX_TIME: 120,
     DEFAULT_TIME: 60
   },
@@ -45,6 +46,9 @@ export const QUIZ_VALIDATION = {
 };
 
 export const MAX_PLAYERS = 10;
+
+// Extra time for the drawer in seconds - must be consistent with the server PREVIEW_TIME_DRAWING
+export const DRAWER_EXTRA_TIME = 10000; 
 
 // Categories for questions with types ABCD, True/False, Open Answer, Guess a Number
 export const QUIZ_CATEGORIES = [

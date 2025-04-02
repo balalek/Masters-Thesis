@@ -6,6 +6,7 @@ import TrueFalseQuiz from '../../../components/desktop/quizTypes/TrueFalseQuiz';
 import QuestionPreview from '../../../components/desktop/QuestionPreview';
 import OpenAnswerQuiz from '../../../components/desktop/quizTypes/OpenAnswerQuiz';
 import GuessANumberQuiz from '../../../components/desktop/quizTypes/GuessANumberQuiz';
+import DrawingQuiz from '../../../components/desktop/quizTypes/DrawingQuiz';
 
 function GamePage() {
   const location = useLocation();
@@ -36,6 +37,10 @@ function GamePage() {
       // Add the appropriate data based on question type
       if (question?.type === 'OPEN_ANSWER') {
         navigationState.question.playerAnswers = data.player_answers || [];
+      } else if (question?.type === 'DRAWING') {
+        // Add drawing-specific data to the navigation state
+        navigationState.question.playerAnswers = data.player_answers || [];
+        navigationState.question.drawer = data.drawer || question.player;
       } else if (question?.type === 'GUESS_A_NUMBER') {
         navigationState.question.playerGuesses = data.playerGuesses || [];
         navigationState.question.teamMode = data.teamMode || false;
@@ -45,6 +50,8 @@ function GamePage() {
         navigationState.answerCounts = data.answer_counts;
       }
 
+      // Debug log to check what we're passing to ScorePage
+      console.log('Navigating to ScorePage with data:', navigationState);
       
       // Navigate to scores page with appropriate data
       navigate('/scores', { state: navigationState });
@@ -144,6 +151,11 @@ function GamePage() {
         return <ABCDQuiz 
           question={question} 
           answersCount={answersCount}
+          question_end_time={location.state?.question_end_time}
+        />;
+      case 'DRAWING':
+        return <DrawingQuiz 
+          question={question} 
           question_end_time={location.state?.question_end_time}
         />;
       default:

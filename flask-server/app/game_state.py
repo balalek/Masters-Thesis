@@ -24,6 +24,12 @@ class GameState:
             'player_answers': []
         }
         
+        # Drawing specific state
+        self.drawing_stats = {  # Stats for drawing questions
+            'correct_count': 0,
+            'player_answers': []
+        }
+        
         # Guess a Number specific state
         self.number_guess_phase = 1  # 1 = first team guessing, 2 = second team more/less
         self.first_team_final_answer = None  # The final answer from the first team
@@ -47,6 +53,12 @@ class GameState:
         self.correct_players = set()
         self.revealed_positions = set()
         self.open_answer_stats = {
+            'correct_count': 0,
+            'player_answers': []
+        }
+        
+        # Reset drawing specific state
+        self.drawing_stats = {
             'correct_count': 0,
             'player_answers': []
         }

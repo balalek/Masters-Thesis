@@ -22,9 +22,11 @@ MAX_PLAYERS = 10
 
 # Preview time in milliseconds
 PREVIEW_TIME = 5000  # TODO 5 seconds in milliseconds
+PREVIEW_TIME_DRAWING = 10000  # TODO 10 seconds in milliseconds
 START_GAME_TIME = 2000  # TODO 5 seconds in milliseconds
 PHASE_TRANSITION_TIME = 5000  # TODO 5 seconds in milliseconds
 WAITING_TIME = 10
+WAITING_TIME_DRAWING = 15
 
 # Points for ABCD, True/False, Open Answer questions
 POINTS_FOR_CORRECT_ANSWER = 100

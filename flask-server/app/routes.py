@@ -2,8 +2,9 @@ from flask import jsonify, send_from_directory, request
 from pathlib import Path
 from . import app, socketio
 from .game_state import game_state
-from .constants import AVAILABLE_COLORS, MAX_PLAYERS, PREVIEW_TIME, START_GAME_TIME, QUIZ_VALIDATION, QUIZ_CATEGORIES, is_online
+from .constants import AVAILABLE_COLORS, MAX_PLAYERS, PREVIEW_TIME, PREVIEW_TIME_DRAWING, START_GAME_TIME, QUIZ_VALIDATION, QUIZ_CATEGORIES, is_online
 from time import time
+import requests  # Add this import for HTTP requests
 from .services.quiz_service import QuizService
 from .services.local_storage_service import LocalStorageService
 from .utils import convert_mongo_doc, get_device_id, check_internet_connection
@@ -72,10 +73,87 @@ def start_game():
     # Add team mode handling
     game_state.is_team_mode = request.json.get('isTeamMode', False)
     game_state.is_remote = request.json.get('isRemote', False)
+    quick_play_type = request.json.get('quick_play_type')  # Get the quick play type
     quiz_id = request.json.get('quizId')  # Get quiz ID from request
     
-    if not quiz_id:
+    # Handle quick play modes
+    if quick_play_type:
+        # Handle based on the type of quick play
+        if quick_play_type == "DRAWING":
+            try:
+                # Get drawing specific parameters
+                num_rounds = request.json.get('numRounds', 3)
+                round_length = request.json.get('roundLength', 60)  # seconds
+                num_players = len(game_state.players)
+                
+                # Calculate how many words we need: rounds * players * 3 options per player
+                num_words_needed = num_rounds * num_players * 3
+                
+                # Get random words from the external API
+                response = requests.get(f"http://slova.cetba.eu/generate.php?number={num_words_needed}")
+                if response.status_code != 200:
+                    return jsonify({"error": "Nepodařilo se získat slova pro kreslení"}), 500
+                    
+                # Fix encoding issues with Czech characters - ensure proper UTF-8 decoding
+                response_text = response.content.decode('utf-8')
+                
+                # Split by pipe character
+                words = response_text.split(" | ")
+                
+                # Debug output to verify encoding
+                print(f"First few words: {words[:5]}")
+                
+                # Make sure we have enough words
+                if len(words) < num_words_needed:
+                    print(f"Warning: Got only {len(words)} words, needed {num_words_needed}")
+                
+                # Create questions for drawing game
+                drawing_questions = []
+                word_index = 0
+                
+                for round_num in range(num_rounds):
+                    for player_name in game_state.players:
+                        # Get 3 words for this player to choose from
+                        player_words = words[word_index:word_index+3]
+                        word_index += 3
+                        
+                        # Create a question for this player
+                        question = {
+                            "type": "DRAWING",
+                            "question": f"{round_num + 1}. kolo: Kreslí {player_name}",
+                            "player": player_name,
+                            "words": player_words,  # 3 words to choose from
+                            "selected_word": None,  # This will be set when the player selects a word
+                            "length": round_length,
+                            "category": "Kreslení"
+                        }
+                        drawing_questions.append(question)
+                
+                # Set the questions in the game state
+                game_state.questions = drawing_questions
+                print(f"Created {len(drawing_questions)} drawing questions")
+            except Exception as e:
+                print(f"Error setting up drawing game: {str(e)}")
+                return jsonify({"error": f"Chyba při přípravě hry: {str(e)}"}), 500
+                
+        elif quick_play_type == "WORD_CHAIN":
+            # TODO: Implement Word Chain quick play
+            return jsonify({"error": "Word Chain quick play není zatím implementováno"}), 501
+        else:
+            # For unsupported quick play types
+            return jsonify({"error": f"Nepodporovaný typ rychlé hry: {quick_play_type}"}), 400
+    
+    elif not quiz_id:
+        # For regular games, make sure quiz_id is provided
         return jsonify({"error": "Nebyl vybrán žádný kvíz"}), 400
+    else:
+        # Get the selected quiz from MongoDB (only for non-quick-play mode)
+        quiz = QuizService.get_quiz(quiz_id)
+        if not quiz:
+            return jsonify({"error": "Kvíz nebyl nalezen"}), 404
+            
+        # The questions are already JSON-serializable
+        game_state.questions = quiz["questions"]
 
     # Team mode setup
     if game_state.is_team_mode:
@@ -107,14 +185,7 @@ def start_game():
         print(f"Red Team: {game_state.red_team}")
         print(f"Red Captain: {red_captain} (index {red_captain_index})")
         print("=====================\n")
-
-    # Get the selected quiz from MongoDB
-    quiz = QuizService.get_quiz(quiz_id)
-    if not quiz:
-        return jsonify({"error": "Kvíz nebyl nalezen"}), 404
-        
-    # The questions are already JSON-serializable
-    game_state.questions = quiz["questions"]
+    
     game_state.current_question = 0
     # Reset state for the next question
     game_state.reset_question_state()
@@ -128,13 +199,25 @@ def start_game():
     game_start_time = current_time + START_GAME_TIME  # 5 seconds from now
     
     first_question = game_state.questions[game_state.current_question]
-    game_state.question_start_time = game_start_time  + PREVIEW_TIME # Set the start time for the first question
+
+    # Set the question start time for the first question for drawing question
+    if first_question.get('type') == 'DRAWING':
+        # For drawing questions, set the start time to be 10 seconds from now
+        game_start_at = game_start_time + PREVIEW_TIME_DRAWING
+    else :
+        game_start_at = game_start_time + PREVIEW_TIME # Set the start time for the first question
+
+    game_state.question_start_time = game_start_at
+    # Check if first question is a drawing question and identify drawer
+    first_drawer = None
+    if first_question.get('type') == 'DRAWING':
+        first_drawer = first_question.get('player')
 
     # Create standard game data for the main display
     standard_game_data = {
         "question": first_question,
         "show_first_question_preview": game_start_time,
-        "show_game_at": game_start_time + PREVIEW_TIME,
+        "show_game_at": game_start_at,
         "active_team": game_state.active_team
     }
 
@@ -166,11 +249,12 @@ def start_game():
         player_game_data = {
             "question": first_question,
             "show_first_question_preview": game_start_time,
-            "show_game_at": game_start_time + PREVIEW_TIME,
+            "show_game_at": game_start_at,
             "team": player_team,
             "active_team": game_state.active_team,
             "role": player_role,  # Include the player's role
-            "quizPhase": 1  # Start with phase 1
+            "quizPhase": 1,  # Start with phase 1
+            "is_drawer": first_drawer == player_name  # Let player know if they're the drawer
         }
         
         print(f"Player: {player_name}, Team: {player_team}, Role: {player_role}, Active Team: {game_state.active_team}")
@@ -194,6 +278,11 @@ def next_question():
     next_question = game_state.questions[game_state.current_question]
     is_last_question = game_state.current_question + 1 == len(game_state.questions)
 
+    # Check if the next question is a drawing question
+    next_drawer = None
+    if next_question.get('type') == 'DRAWING':
+        next_drawer = next_question.get('player')
+
     # For Guess a Number in team mode, initialize the phase
     if game_state.is_team_mode and next_question.get('type') == 'GUESS_A_NUMBER':
         game_state.number_guess_phase = 1
@@ -211,13 +300,15 @@ def next_question():
         "is_last_question": is_last_question,
         "active_team": game_state.active_team,
         "quizPhase": 1,  # Start with phase 1 for the new question
+        "drawer": next_drawer  # Include drawer information
     })
     return jsonify({
         "question": next_question,
         "is_last_question": is_last_question,
-        "preview_time": PREVIEW_TIME,
+        "preview_time": PREVIEW_TIME_DRAWING if next_question.get('type') == 'DRAWING' else PREVIEW_TIME,
         "active_team": game_state.active_team,
         "quizPhase": 1,  # Start with phase 1 for the new question
+        "drawer": next_drawer  # Include drawer information
     }), 200
 
 @app.route('/reset_game', methods=['POST'])
@@ -509,7 +600,6 @@ def delete_media():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Add these new routes at the end of the file
 @app.route('/unfinished_quizzes', methods=['GET'])
 def get_unfinished_quizzes():
     """Get all unfinished quizzes for the current device"""

@@ -7,10 +7,14 @@ import PlayersList from '../../../components/desktop/room/PlayersList';
 import TeamMode from '../../../components/desktop/room/TeamMode';
 import ConnectionInfo from '../../../components/desktop/room/ConnectionInfo';
 import StartGameTooltip from '../../../components/desktop/room/StartGameTooltip';
+import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
 
 const RoomPage = () => {
   const location = useLocation();
   const quizId = location.state?.quizId;  // Get quiz ID from navigation state
+  // Get quick play configuration
+  const quickPlayConfig = location.state?.quickPlayConfig;
+  
   const [players, setPlayers] = useState([]); // Add back players state
   const [blueTeam, setBlueTeam] = useState([]); // Store teams directly
   const [redTeam, setRedTeam] = useState([]);
@@ -123,6 +127,18 @@ const RoomPage = () => {
       quizId: quizId  // Add quiz ID to payload
     };
 
+    // Add quick play configuration if present
+    if (quickPlayConfig) {
+      payload.quick_play_type = quickPlayConfig.quick_play_type;
+      
+      // Add type-specific parameters
+      if (quickPlayConfig.quick_play_type === QUIZ_TYPES.DRAWING) {
+        payload.numRounds = quickPlayConfig.numRounds;
+        payload.roundLength = quickPlayConfig.roundLength;
+      }
+      // Add other quiz type parameters here when supported
+    }
+
     fetch(`http://${window.location.hostname}:5000/start_game`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -156,11 +172,24 @@ const RoomPage = () => {
       quizId: quizId  // Add quiz ID to payload
     };
 
+    // Add quick play configuration if present
+    if (quickPlayConfig) {
+      payload.quick_play_type = quickPlayConfig.quick_play_type;
+      
+      // Add type-specific parameters
+      if (quickPlayConfig.quick_play_type === QUIZ_TYPES.DRAWING) {
+        payload.numRounds = quickPlayConfig.numRounds;
+        payload.roundLength = quickPlayConfig.roundLength;
+      }
+      // Add other quiz type parameters here when supported
+    }
+
     fetch(`http://${window.location.hostname}:5000/start_game`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
+    .then((response) => response.json())
     .then((data) => {
       if (data.error) setStartGameError(data.error);
     })
@@ -168,7 +197,7 @@ const RoomPage = () => {
       console.error('Error starting game:', error);
       setStartGameError('Chyba při spouštění hry');
     });
-  }
+  };
 
   const handleModeChange = (mode) => {
     if (mode === 'team' && selectedMode === 'freeforall') {
@@ -327,6 +356,10 @@ const RoomPage = () => {
     );
   }
 
+  // Check if we're in a quick play mode to display the appropriate UI
+  const isQuickPlayMode = !!quickPlayConfig;
+  const quickPlayType = quickPlayConfig?.quick_play_type;
+
   return (
     <Box sx={{ padding: 2, position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Close button */}
@@ -341,40 +374,40 @@ const RoomPage = () => {
 
       {/* Title and mode selection */}
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
-        Čekárna
+        Čekárna {isQuickPlayMode ? `- ${QUIZ_TYPE_TRANSLATIONS[quickPlayType] || "Rychlá hra"}` : ""}
       </Typography>
       
-      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2, mt: 1 }}>
-        <Button
-          variant={selectedMode === 'team' ? 'contained' : 'outlined'}
-          onClick={() => handleModeChange('team')}
-          sx={{ width: '150px' }}
-        >
-          Týmový režim
-        </Button>
-        <Button
-          variant={selectedMode === 'freeforall' ? 'contained' : 'outlined'}
-          onClick={() => handleModeChange('freeforall')}
-          sx={{ width: '150px' }}
-        >
-          Všichni proti všem
-        </Button>
-      </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2, mt: 1 }}>
+            <Button
+              variant={selectedMode === 'team' ? 'contained' : 'outlined'}
+              onClick={() => handleModeChange('team')}
+              sx={{ width: '150px' }}
+            >
+              Týmový režim
+            </Button>
+            <Button
+              variant={selectedMode === 'freeforall' ? 'contained' : 'outlined'}
+              onClick={() => handleModeChange('freeforall')}
+              sx={{ width: '150px' }}
+            >
+              Všichni proti všem
+            </Button>
+          </Box>
 
-      {/* Captain explanation text - only show in team mode */}
-      {selectedMode === 'team' && (
-        <Typography 
-          variant="body2" 
-          sx={{ 
-            textAlign: 'center', 
-            mb: 2,
-            fontStyle: 'italic',
-            color: 'text.secondary'
-          }}
-        >
-          ⭐ Označuje kapitána týmu
-        </Typography>
-      )}
+          {/* Captain explanation text - only show in team mode */}
+          {selectedMode === 'team' && (
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                textAlign: 'center', 
+                mb: 2,
+                fontStyle: 'italic',
+                color: 'text.secondary'
+              }}
+            >
+              ⭐ Označuje kapitána týmu
+            </Typography>
+                )}
 
       {/* Main content with flexible spacing */}
       <Box sx={{ 

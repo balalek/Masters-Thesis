@@ -89,6 +89,9 @@ def handle_time_up():
     elif question_type == 'GUESS_A_NUMBER':
         from .guess_number_events import handle_guess_number_time_up
         handle_guess_number_time_up(scores)
+    elif question_type == 'DRAWING':
+        from .drawing_events import handle_drawing_time_up
+        handle_drawing_time_up(scores)
     else:
         # ABCD and TRUE_FALSE questions
         from .abcd_events import handle_abcd_time_up

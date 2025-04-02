@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getSocket, getServerTime } from '../../../utils/socket';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import CorrectAnswer from '../../../components/mobile/CorrectAnswer';
 import IncorrectAnswer from '../../../components/mobile/IncorrectAnswer';
 import Loading from '../../../components/mobile/Loading';
@@ -16,6 +16,12 @@ import MoreLessVoteMobile from '../../../components/mobile/quizTypes/MoreLessVot
 import GuessANumberPlacement from '../../../components/mobile/GuessANumberPlacement';
 import TeamWaitingScreen from '../../../components/mobile/TeamWaitingScreen';
 import PhaseTransitionMobile from '../../../components/mobile/PhaseTransitionMobile';
+import WordSelectionMobile from '../../../components/mobile/quizTypes/WordSelectionMobile';
+import DrawerQuizMobile from '../../../components/mobile/quizTypes/DrawerQuizMobile';
+import DrawingAnswerQuizMobile from '../../../components/mobile/quizTypes/DrawingAnswerQuizMobile';
+import DrawerResultScreen from '../../../components/mobile/DrawerResultScreen';
+import DrawerWaitingScreen from '../../../components/mobile/quizTypes/DrawerWaitingScreen';
+import { DRAWER_EXTRA_TIME } from '../../../constants/quizValidation';
 
 const MobileGamePage = () => {
   const location = useLocation();
@@ -35,7 +41,7 @@ const MobileGamePage = () => {
   const playerName = location.state?.playerName || 'Unknown Player';
   const [showButtons, setShowButtons] = useState(true);
   const playerRole = location.state?.gameData?.role || 'Unknown Role';
-  const teamName = location.state?.teamName ||'Unknown Team';
+  const teamName = location.state?.teamName || 'Unknown Team';
   const [quizPhase, setQuizPhase] = useState(1); // For guess-a-number quiz phases
   const [firstTeamAnswer, setFirstTeamAnswer] = useState(null);
   const [guessPlacementData, setGuessPlacementData] = useState(null);
@@ -44,6 +50,10 @@ const MobileGamePage = () => {
   const [showPhaseTransition, setShowPhaseTransition] = useState(false);
   const [exactGuess, setExactGuess] = useState(false);
   const [guessResult, setGuessResult] = useState(null);
+  const [selectedWord, setSelectedWord] = useState(null); // State for tracking selected drawing word
+  const [drawerStats, setDrawerStats] = useState(null); // Add this state
+  const [canvasVisible, setCanvasVisible] = useState(false); // State for controlling canvas visibility
+  const [drawerLate, setDrawerLate] = useState(false); // State for detecting late word selection
 
   useEffect(() => {
     const socket = getSocket();
@@ -53,12 +63,20 @@ const MobileGamePage = () => {
       setQuizPhase(1); // Reset quiz phase to 1 for new question
       setActiveTeam(data.active_team);
       setQuestion(data.question);
-      setLoading(true);
       setShowResult(false);
       setGuessPlacementData(null);
       setShowGuessPlacement(false);
       setIsCorrect(null);
-      setShowButtons(false);  // Hide buttons initially
+      setCanvasVisible(false); // Explicitly reset canvas visibility to false for every new question
+      setDrawerLate(false); // Reset the drawerLate state for new questions
+      
+      // Check if player is drawer for current question - don't hide buttons for drawer
+      const isNextDrawer = data.drawer === playerName || data.question.player === playerName;
+      if (!isNextDrawer) {
+        setLoading(true);
+        setShowButtons(false);  // Hide buttons initially
+      }
+      setSelectedWord(null);  // Clear selected word for new question
       
       // For guess-a-number questions in team mode, update active team from question data TODO maybe delete
       if (data.question.type === 'GUESS_A_NUMBER' && data.question.activeTeam) {
@@ -112,7 +130,7 @@ const MobileGamePage = () => {
     });
 
     socket.on('all_answers_received', (data) => {
-      console.log('all_answers_received event received in MobileGamePage');
+      console.log('all_answers_received event received in MobileGamePage:', data);
       
       // Skip setting showResult for GUESS_A_NUMBER questions in free-for-all mode only
       // In team mode or for other question types, show the result
@@ -121,15 +139,36 @@ const MobileGamePage = () => {
         setShowResult(true);
       }
       
+      // Check for drawer stats in additional_data
+      if (data.drawer_stats) {
+        console.log('Drawer stats received:', data.drawer_stats);
+        setDrawerStats(data.drawer_stats);
+      }
+      
       // Calculate delay until buttons should show
       const now = getServerTime();
       const delay = data.show_buttons_at - now;
       
-      // Schedule showing the buttons
+      // Check if this player is the drawer for the next question
+      const isNextDrawer = data.next_drawer === playerName;
+      console.log('isNextDrawer:', isNextDrawer, 'delay for drawer:', delay - DRAWER_EXTRA_TIME);
+
+      // Schedule showing the buttons - apply shorter delay for drawer
       setTimeout(() => {
         setLoading(false);
         setShowButtons(true);
-      }, delay);
+      }, isNextDrawer ? Math.max(0, delay - DRAWER_EXTRA_TIME) : delay);
+      
+      // For drawer, show canvas after the delay that is for everyone
+      if (isNextDrawer) {
+        // Important: Reset canvas visibility first to ensure proper sequencing
+        setCanvasVisible(false);
+        
+        setTimeout(() => {
+          console.log('Showing canvas for next drawer');
+          setCanvasVisible(true); // Show the canvas for the drawer
+        }, delay);
+      }
     });
 
     socket.on('navigate_to_final_score', (data) => {
@@ -165,6 +204,14 @@ const MobileGamePage = () => {
       }, delay);
     });
 
+    // Add listener for word selection confirmation
+    socket.on('word_selected', (data) => {
+      if (data.is_drawer) {
+        setSelectedWord(data.word);
+        // Don't set canvasVisible here - wait for the timer to do it
+      }
+    });
+
     return () => {
       socket.off('next_question');
       socket.off('answer_correctness');
@@ -172,6 +219,7 @@ const MobileGamePage = () => {
       socket.off('navigate_to_final_score');
       socket.off('game_reset');
       socket.off('phase_transition');
+      socket.off('word_selected');
     };
   }, [navigate, playerName, finalScoreData, question, showGuessPlacement]);
 
@@ -193,6 +241,36 @@ const MobileGamePage = () => {
       socket.off('player_role_update');
     };
   }, []);
+
+  // Add this new useEffect for handling initial drawer canvas visibility
+  useEffect(() => {
+    // Check if this player is the drawer for the first question
+    const isInitialDrawer = question?.type === 'DRAWING' && question?.player === playerName;
+    
+    if (isInitialDrawer && location.state?.gameData?.show_game_at) {
+      const now = getServerTime();
+      const showGameAt = location.state.gameData.show_game_at;
+      
+      // Calculate the delay until the game starts
+      const delay = Math.max(0, showGameAt - now);
+      
+      // Set a timer to make the canvas visible after the preview time
+      const timer = setTimeout(() => {
+        console.log('Timer completed - showing canvas for drawer');
+        setCanvasVisible(true);
+      }, delay);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // When canvas becomes visible, check if the drawer is late
+  useEffect(() => {
+    if (canvasVisible && !selectedWord && question?.type === 'DRAWING' && question?.player === playerName) {
+      console.log('Drawer is late selecting a word!');
+      setDrawerLate(true);
+    }
+  }, [canvasVisible, selectedWord, question, playerName]);
 
   const handleAnswer = (index) => {
     const socket = getSocket();
@@ -252,6 +330,36 @@ const MobileGamePage = () => {
     });
   };
 
+  // Update the drawing submission handler
+  const handleDrawingSubmit = (answer) => {
+    const socket = getSocket();
+    const now = getServerTime();
+    
+    // Submit the drawing answer similar to open answer
+    socket.emit('submit_drawing_answer', {
+      player_name: playerName,
+      answer: answer,
+      answer_time: now
+    });
+    
+    // Don't set loading state to allow for multiple guesses
+  };
+
+  // Handler for word selection - add late selection detection
+  const handleWordSelected = (word) => {
+    const socket = getSocket();
+    setSelectedWord(word);
+    
+    // Send selected word with late selection flag
+    socket.emit('select_drawing_word', {
+      player_name: playerName,
+      selected_word: word,
+      is_late_selection: drawerLate // Include the late flag
+    });
+    
+    console.log(`Word selected: ${word}, late selection: ${drawerLate}`);
+  };
+
   if (showFinalScore && finalScoreData) {
     return (
       <MobileFinalScore
@@ -286,7 +394,21 @@ const MobileGamePage = () => {
   }
 
   if (showResult) {
+    // Check if this player is the drawer for a drawing question
+    const isDrawer = question?.type === 'DRAWING' && question?.player === playerName;
+    
     if (isCorrect === null) {
+      // For the drawer in a drawing question, show the drawer result screen instead of "too late"
+      if (isDrawer && drawerStats) {
+        return <DrawerResultScreen 
+          pointsEarned={drawerStats.pointsEarned}
+          totalPoints={drawerStats.totalPoints}
+          correctGuessCount={drawerStats.correct_count}
+          totalGuessers={drawerStats.total_guessers}
+          isLateSelection={drawerLate} // Pass the late selection flag
+        />;
+      }
+      // For everyone else, show the normal "too late" screen
       return <TooLateAnswer total_points={totalPoints} />;
     }
     return isCorrect ? 
@@ -321,6 +443,36 @@ const MobileGamePage = () => {
         return <ABCDQuizMobile onAnswer={handleAnswer} />;
       case 'OPEN_ANSWER':
         return <OpenAnswerQuizMobile onAnswer={handleOpenAnswer} />;
+      case 'DRAWING':
+        // Check if this player is the drawer
+        const isDrawer = question.player === playerName;
+        
+        if (isDrawer) {
+          if (!selectedWord && question.words && question.words.length > 0) {
+            return (
+              <WordSelectionMobile 
+                words={question.words} 
+                playerName={playerName}
+                onWordSelected={handleWordSelected}
+                isLate={drawerLate} // Pass the late flag to show a warning
+              />
+            );
+          } else if (selectedWord && canvasVisible) {
+            // If word is selected and canvas should be visible, show drawing interface
+            return <DrawerQuizMobile 
+              selectedWord={selectedWord}
+              playerName={playerName}
+            />;
+          } else if (selectedWord) {
+            // Word is selected but we're still in preview time - use new component
+            return <DrawerWaitingScreen selectedWord={selectedWord} />;
+          }
+        } else {
+          // If player is not the drawer, use the dedicated DrawingAnswerQuizMobile component
+          return <DrawingAnswerQuizMobile 
+            onAnswer={handleDrawingSubmit}
+          />;
+        }
       case 'GUESS_A_NUMBER':
         // Check if we're in free-for-all mode (not team mode)
         if (teamName === 'Unknown Team' || teamName === null) {
