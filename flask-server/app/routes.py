@@ -70,92 +70,13 @@ def start_game():
     if len(game_state.players) < 2:
         return jsonify({"error": "Hra nemůže začít, dokud nejsou připojeni alespoň 2 hráči"}), 400
 
-    # Add team mode handling
+    # Add team mode handling first
     game_state.is_team_mode = request.json.get('isTeamMode', False)
     game_state.is_remote = request.json.get('isRemote', False)
     quick_play_type = request.json.get('quick_play_type')  # Get the quick play type
     quiz_id = request.json.get('quizId')  # Get quiz ID from request
     
-    # Handle quick play modes
-    if quick_play_type:
-        # Handle based on the type of quick play
-        if quick_play_type == "DRAWING":
-            try:
-                # Get drawing specific parameters
-                num_rounds = request.json.get('numRounds', 3)
-                round_length = request.json.get('roundLength', 60)  # seconds
-                num_players = len(game_state.players)
-                
-                # Calculate how many words we need: rounds * players * 3 options per player
-                num_words_needed = num_rounds * num_players * 3
-                
-                # Get random words from the external API
-                response = requests.get(f"http://slova.cetba.eu/generate.php?number={num_words_needed}")
-                if response.status_code != 200:
-                    return jsonify({"error": "Nepodařilo se získat slova pro kreslení"}), 500
-                    
-                # Fix encoding issues with Czech characters - ensure proper UTF-8 decoding
-                response_text = response.content.decode('utf-8')
-                
-                # Split by pipe character
-                words = response_text.split(" | ")
-                
-                # Debug output to verify encoding
-                print(f"First few words: {words[:5]}")
-                
-                # Make sure we have enough words
-                if len(words) < num_words_needed:
-                    print(f"Warning: Got only {len(words)} words, needed {num_words_needed}")
-                
-                # Create questions for drawing game
-                drawing_questions = []
-                word_index = 0
-                
-                for round_num in range(num_rounds):
-                    for player_name in game_state.players:
-                        # Get 3 words for this player to choose from
-                        player_words = words[word_index:word_index+3]
-                        word_index += 3
-                        
-                        # Create a question for this player
-                        question = {
-                            "type": "DRAWING",
-                            "question": f"{round_num + 1}. kolo: Kreslí {player_name}",
-                            "player": player_name,
-                            "words": player_words,  # 3 words to choose from
-                            "selected_word": None,  # This will be set when the player selects a word
-                            "length": round_length,
-                            "category": "Kreslení"
-                        }
-                        drawing_questions.append(question)
-                
-                # Set the questions in the game state
-                game_state.questions = drawing_questions
-                print(f"Created {len(drawing_questions)} drawing questions")
-            except Exception as e:
-                print(f"Error setting up drawing game: {str(e)}")
-                return jsonify({"error": f"Chyba při přípravě hry: {str(e)}"}), 500
-                
-        elif quick_play_type == "WORD_CHAIN":
-            # TODO: Implement Word Chain quick play
-            return jsonify({"error": "Word Chain quick play není zatím implementováno"}), 501
-        else:
-            # For unsupported quick play types
-            return jsonify({"error": f"Nepodporovaný typ rychlé hry: {quick_play_type}"}), 400
-    
-    elif not quiz_id:
-        # For regular games, make sure quiz_id is provided
-        return jsonify({"error": "Nebyl vybrán žádný kvíz"}), 400
-    else:
-        # Get the selected quiz from MongoDB (only for non-quick-play mode)
-        quiz = QuizService.get_quiz(quiz_id)
-        if not quiz:
-            return jsonify({"error": "Kvíz nebyl nalezen"}), 404
-            
-        # The questions are already JSON-serializable
-        game_state.questions = quiz["questions"]
-
-    # Team mode setup
+    # Set up team assignments early - BEFORE trying to generate drawing questions
     if game_state.is_team_mode:
         team_assignments = request.json.get('teamAssignments', {})
         game_state.blue_team = team_assignments.get('blue', [])
@@ -186,15 +107,170 @@ def start_game():
         print(f"Red Captain: {red_captain} (index {red_captain_index})")
         print("=====================\n")
     
+    # Handle quick play modes - now we can use team information
+    if quick_play_type:
+        # Handle based on the type of quick play
+        if quick_play_type == "DRAWING":
+            try:
+                # Get drawing specific parameters
+                num_rounds = request.json.get('numRounds', 3)
+                round_length = request.json.get('roundLength', 60)  # seconds
+                if game_state.is_team_mode:
+                    # Each player gets at least one turn
+                    num_turns = max(len(game_state.blue_team), len(game_state.red_team)) * 2
+                else:
+                    num_turns = len(game_state.players)
+                
+                # Calculate how many words we need: rounds * players * 3 options per player
+                num_words_needed = num_rounds * num_turns * 3
+                
+                # Get random words from the external API
+                response = requests.get(f"http://slova.cetba.eu/generate.php?number={num_words_needed}")
+                if response.status_code != 200:
+                    return jsonify({"error": "Nepodařilo se získat slova pro kreslení"}), 500
+                    
+                # Fix encoding issues with Czech characters - ensure proper UTF-8 decoding
+                response_text = response.content.decode('utf-8')
+                
+                # Split by pipe character
+                words = response_text.split(" | ")
+                
+                # Debug output to verify encoding
+                print(f"First few words: {words[:5]}")
+                
+                # Make sure we have enough words
+                if len(words) < num_words_needed:
+                    print(f"Warning: Got only {len(words)} words, needed {num_words_needed}")
+                
+                # Create questions for drawing game
+                drawing_questions = []
+                word_index = 0
+                
+                # For team mode, alternate between teams
+                if game_state.is_team_mode:
+                    # Now teams are already set up
+                    red_players = game_state.red_team.copy()
+                    blue_players = game_state.blue_team.copy()
+                    
+                    # Determine which team has fewer players
+                    smaller_team = "red" if len(red_players) < len(blue_players) else "blue"
+                    red_count = len(red_players)
+                    blue_count = len(blue_players)
+                    
+                    # Store starting indices for the smaller team in each round
+                    smaller_team_start_indices = []
+                    for i in range(num_rounds):
+                        smaller_team_start_indices.append((i * 2) % (red_count if smaller_team == "red" else blue_count))
+                    
+                    # Create questions for all rounds
+                    for round_num in range(num_rounds):
+                        # Get the starting index for the smaller team in this round
+                        start_idx = smaller_team_start_indices[round_num]
+                        # Determine which team has more players for determining total turns
+                        larger_team_size = max(red_count, blue_count)
+                        total_turns = larger_team_size * 2  # Always double the larger team size
+
+                        # Create the player order for this round
+                        team_order = []
+                        red_idx = start_idx if smaller_team == "red" else 0
+                        blue_idx = start_idx if smaller_team == "blue" else 0
+
+                        # Continue alternating until we've hit our target turn count
+                        # Instead of stopping at sum of team sizes
+                        while len(team_order) < total_turns:
+                            # Add red player
+                            team_order.append((red_players[red_idx % red_count], 'red'))
+                            red_idx += 1
+                            
+                            # Add blue player if we haven't exceeded the total target
+                            if len(team_order) < total_turns:
+                                team_order.append((blue_players[blue_idx % blue_count], 'blue'))
+                                blue_idx += 1
+                        
+                        # Create questions in this alternating order
+                        for player_name, team in team_order:
+                            player_words = words[word_index:word_index+3]
+                            word_index += 3
+                            
+                            # Translate team name for display
+                            team_display = "modrý tým" if team == "blue" else "červený tým"
+                            
+                            question = {
+                                "type": "DRAWING",
+                                "question": f"{round_num + 1}. kolo: Kreslí {player_name} ({team_display})",
+                                "player": player_name,
+                                "team": team,  # Keep original English team name for logic
+                                "words": player_words,
+                                "selected_word": None,
+                                "length": round_length,
+                                "category": "Kreslení"
+                            }
+                            drawing_questions.append(question)
+                else:
+                    # Original code for non-team mode
+                    for round_num in range(num_rounds):
+                        for player_name in game_state.players:
+                            # Get 3 words for this player to choose from
+                            player_words = words[word_index:word_index+3]
+                            word_index += 3
+                            
+                            # Create a question for this player
+                            question = {
+                                "type": "DRAWING",
+                                "question": f"{round_num + 1}. kolo: Kreslí {player_name}",
+                                "player": player_name,
+                                "words": player_words,  # 3 words to choose from
+                                "selected_word": None,  # This will be set when the player selects a word
+                                "length": round_length,
+                                "category": "Kreslení"
+                            }
+                            drawing_questions.append(question)
+                
+                # Set the questions in the game state
+                game_state.questions = drawing_questions
+                print(f"Created {len(drawing_questions)} drawing questions")
+            except Exception as e:
+                print(f"Error setting up drawing game: {str(e)}")
+                return jsonify({"error": f"Chyba při přípravě hry: {str(e)}"}), 500
+                
+        elif quick_play_type == "WORD_CHAIN":
+            # TODO: Implement Word Chain quick play
+            return jsonify({"error": "Word Chain quick play není zatím implementováno"}), 501
+        else:
+            # For unsupported quick play types
+            return jsonify({"error": f"Nepodporovaný typ rychlé hry: {quick_play_type}"}), 400
+    
+    elif not quiz_id:
+        # For regular games, make sure quiz_id is provided
+        return jsonify({"error": "Nebyl vybrán žádný kvíz"}), 400
+    else:
+        # Get the selected quiz from MongoDB (only for non-quick-play mode)
+        quiz = QuizService.get_quiz(quiz_id)
+        if not quiz:
+            return jsonify({"error": "Kvíz nebyl nalezen"}), 404
+            
+        # The questions are already JSON-serializable
+        game_state.questions = quiz["questions"]
+
     game_state.current_question = 0
-    # Reset state for the next question
     game_state.reset_question_state()
     
-    # Make sure active_team is properly set for team mode
+    # Team mode setup
     if game_state.is_team_mode:
-        # Re-set active team to blue for the first question
+        # Make sure active_team is properly set for team mode
         game_state.active_team = 'blue'
-    
+        
+        # If first question is a drawing question, set its active team
+        first_question = game_state.questions[game_state.current_question]
+        if first_question.get('type') == 'DRAWING':
+            first_drawer = first_question.get('player')
+            if first_drawer:
+                drawer_team = first_question.get('team', 
+                             'blue' if first_drawer in game_state.blue_team else 'red')
+                game_state.active_team = drawer_team
+                # Store the team explicitly in the question for easier access
+                first_question['active_team'] = drawer_team
+
     current_time = int(time() * 1000)
     game_start_time = current_time + START_GAME_TIME  # 5 seconds from now
     
@@ -282,6 +358,14 @@ def next_question():
     next_drawer = None
     if next_question.get('type') == 'DRAWING':
         next_drawer = next_question.get('player')
+        
+        # For drawing in team mode, set the active team based on the drawer's team
+        if game_state.is_team_mode and next_drawer:
+            drawer_team = next_question.get('team', 
+                           'blue' if next_drawer in game_state.blue_team else 'red')
+            game_state.active_team = drawer_team
+            # Store the team explicitly in the question for easier access
+            next_question['active_team'] = drawer_team
 
     # For Guess a Number in team mode, initialize the phase
     if game_state.is_team_mode and next_question.get('type') == 'GUESS_A_NUMBER':

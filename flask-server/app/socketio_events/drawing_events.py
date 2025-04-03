@@ -2,6 +2,7 @@
 Socket.IO events for Drawing questions
 """
 from flask_socketio import emit
+from flask import request
 from .. import socketio
 from ..game_state import game_state
 from ..constants import POINTS_FOR_CORRECT_ANSWER
@@ -33,6 +34,16 @@ def submit_drawing_answer(data):
     if current_question_data.get('player') == player_name:
         emit('drawing_answer_feedback', {"message": "Nemůžeš hádat svůj vlastní obrázek"}, room=player_name)
         return
+    
+    # In team mode, verify that the player is on the same team as the drawer
+    if game_state.is_team_mode:
+        drawer_name = current_question_data.get('player')
+        drawer_team = 'blue' if drawer_name in game_state.blue_team else 'red'
+        player_team = 'blue' if player_name in game_state.blue_team else 'red'
+        
+        if player_team != drawer_team:
+            emit('drawing_answer_feedback', {"message": "Pouze hráči ze stejného týmu mohou hádat"}, room=player_name)
+            return
     
     # Get the word that was selected by the drawer
     selected_word = current_question_data.get('selected_word')
@@ -191,10 +202,7 @@ def check_drawing_completion():
     
     # Calculate total number of potential guessers (excluding the drawer)
     if game_state.is_team_mode:
-        drawer_team = 'blue' if drawer_name in game_state.blue_team else 'red'
-        potential_guessers = game_state.blue_team if drawer_team == 'blue' else game_state.red_team
-        potential_guessers = [p for p in potential_guessers if p != drawer_name]  # Exclude drawer
-        required_correct = len(potential_guessers)
+        required_correct = 1  # At least one player from the drawer's team must answer correctly
     else:
         required_correct = len(game_state.players) - 1  # All players except drawer
     
@@ -236,12 +244,9 @@ def calculate_drawer_stats(drawer_name):
         for answer in game_state.drawing_stats['player_answers']:
             if answer['is_correct']:
                 points = POINTS_FOR_CORRECT_ANSWER // 2
-                # Apply penalty for late selection
-                if is_late_selection:
-                    points = points // 2
+                # Don't apply penalty for late selection
                 drawer_points_earned += points
     else:
-        # For individual mode, use the new formula
         if total_guessers > 0:
             # Calculate base points per correct guess
             points_per_guess = POINTS_FOR_CORRECT_ANSWER / total_guessers
@@ -258,7 +263,11 @@ def calculate_drawer_stats(drawer_name):
                 drawer_points_earned = drawer_points_earned // 2
     
     # Get drawer's total points
-    if drawer_name in game_state.players:
+    if game_state.is_team_mode:
+        # For team mode, use the team's total score instead of individual score
+        drawer_team = 'blue' if drawer_name in game_state.blue_team else 'red'
+        drawer_total_points = game_state.team_scores[drawer_team]
+    elif drawer_name in game_state.players:
         drawer_total_points = game_state.players[drawer_name]['score']
     else:
         drawer_total_points = 0
@@ -455,3 +464,33 @@ def select_drawing_word(data):
         "question_index": question_index,
         "is_drawer": False
     }, include_self=False)
+
+@socketio.on('get_current_drawing_word')
+def get_current_drawing_word():
+    """Return the currently selected word for drawing questions when requested."""
+    if game_state.current_question is None:
+        return
+    
+    current_question_data = game_state.questions[game_state.current_question]
+    
+    # Only for drawing questions
+    if current_question_data.get('type') != 'DRAWING':
+        return
+    
+    # Get the selected word
+    selected_word = current_question_data.get('selected_word')
+    if not selected_word:
+        return  # No word selected yet
+    
+    # Create a masked version with already revealed letters
+    mask = ['_' if i not in game_state.revealed_positions and char != ' ' else char 
+            for i, char in enumerate(selected_word)]
+    
+    # Send the masked version of the word
+    data = {
+        "word": ''.join(mask),
+        "mask_available": True
+    }
+    
+    # Emit directly to the requesting client
+    emit('drawing_word_response', data)

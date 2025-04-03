@@ -393,6 +393,20 @@ const MobileGamePage = () => {
     />;
   }
 
+  // Check first if this is a team mode drawing question and player is not on the active team
+  if (question?.type === 'DRAWING' && teamName && question.team) {
+    const isDrawer = question.player === playerName;
+    const drawerTeam = question.team;
+    
+    // If player is not on the drawer's team and not the drawer, show waiting screen
+    if (teamName !== drawerTeam && !isDrawer) {
+      return <TeamWaitingScreen 
+        phase={2} // for the message 
+        teamName={teamName}
+      />;
+    }
+  }
+
   if (showResult) {
     // Check if this player is the drawer for a drawing question
     const isDrawer = question?.type === 'DRAWING' && question?.player === playerName;
@@ -468,7 +482,7 @@ const MobileGamePage = () => {
             return <DrawerWaitingScreen selectedWord={selectedWord} />;
           }
         } else {
-          // If player is not the drawer, use the dedicated DrawingAnswerQuizMobile component
+          // If player is not the drawer but on the same team, use the dedicated DrawingAnswerQuizMobile component
           return <DrawingAnswerQuizMobile 
             onAnswer={handleDrawingSubmit}
           />;
