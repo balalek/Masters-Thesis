@@ -25,7 +25,7 @@ def emit_all_answers_received(scores, correct_answer, additional_data=None):
         additional_data = {}
         
     # Calculate when to show buttons based on the current time and waiting time based on next question type
-    question_type = game_state.questions[game_state.current_question].get('type', '')
+    question_type = game_state.questions[(game_state.current_question + 1) if game_state.current_question + 1 < len(game_state.questions) else game_state.current_question].get('type', '')
     timeConst = None
     previewConst = None
     if question_type == 'DRAWING':

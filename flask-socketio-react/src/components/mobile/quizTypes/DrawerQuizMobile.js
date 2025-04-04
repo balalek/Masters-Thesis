@@ -1,7 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Button, Typography, Paper, IconButton } from '@mui/material';
+import { Box, Button, Typography, Paper, IconButton, Menu, MenuItem } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import CreateIcon from '@mui/icons-material/Create';
+import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
+import PaletteIcon from '@mui/icons-material/Palette';
+import UndoIcon from '@mui/icons-material/Undo';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { getSocket } from '../../../utils/socket';
 
 const DrawerQuizMobile = ({ selectedWord, playerName }) => {
@@ -15,10 +20,243 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
   const socket = getSocket();
   const throttleTimerRef = useRef(null);
   const resizeTimeoutRef = useRef(null);
+  
+  // Drawing tool states
+  const [currentTool, setCurrentTool] = useState('pencil');
+  const [currentColor, setCurrentColor] = useState('#000000');
+  const [brushSize, setBrushSize] = useState(5);
+  const [colorMenuAnchor, setColorMenuAnchor] = useState(null);
+  const [canvasHistory, setCanvasHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
+  // Colors for color picker
+  const colors = [
+    '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', 
+    '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080',
+    '#008000', '#800000', '#008080', '#000080', '#808080'
+  ];
 
   // Toggle word visibility
   const toggleWordVisibility = () => {
     setIsWordVisible(prev => !prev);
+  };
+
+  // Tool selection handler
+  const handleToolChange = (tool) => {
+    setCurrentTool(tool);
+    
+    if (context) {
+      if (tool === 'pencil') {
+        context.globalCompositeOperation = 'source-over';
+      } else if (tool === 'eraser') {
+        context.globalCompositeOperation = 'destination-out';
+      }
+    }
+  };
+
+  // Color selection handler
+  const handleColorOpen = (event) => {
+    setColorMenuAnchor(event.currentTarget);
+  };
+
+  const handleColorClose = () => {
+    setColorMenuAnchor(null);
+  };
+
+  const handleColorSelect = (color) => {
+    setCurrentColor(color);
+    if (context) {
+      context.strokeStyle = color;
+      context.fillStyle = color;
+    }
+    handleColorClose();
+  };
+
+  // Improved save to history function
+  const saveToHistory = () => {
+    if (canvasRef.current) {
+      try {
+        const imageData = canvasRef.current.toDataURL('image/png');
+        
+        // Only save if different from the last state and canvas isn't empty
+        const isEmpty = isCanvasEmpty();
+        
+        if (!isEmpty && (historyIndex === -1 || imageData !== canvasHistory[historyIndex])) {
+          // Trim history to prevent memory issues (keep last 20 states max)
+          const maxHistoryLength = 20;
+          let newHistory = canvasHistory.slice(0, historyIndex + 1);
+          newHistory.push(imageData);
+          
+          // If history gets too long, remove oldest items
+          if (newHistory.length > maxHistoryLength) {
+            newHistory = newHistory.slice(newHistory.length - maxHistoryLength);
+          }
+          
+          setCanvasHistory(newHistory);
+          setHistoryIndex(newHistory.length - 1);
+          setCanvasImageData(imageData);
+        }
+      } catch (error) {
+        console.error('Error saving to history:', error);
+      }
+    }
+  };
+
+  // Helper to check if canvas is empty
+  const isCanvasEmpty = () => {
+    if (!canvasRef.current || !context) return true;
+    
+    const pixelBuffer = context.getImageData(0, 0, canvasWidth, canvasHeight).data;
+    
+    // Check if all pixel alpha values are 0 (transparent)
+    for (let i = 3; i < pixelBuffer.length; i += 4) {
+      if (pixelBuffer[i] !== 0) {
+        return false; // Canvas has content
+      }
+    }
+    return true; // Canvas is empty
+  };
+
+  // Improved undo handler
+  const handleUndo = () => {
+    if (!context || historyIndex < 0) return;
+    
+    try {
+      if (historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        
+        const img = new Image();
+        img.onload = () => {
+          // Clear the canvas first to avoid any artifacts
+          context.clearRect(0, 0, canvasWidth, canvasHeight);
+          context.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+          
+          // Send drawing update after undo is complete
+          sendDrawingUpdate(true);
+        };
+        img.src = canvasHistory[newIndex];
+      } else {
+        // If at the beginning of history, just clear the canvas
+        context.clearRect(0, 0, canvasWidth, canvasHeight);
+        setHistoryIndex(-1); // Reset history index
+        setCanvasHistory([]); // Clear history when canvas is cleared
+        setCanvasImageData(null);
+        sendDrawingUpdate(true);
+      }
+    } catch (error) {
+      console.error('Error during undo:', error);
+      // If undo fails, reset the canvas and history as a fallback
+      context.clearRect(0, 0, canvasWidth, canvasHeight);
+      setCanvasHistory([]);
+      setHistoryIndex(-1);
+      setCanvasImageData(null);
+      sendDrawingUpdate(true);
+    }
+  };
+
+  // Modified Clear canvas handler
+  const handleClear = () => {
+    if (context) {
+      context.clearRect(0, 0, canvasWidth, canvasHeight);
+      setCanvasHistory([]);
+      setHistoryIndex(-1);
+      setCanvasImageData(null);
+      sendDrawingUpdate(true);
+    }
+  };
+
+  // Updated flood fill that properly manages history
+  const floodFill = (startX, startY) => {
+    if (!context || !canvasRef.current) return;
+    
+    try {
+      // Get canvas image data
+      const imageData = context.getImageData(0, 0, canvasWidth, canvasHeight);
+      const data = imageData.data;
+      
+      // Get the color at the starting position
+      const startPos = (startY * canvasWidth + startX) * 4;
+      const startR = data[startPos];
+      const startG = data[startPos + 1];
+      const startB = data[startPos + 2];
+      const startA = data[startPos + 3];
+      
+      const computedStyle = window.getComputedStyle(context.canvas);
+      const targetColor = context.fillStyle || currentColor;
+      
+      let r, g, b;
+      
+      const rgbMatch = targetColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (rgbMatch) {
+        r = parseInt(rgbMatch[1], 10);
+        g = parseInt(rgbMatch[2], 10);
+        b = parseInt(rgbMatch[3], 10);
+      } else {
+        const hexColor = targetColor.startsWith('#') ? targetColor : currentColor;
+        r = parseInt(hexColor.slice(1, 3), 16);
+        g = parseInt(hexColor.slice(3, 5), 16);
+        b = parseInt(hexColor.slice(5, 7), 16);
+      }
+      
+      const isBlackPixel = startR < 10 && startG < 10 && startB < 10;
+      
+      if (startR === r && startG === g && startB === b && startA === 255) {
+        return;
+      }
+      
+      const pixelsToCheck = [];
+      pixelsToCheck.push([startX, startY]);
+      
+      const tolerance = isBlackPixel ? 10 : 30;
+      
+      const isSimilarColor = (pos) => {
+        return (
+          Math.abs(data[pos] - startR) <= tolerance &&
+          Math.abs(data[pos + 1] - startG) <= tolerance &&
+          Math.abs(data[pos + 2] - startB) <= tolerance &&
+          Math.abs(data[pos + 3] - startA) <= tolerance
+        );
+      };
+      
+      const visited = new Set();
+      
+      while (pixelsToCheck.length > 0) {
+        const [x, y] = pixelsToCheck.pop();
+        
+        if (x < 0 || y < 0 || x >= canvasWidth || y >= canvasHeight) {
+          continue;
+        }
+        
+        const pos = (y * canvasWidth + x) * 4;
+        
+        const pixelKey = `${x},${y}`;
+        if (visited.has(pixelKey) || !isSimilarColor(pos)) {
+          continue;
+        }
+        
+        visited.add(pixelKey);
+        
+        data[pos] = r;
+        data[pos + 1] = g;
+        data[pos + 2] = b;
+        data[pos + 3] = 255;
+        
+        pixelsToCheck.push([x + 1, y]);
+        pixelsToCheck.push([x - 1, y]);
+        pixelsToCheck.push([x, y + 1]);
+        pixelsToCheck.push([x, y - 1]);
+      }
+      
+      context.putImageData(imageData, 0, 0);
+      
+      setTimeout(() => {
+        saveToHistory();
+        sendDrawingUpdate(true);
+      }, 0);
+    } catch (error) {
+      console.error('Error during fill operation:', error);
+    }
   };
 
   // Initialize canvas when component mounts
@@ -26,19 +264,14 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Set canvas dimensions to fill the parent container
     const updateCanvasSize = () => {
-      // Get current dimensions
       const prevWidth = canvas.width;
       const prevHeight = canvas.height;
       
-      // Calculate new dimensions
       const containerWidth = canvas.parentElement.clientWidth;
-      const containerHeight = window.innerHeight * 0.75;
+      const containerHeight = window.innerHeight;
       
-      // Only update if dimensions have changed
       if (prevWidth !== containerWidth || prevHeight !== containerHeight) {
-        // Save current canvas content
         if (context) {
           try {
             const imageData = canvas.toDataURL('image/png');
@@ -48,20 +281,19 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
           }
         }
         
-        // Update canvas dimensions
         canvas.width = containerWidth;
         canvas.height = containerHeight;
         
-        // Get context with new dimensions
         const ctx = canvas.getContext('2d');
-        ctx.lineWidth = 5;
+        ctx.lineWidth = brushSize;
         ctx.lineCap = 'round';
-        ctx.strokeStyle = '#000000';
+        ctx.strokeStyle = currentColor;
+        ctx.fillStyle = currentColor;
+        ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
         setContext(ctx);
         setCanvasWidth(containerWidth);
         setCanvasHeight(containerHeight);
         
-        // Restore saved canvas content
         if (canvasImageData) {
           const img = new Image();
           img.onload = () => {
@@ -72,10 +304,8 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       }
     };
 
-    // Initial setup
     updateCanvasSize();
     
-    // Handle window resize with debounce to avoid too many updates
     const handleResize = () => {
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
@@ -88,7 +318,6 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     
     window.addEventListener('resize', handleResize);
     
-    // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
       if (throttleTimerRef.current) {
@@ -98,111 +327,11 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
         clearTimeout(resizeTimeoutRef.current);
       }
     };
-  }, [canvasImageData, context]);
+  }, [canvasImageData, context, currentColor, brushSize, currentTool]);
 
-  // More reliable throttling for touch handling
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    // Touch event handlers
-    const handleTouchStart = (e) => {
-      e.preventDefault();
-      if (!context) return;
-      
-      // Cancel any pending throttle timer first
-      if (throttleTimerRef.current) {
-        clearTimeout(throttleTimerRef.current);
-        throttleTimerRef.current = null;
-      }
-      
-      setIsDrawing(true);
-      const touch = e.touches[0];
-      const rect = canvas.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      const y = touch.clientY - rect.top;
-      
-      // Draw a dot immediately for a single tap
-      context.beginPath();
-      context.arc(x, y, context.lineWidth / 2, 0, Math.PI * 2, true);
-      context.fill();
-      context.beginPath();
-      context.moveTo(x, y);
-      
-      // Send the dot immediately
-      sendDrawingUpdate(false);
-    };
-    
-    const handleTouchMove = (e) => {
-      e.preventDefault();
-      if (!isDrawing || !context) return;
-      
-      const touch = e.touches[0];
-      const rect = canvas.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      const y = touch.clientY - rect.top;
-      
-      context.lineTo(x, y);
-      context.stroke();
-      
-      // Improved throttling that doesn't accumulate timers
-      if (!throttleTimerRef.current) {
-        throttleTimerRef.current = setTimeout(() => {
-          if (isDrawing) { // Only send if still drawing
-            sendDrawingUpdate(false);
-          }
-          throttleTimerRef.current = null;
-        }, 50); // Keep at 50ms for better responsiveness
-      }
-    };
-    
-    const handleTouchEnd = (e) => {
-      if (isDrawing) {
-        context.closePath();
-        setIsDrawing(false);
-        
-        // Cancel any pending throttle timer
-        if (throttleTimerRef.current) {
-          clearTimeout(throttleTimerRef.current);
-          throttleTimerRef.current = null;
-        }
-        
-        // Add a tiny delay before sending final update to avoid race conditions
-        setTimeout(() => {
-          sendDrawingUpdate(true);
-        }, 10);
-      }
-    };
-    
-    // Add event listeners with passive: false
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', handleTouchEnd);
-    
-    // Cleanup
-    return () => {
-      canvas.removeEventListener('touchstart', handleTouchStart);
-      canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [context, isDrawing]);
-
-  // Save current canvas state
-  const saveCanvasState = () => {
-    if (!canvasRef.current || !context) return;
-    try {
-      const imageData = canvasRef.current.toDataURL('image/png');
-      setCanvasImageData(imageData);
-    } catch (e) {
-      console.error("Failed to save canvas state:", e);
-    }
-  };
-
-  // Fix the same issue in mouse event handlers
   const startDrawing = (e) => {
     if (!context || e.type.includes('touch')) return;
     
-    // Cancel any pending throttle timer first
     if (throttleTimerRef.current) {
       clearTimeout(throttleTimerRef.current);
       throttleTimerRef.current = null;
@@ -212,36 +341,46 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     setIsDrawing(true);
     
     const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    // Calculate scale factors to correct mouse position
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
     
-    // Draw a dot immediately for a single click
-    context.beginPath();
-    context.arc(x, y, context.lineWidth / 2, 0, Math.PI * 2, true);
-    context.fill();
-    context.beginPath();
-    context.moveTo(x, y);
+    // Apply scaling to get accurate coordinates
+    const x = Math.floor((e.clientX - rect.left) * scaleX);
+    const y = Math.floor((e.clientY - rect.top) * scaleY);
     
-    // Send the dot immediately
+    if (currentTool === 'pencil' || currentTool === 'eraser') {
+      context.beginPath();
+      context.arc(x, y, brushSize / 2, 0, Math.PI * 2, true);
+      context.fill();
+      context.beginPath();
+      context.moveTo(x, y);
+    } else if (currentTool === 'fill') {
+      floodFill(x, y);
+    }
+    
     sendDrawingUpdate(false);
   };
 
   const draw = (e) => {
-    if (!isDrawing || !context || e.type.includes('touch')) return;
+    if (!isDrawing || !context || e.type.includes('touch') || currentTool === 'fill') return;
     
     e.preventDefault();
     
     const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    // Calculate scale factors to correct mouse position
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
+    
+    // Apply scaling to get accurate coordinates
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
     
     context.lineTo(x, y);
     context.stroke();
     
-    // Throttle drawing updates - send real-time updates while drawing
     if (!throttleTimerRef.current) {
       throttleTimerRef.current = setTimeout(() => {
-        // Don't save canvas state during active drawing, just send update
         sendDrawingUpdate(false);
         throttleTimerRef.current = null;
       }, 50);
@@ -253,36 +392,125 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       context.closePath();
       setIsDrawing(false);
       
-      // Cancel any pending throttle timer
       if (throttleTimerRef.current) {
         clearTimeout(throttleTimerRef.current);
         throttleTimerRef.current = null;
       }
       
-      // Add a tiny delay before sending final update to avoid race conditions
+      saveToHistory();
+      
       setTimeout(() => {
         sendDrawingUpdate(true);
       }, 10);
     }
   };
 
-  // Send current canvas state to server in real-time
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const handleTouchStart = (e) => {
+      e.preventDefault();
+      if (!context) return;
+      
+      if (throttleTimerRef.current) {
+        clearTimeout(throttleTimerRef.current);
+        throttleTimerRef.current = null;
+      }
+      
+      setIsDrawing(true);
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      
+      // Calculate scale factors to correct touch position
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      
+      // Apply scaling to get accurate coordinates
+      const x = Math.floor((touch.clientX - rect.left) * scaleX);
+      const y = Math.floor((touch.clientY - rect.top) * scaleY);
+      
+      if (currentTool === 'pencil' || currentTool === 'eraser') {
+        context.beginPath();
+        context.arc(x, y, brushSize / 2, 0, Math.PI * 2, true);
+        context.fill();
+        context.beginPath();
+        context.moveTo(x, y);
+      } else if (currentTool === 'fill') {
+        floodFill(x, y);
+      }
+      
+      sendDrawingUpdate(false);
+    };
+    
+    const handleTouchMove = (e) => {
+      e.preventDefault();
+      if (!isDrawing || !context || currentTool === 'fill') return;
+      
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      
+      // Calculate scale factors to correct touch position
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      
+      // Apply scaling to get accurate coordinates
+      const x = (touch.clientX - rect.left) * scaleX;
+      const y = (touch.clientY - rect.top) * scaleY;
+      
+      context.lineTo(x, y);
+      context.stroke();
+      
+      if (!throttleTimerRef.current) {
+        throttleTimerRef.current = setTimeout(() => {
+          if (isDrawing) {
+            sendDrawingUpdate(false);
+          }
+          throttleTimerRef.current = null;
+        }, 50);
+      }
+    };
+    
+    const handleTouchEnd = (e) => {
+      if (isDrawing) {
+        context.closePath();
+        setIsDrawing(false);
+        
+        if (throttleTimerRef.current) {
+          clearTimeout(throttleTimerRef.current);
+          throttleTimerRef.current = null;
+        }
+        
+        saveToHistory();
+        
+        setTimeout(() => {
+          sendDrawingUpdate(true);
+        }, 10);
+      }
+    };
+    
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd);
+    
+    return () => {
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [context, isDrawing, currentTool, brushSize, canvasWidth, canvasHeight]);
+
   const sendDrawingUpdate = (shouldSaveState = false) => {
     if (!canvasRef.current) return;
     
     try {
-      // Only send the drawing data if we're actively drawing or explicitly saving state
-      // This prevents unnecessary updates that cause flashing
       if (isDrawing || shouldSaveState) {
-        // Use a lower quality setting for more efficient network usage
         const drawingData = canvasRef.current.toDataURL('image/png', 0.6);
         
-        // Only save the canvas state if requested (typically on stroke completion)
         if (shouldSaveState) {
           setCanvasImageData(drawingData);
         }
         
-        // Emit drawing update
         socket.emit('drawing_update', {
           drawingData: drawingData,
           player_name: playerName, 
@@ -294,38 +522,33 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     }
   };
 
-  // Clear the canvas
-  const clearCanvas = () => {
-    if (!context) return;
-    context.clearRect(0, 0, canvasWidth, canvasHeight);
-    setCanvasImageData(null); // Clear saved state
-    
-    // Emit clear action
-    socket.emit('drawing_update', {
-      player_name: playerName,
-      action: 'clear'
-    });
-  };
-
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         height: '100%',
-        p: 2
+        width: '100%',
+        overflow: 'hidden'
       }}
     >
       {selectedWord && (
         <Box sx={{ 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
-          mb: 2, 
-          position: 'relative',
-          width: '100%'
+          padding: 1,
+          zIndex: 10,
+          borderBottom: '1px solid rgba(0,0,0,0.1)'
         }}>
           <Typography 
             variant="h5" 
@@ -347,21 +570,24 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
         </Box>
       )}
       
-      <Paper
-        elevation={3}
+      <Box
         sx={{
-          width: '100%',
-          mb: 2,
-          borderRadius: 2,
+          position: 'absolute',
+          top: selectedWord ? '56px' : 0,
+          left: 0,
+          right: 0,
+          bottom: '70px',
           overflow: 'hidden'
         }}
       >
         <Box
           sx={{
             width: '100%',
+            height: '100%',
             display: 'flex',
             justifyContent: 'center',
-            bgcolor: '#ffffff'
+            alignItems: 'center',
+            backgroundColor: '#ffffff'
           }}
         >
           <canvas
@@ -371,22 +597,131 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
             onMouseUp={stopDrawing}
             onMouseLeave={stopDrawing}
             style={{
-              border: '1px solid #ddd',
+              width: '100%',
+              height: '100%',
               cursor: 'crosshair',
-              touchAction: 'none', // Prevents scrolling on touch devices
+              touchAction: 'none',
             }}
           />
         </Box>
-      </Paper>
+      </Box>
 
-      <Button
-        variant="outlined"
-        color="primary"
-        onClick={clearCanvas}
-        sx={{ width: '40%' }}
+      <Box 
+        sx={{ 
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          display: 'flex', 
+          justifyContent: 'space-around', 
+          padding: 1,
+          borderTop: '1px solid rgba(0,0,0,0.1)',
+          zIndex: 10
+        }}
       >
-        Vymazat
-      </Button>
+        <IconButton 
+          color={currentTool === 'pencil' ? 'primary' : 'default'}
+          sx={{ 
+            backgroundColor: currentTool === 'pencil' ? 'rgba(25, 118, 210, 0.1)' : 'transparent',
+            border: currentTool === 'pencil' ? '2px solid #1976d2' : '1px solid rgba(0,0,0,0.5)',
+            p: 1.5
+          }}
+          onClick={() => handleToolChange('pencil')}
+        >
+          <CreateIcon />
+        </IconButton>
+        
+        <IconButton 
+          color={currentTool === 'fill' ? 'primary' : 'default'}
+          sx={{ 
+            backgroundColor: currentTool === 'fill' ? 'rgba(25, 118, 210, 0.1)' : 'transparent',
+            border: currentTool === 'fill' ? '2px solid #1976d2' : '1px solid rgba(0,0,0,0.5)',
+            p: 1.5
+          }}
+          onClick={() => handleToolChange('fill')}
+        >
+          <FormatColorFillIcon />
+        </IconButton>
+        
+        <IconButton 
+          sx={{ 
+            p: 1.5,
+            backgroundColor: 'white',
+            border: '1px solid rgba(0,0,0,0.5)',
+            position: 'relative',
+            width: 50,
+            height: 50,
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: currentColor,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)'
+            }
+          }}
+          onClick={handleColorOpen}
+        >
+          <PaletteIcon sx={{ color: 'transparent', fontSize: '1.2rem' }} />
+        </IconButton>
+        
+        <IconButton 
+          sx={{ 
+            p: 1.5,
+            border: '1px solid rgba(0,0,0,0.5)'
+          }}
+          onClick={handleUndo}
+          disabled={historyIndex <= 0}
+        >
+          <UndoIcon />
+        </IconButton>
+        
+        <IconButton 
+          color="error"
+          sx={{ 
+            p: 1.5,
+            border: '1px solid rgba(0,0,0,0.5)'
+          }}
+          onClick={handleClear}
+        >
+          <DeleteIcon />
+        </IconButton>
+      </Box>
+
+      <Menu
+        anchorEl={colorMenuAnchor}
+        open={Boolean(colorMenuAnchor)}
+        onClose={handleColorClose}
+      >
+        <Box sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(5, 1fr)',
+          gap: 1,
+          p: 1
+        }}>
+          {colors.map((color) => (
+            <Box
+              key={color}
+              onClick={() => handleColorSelect(color)}
+              sx={{
+                width: 36,
+                height: 36,
+                backgroundColor: color,
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                '&:hover': {
+                  transform: 'scale(1.1)',
+                  boxShadow: '0 0 5px rgba(0,0,0,0.2)'
+                }
+              }}
+            />
+          ))}
+        </Box>
+      </Menu>
     </Box>
   );
 };
