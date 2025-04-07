@@ -7,13 +7,14 @@ import QuestionPreview from '../../../components/desktop/QuestionPreview';
 import OpenAnswerQuiz from '../../../components/desktop/quizTypes/OpenAnswerQuiz';
 import GuessANumberQuiz from '../../../components/desktop/quizTypes/GuessANumberQuiz';
 import DrawingQuiz from '../../../components/desktop/quizTypes/DrawingQuiz';
+import WordChainQuiz from '../../../components/desktop/quizTypes/WordChainQuiz';
 
 function GamePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [answersCount, setAnswersCount] = useState(0);
   const [question, setQuestion] = useState(null);
-  const [isLastQuestion, setIsLastQuestion] = useState(false);
+  const [isLastQuestion, setIsLastQuestion] = useState(location.state?.is_last_question || false);
   const [showQuestionPreview, setShowQuestionPreview] = useState(true);
   const { showGameAt } = location.state || {};
   const activeTeam = location.state?.activeTeam;
@@ -46,6 +47,14 @@ function GamePage() {
         navigationState.question.teamMode = data.teamMode || false;
         navigationState.question.firstTeamAnswer = data.firstTeamAnswer || null;
         navigationState.question.secondTeamVote = data.secondTeamVote || null;
+      } else if (question?.type === 'WORD_CHAIN') {
+        navigationState.question.word_chain = data.word_chain || [];
+        navigationState.question.eliminated_players = data.eliminated_players || [];
+        navigationState.question.last_player = data.last_player || question.current_player;
+        // Team mode specific data
+        navigationState.question.winning_team = data.winning_team;
+        navigationState.question.exploded_team = data.exploded_team;
+        navigationState.question.exploded_player = data.exploded_player;
       } else {
         navigationState.answerCounts = data.answer_counts;
       }
@@ -103,7 +112,8 @@ function GamePage() {
   useEffect(() => {
     // First check if the question is not null, if yes, then wait for question to be set
     if (question && location.state?.question_end_time && 
-      (question.type !== 'GUESS_A_NUMBER' || activeTeam === null)) {
+      (question.type !== 'GUESS_A_NUMBER' || activeTeam === null) &&
+      question.type !== 'WORD_CHAIN') {  // Exclude WORD_CHAIN
       console.log('Hello? question type:', question?.type);
       const timer = setTimeout(() => {
         const socket = getSocket();
@@ -155,6 +165,11 @@ function GamePage() {
         />;
       case 'DRAWING':
         return <DrawingQuiz 
+          question={question} 
+          question_end_time={location.state?.question_end_time}
+        />;
+      case 'WORD_CHAIN':
+        return <WordChainQuiz 
           question={question} 
           question_end_time={location.state?.question_end_time}
         />;

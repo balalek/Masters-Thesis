@@ -21,6 +21,8 @@ import DrawerQuizMobile from '../../../components/mobile/quizTypes/DrawerQuizMob
 import DrawingAnswerQuizMobile from '../../../components/mobile/quizTypes/DrawingAnswerQuizMobile';
 import DrawerResultScreen from '../../../components/mobile/DrawerResultScreen';
 import DrawerWaitingScreen from '../../../components/mobile/quizTypes/DrawerWaitingScreen';
+import WordChainQuizMobile from '../../../components/mobile/quizTypes/WordChainQuizMobile';
+import WordChainResult from '../../../components/mobile/quizTypes/WordChainResult';
 import { DRAWER_EXTRA_TIME } from '../../../constants/quizValidation';
 
 const MobileGamePage = () => {
@@ -54,6 +56,7 @@ const MobileGamePage = () => {
   const [drawerStats, setDrawerStats] = useState(null); // Add this state
   const [canvasVisible, setCanvasVisible] = useState(false); // State for controlling canvas visibility
   const [drawerLate, setDrawerLate] = useState(false); // State for detecting late word selection
+  const [wordChainResults, setWordChainResults] = useState(null); // State for word chain results
 
   useEffect(() => {
     const socket = getSocket();
@@ -69,6 +72,7 @@ const MobileGamePage = () => {
       setIsCorrect(null);
       setCanvasVisible(false); // Explicitly reset canvas visibility to false for every new question
       setDrawerLate(false); // Reset the drawerLate state for new questions
+      setWordChainResults(null); // Reset word chain results for new questions
       
       // Check if player is drawer for current question - don't hide buttons for drawer
       const isNextDrawer = data.drawer === playerName || data.question.player === playerName;
@@ -145,6 +149,32 @@ const MobileGamePage = () => {
         setDrawerStats(data.drawer_stats);
       }
       
+      // Check for word chain results in additional_data
+      if (data.word_chain) {
+        console.log('Word chain results received:', data.word_chain);
+        
+        // Get points earned for this player from game_points
+        const playerGamePoints = data.game_points && data.game_points[playerName] ? 
+          Math.round(data.game_points[playerName]) : 0;
+        
+        setPointsEarned(playerGamePoints); // Set points earned from game-specific points
+        
+        if (data.scores[playerName]) {
+            // Individual mode structure (direct player data)
+            setTotalPoints(data.scores[playerName].score);
+        }
+        
+        setWordChainResults({
+          wordChain: data.word_chain,
+          winner: data.last_player,
+          explodedTeam: data.exploded_team,
+          winningTeam: data.winning_team,
+          explodedPlayer: data.exploded_player,
+          isTeamMode: question?.is_team_mode,
+          gamePoints: data.game_points || {} // Pass all game points for potential display
+        });
+      }
+      
       // Calculate delay until buttons should show
       const now = getServerTime();
       const delay = data.show_buttons_at - now;
@@ -212,6 +242,14 @@ const MobileGamePage = () => {
       }
     });
 
+    // Word chain feedback for user submissions
+    socket.on('word_chain_feedback', (data) => {
+      if (!data.success) {
+        console.log('Word chain feedback error:', data.message);
+        // Error feedback is handled in the WordChainQuizMobile component
+      }
+    });
+
     return () => {
       socket.off('next_question');
       socket.off('answer_correctness');
@@ -220,6 +258,7 @@ const MobileGamePage = () => {
       socket.off('game_reset');
       socket.off('phase_transition');
       socket.off('word_selected');
+      socket.off('word_chain_feedback');
     };
   }, [navigate, playerName, finalScoreData, question, showGuessPlacement]);
 
@@ -360,6 +399,16 @@ const MobileGamePage = () => {
     console.log(`Word selected: ${word}, late selection: ${drawerLate}`);
   };
 
+  // Add handler for word chain submissions
+  const handleWordChainSubmit = (word) => {
+    const socket = getSocket();
+    
+    socket.emit('submit_word_chain_word', {
+      player_name: playerName,
+      word: word
+    });
+  };
+
   if (showFinalScore && finalScoreData) {
     return (
       <MobileFinalScore
@@ -371,18 +420,18 @@ const MobileGamePage = () => {
     );
   }
 
-    // Add condition for GuessANumberPlacement
-    if (showGuessPlacement && guessPlacementData) {
-      return <GuessANumberPlacement 
-        points_earned={pointsEarned}
-        total_points={totalPoints}
-        placement={guessPlacementData.placement}
-        totalPlayers={guessPlacementData.totalPlayers}
-        accuracy={guessPlacementData.accuracy}
-        yourGuess={guessPlacementData.yourGuess}
-        correctAnswer={guessPlacementData.correctAnswer}
-      />;
-    }
+  // Add condition for GuessANumberPlacement
+  if (showGuessPlacement && guessPlacementData) {
+    return <GuessANumberPlacement 
+      points_earned={pointsEarned}
+      total_points={totalPoints}
+      placement={guessPlacementData.placement}
+      totalPlayers={guessPlacementData.totalPlayers}
+      accuracy={guessPlacementData.accuracy}
+      yourGuess={guessPlacementData.yourGuess}
+      correctAnswer={guessPlacementData.correctAnswer}
+    />;
+  }
 
   // Add condition to show phase transition
   if (showPhaseTransition) {
@@ -410,6 +459,16 @@ const MobileGamePage = () => {
   if (showResult) {
     // Check if this player is the drawer for a drawing question
     const isDrawer = question?.type === 'DRAWING' && question?.player === playerName;
+    
+    // Check for word chain results first
+    if (question?.type === 'WORD_CHAIN' && wordChainResults) {
+      return <WordChainResult 
+        {...wordChainResults} 
+        playerName={playerName}
+        pointsEarned={pointsEarned}
+        totalPoints={totalPoints}
+      />;
+    }
     
     if (isCorrect === null) {
       // For the drawer in a drawing question, show the drawer result screen instead of "too late"
@@ -487,6 +546,13 @@ const MobileGamePage = () => {
             onAnswer={handleDrawingSubmit}
           />;
         }
+        break;
+      case 'WORD_CHAIN':
+        return <WordChainQuizMobile 
+          onAnswer={handleWordChainSubmit}
+          question={question} // Pass the question data to component
+          playerName={playerName} // Add playerName prop
+        />;
       case 'GUESS_A_NUMBER':
         // Check if we're in free-for-all mode (not team mode)
         if (teamName === 'Unknown Team' || teamName === null) {

@@ -136,6 +136,11 @@ const RoomPage = () => {
         payload.numRounds = quickPlayConfig.numRounds;
         payload.roundLength = quickPlayConfig.roundLength;
       }
+      // Add Word Chain parameters
+      else if (quickPlayConfig.quick_play_type === QUIZ_TYPES.WORD_CHAIN) {
+        payload.numRounds = quickPlayConfig.numRounds;
+        payload.roundLength = quickPlayConfig.roundLength;
+      }
       // Add other quiz type parameters here when supported
     }
 
@@ -178,6 +183,11 @@ const RoomPage = () => {
       
       // Add type-specific parameters
       if (quickPlayConfig.quick_play_type === QUIZ_TYPES.DRAWING) {
+        payload.numRounds = quickPlayConfig.numRounds;
+        payload.roundLength = quickPlayConfig.roundLength;
+      }
+      // Add Word Chain parameters
+      else if (quickPlayConfig.quick_play_type === QUIZ_TYPES.WORD_CHAIN) {
         payload.numRounds = quickPlayConfig.numRounds;
         payload.roundLength = quickPlayConfig.roundLength;
       }
@@ -318,7 +328,7 @@ const RoomPage = () => {
         question: gameData.question,
         showGameAt: gameData.show_game_at,
         question_end_time: question_end_time,
-        isLastQuestion: false,
+        is_last_question: gameData.is_last_question,
         activeTeam: gameData.active_team
       } 
     });

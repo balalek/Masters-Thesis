@@ -8,6 +8,7 @@ import OpenAnswerResult from '../../../components/desktop/answerTypes/OpenAnswer
 import Leaderboard from '../../../components/desktop/Leaderboard';
 import GuessNumberResult from '../../../components/desktop/answerTypes/GuessNumberResult';
 import DrawingAnswerResult from '../../../components/desktop/answerTypes/DrawingAnswerResult';
+import WordChainResults from '../../../components/desktop/answerTypes/WordChainResults';
 
 const ScorePage = () => {
   const location = useLocation();
@@ -171,6 +172,16 @@ const ScorePage = () => {
           teamMode={scores.is_team_mode}
           firstTeamAnswer={question.firstTeamAnswer}
           secondTeamVote={question.secondTeamVote}
+        />;
+      case 'WORD_CHAIN':
+        return <WordChainResults 
+          wordChain={question.word_chain || []}
+          eliminatedPlayers={question.eliminated_players || []}
+          isTeamMode={scores.is_team_mode}
+          winningTeam={question.winning_team}
+          lastPlayer={question.last_player || question.current_player}
+          explodedTeam={question.exploded_team}
+          explodedPlayer={question.exploded_player}
         />;
       case 'ABCD':
       default:

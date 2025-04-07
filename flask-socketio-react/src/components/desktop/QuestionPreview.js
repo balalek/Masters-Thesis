@@ -37,7 +37,8 @@ const QuestionPreview = ({ question, onPreviewComplete, showAt }) => { // Added 
         component="div" 
         sx={{ 
           textAlign: 'center',
-          maxWidth: '80%'
+          maxWidth: '80%',
+          whiteSpace: 'pre-line' // Add this to respect newline characters
         }}
       >
         {question}

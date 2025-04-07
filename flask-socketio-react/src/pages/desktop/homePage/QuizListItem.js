@@ -4,8 +4,29 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ShareIcon from '@mui/icons-material/Share';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+// Import quiz type icons
+import QuizIcon from '@mui/icons-material/Abc';
+import MapIcon from '@mui/icons-material/Map';
+import DrawIcon from '@mui/icons-material/Draw';
+import LinkIcon from '@mui/icons-material/Link';
+import CalculateIcon from '@mui/icons-material/Calculate';
+import Filter1Icon from '@mui/icons-material/Filter1';
+import ShuffleIcon from '@mui/icons-material/Shuffle';
+import QuestionAnswerIcon from '@mui/icons-material/EditNote';
 import { useNavigate } from 'react-router-dom';
-import { QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
+import { QUIZ_TYPE_TRANSLATIONS, QUIZ_TYPES } from '../../../constants/quizValidation';
+
+// Quiz type icons mapping
+const quizTypeIcons = {
+  [QUIZ_TYPES.ABCD]: QuizIcon,
+  [QUIZ_TYPES.OPEN_ANSWER]: QuestionAnswerIcon,
+  [QUIZ_TYPES.BLIND_MAP]: MapIcon,
+  [QUIZ_TYPES.DRAWING]: DrawIcon,
+  [QUIZ_TYPES.WORD_CHAIN]: LinkIcon,
+  [QUIZ_TYPES.MATH_QUIZ]: CalculateIcon,
+  [QUIZ_TYPES.GUESS_A_NUMBER]: Filter1Icon,
+  [QUIZ_TYPES.COMBINED_QUIZ]: ShuffleIcon,
+};
 
 const QuizListItem = ({ 
   quiz, 
@@ -71,19 +92,31 @@ const QuizListItem = ({
           alignItems: 'center',
           mt: 2.5
         }}>
-          <Typography 
-            variant="body1" 
-            color="text.primary" 
-            sx={{ 
-              fontWeight: 500,
-              fontSize: '1.05rem'
-            }}
-          >
-            {isUnfinished 
-              ? (quiz.is_editing ? 'Úprava kvízu' : 'Nový kvíz') 
-              : (QUIZ_TYPE_TRANSLATIONS[quiz.type] || quiz.type)
-            }
-          </Typography>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1
+          }}>
+            {!isUnfinished && quizTypeIcons[quiz.type] && React.createElement(quizTypeIcons[quiz.type], { 
+              sx: { 
+                fontSize: '1.3rem',
+                opacity: 0.9
+              } 
+            })}
+            <Typography 
+              variant="body1" 
+              color="text.primary" 
+              sx={{ 
+                fontWeight: 500,
+                fontSize: '1.05rem'
+              }}
+            >
+              {isUnfinished 
+                ? (quiz.is_editing ? 'Úprava kvízu' : 'Nový kvíz') 
+                : (QUIZ_TYPE_TRANSLATIONS[quiz.type] || quiz.type)
+              }
+            </Typography>
+          </Box>
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
             {isUnfinished
               ? (quiz.question_count || 0)

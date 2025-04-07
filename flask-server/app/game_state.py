@@ -30,6 +30,19 @@ class GameState:
             'player_answers': []
         }
         
+        # Word Chain specific state
+        self.word_chain_state = {
+            'current_letter': None,     # Current letter players must start with
+            'used_words': set(),        # Set of already used words
+            'word_chain': [],           # List of words in the chain
+            'player_timers': {},        # Dictionary of player name -> remaining time
+            'current_player': None,     # Player who is currently on turn
+            'player_order': [],         # Order of players in free-for-all
+            'team_order': [],           # Order of players in team mode
+            'team_indexes': {'red': -1, 'blue': -1},  # Track current index in each team
+            'eliminated_players': set() # Players who ran out of time in free-for-all
+        }
+        
         # Guess a Number specific state
         self.number_guess_phase = 1  # 1 = first team guessing, 2 = second team more/less
         self.first_team_final_answer = None  # The final answer from the first team
@@ -69,5 +82,17 @@ class GameState:
         self.team_player_guesses = {'blue': [], 'red': []}
         self.voted_players = {}
 
+    def reset_word_chain_state(self):
+        """Reset state for word chain questions"""
+        self.word_chain_state = {
+            'current_letter': None,
+            'used_words': set(),
+            'word_chain': [],
+            'player_timers': {},
+            'current_player': None,
+            'team_indexes': {'red': -1, 'blue': -1},  # Track current index in each team
+            'eliminated_players': set()
+        }
+        
 # Create singleton instance
 game_state = GameState()

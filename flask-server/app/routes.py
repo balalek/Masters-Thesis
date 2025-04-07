@@ -196,10 +196,98 @@ def generate_drawing_questions(players, num_rounds, round_length, blue_team=None
         print(f"Error generating drawing questions: {str(e)}")
         raise e
 
+def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
+    """
+    Generate word chain questions for the specified number of rounds
+    
+    Args:
+        num_rounds (int): Number of rounds to play
+        round_length (int): Length in seconds for each player's turn
+        is_team_mode (bool): Whether we're in team mode
+    
+    Returns:
+        list: List of word chain questions
+    """
+    try:
+        # Get enough words for all rounds
+        # We're requesting more than needed to ensure we have enough valid words
+        response = requests.get(f"http://slova.cetba.eu/generate.php?number={num_rounds*2}")
+        if response.status_code != 200:
+            raise Exception("Nepodařilo se získat slova pro slovní řetěz")
+            
+        # Fix encoding issues with Czech characters - ensure proper UTF-8 decoding
+        response_text = response.content.decode('utf-8')
+        
+        # Split by pipe character
+        words = response_text.split(" | ")
+        
+        # Define default words once
+        default_words = ["kočka", "pes", "slovo", "strom", "hrad", "auto", "míč", "voda", "dům", "kniha"]
+
+        # Filter out words that end with q, w, x, y or ů
+        valid_words = [word for word in words if word and word[-1].lower() not in ['q', 'w', 'x', 'y']]
+        
+        # If no valid words, use default words
+        if not valid_words:
+            valid_words = default_words.copy()
+        
+        # Ensure we have enough valid words for all rounds
+        if len(valid_words) < num_rounds:
+            # Pad with default words if needed
+            valid_words.extend(default_words[:num_rounds - len(valid_words)])
+        
+        # Initialize player order based on game mode
+        if game_state.is_team_mode:
+            from app.socketio_events.word_chain_events import initialize_team_order
+            initialize_team_order()
+            # Team mode: start with first player in team order
+            first_player = game_state.word_chain_state['team_order'][0][0]
+        else:
+            from app.socketio_events.word_chain_events import initialize_player_order
+            initialize_player_order(round_length)
+            # Free-for-all: start with first player in player order
+            first_player = game_state.word_chain_state['player_order'][0]
+
+        # Set first player
+        game_state.word_chain_state['current_player'] = first_player
+
+        word_chain_questions = []
+        # Create questions with a different starting word for each round
+        for round_num in range(num_rounds):
+            # Use a different word for each round
+            first_word = valid_words[round_num]
+            
+            # Extract the last letter of the first word
+            # repair last letter using remove_diacritics
+            from app.socketio_events.word_chain_events import remove_diacritics
+            last_letter = remove_diacritics(first_word[-1].upper())
+            
+            question = {
+                "type": "WORD_CHAIN",
+                "question": f"{round_num + 1}. kolo: Slovní řetěz\nZačíná hráč {first_player} na písmeno {last_letter}",
+                "first_word": first_word,
+                "first_letter": last_letter,
+                "length": round_length,
+                "category": "Slovní řetěz",
+                "is_team_mode": is_team_mode,
+                "current_player": first_player,
+                "players": game_state.players,
+                "player_order": game_state.word_chain_state['player_order']
+            }
+            word_chain_questions.append(question)
+        
+        return word_chain_questions
+        
+    except Exception as e:
+        print(f"Error generating word chain questions: {str(e)}")
+        raise e
+
 @app.route('/start_game', methods=['POST'])
 def start_game():
     if len(game_state.players) < 2:
         return jsonify({"error": "Hra nemůže začít, dokud nejsou připojeni alespoň 2 hráči"}), 400
+
+    game_state.reset_word_chain_state()  # Reset word chain state
 
     # Add team mode handling first
     game_state.is_team_mode = request.json.get('isTeamMode', False)
@@ -244,8 +332,8 @@ def start_game():
         if quick_play_type == "DRAWING":
             try:
                 # Get drawing specific parameters
-                num_rounds = request.json.get('numRounds', 3)
-                round_length = request.json.get('roundLength', 60)  # seconds
+                num_rounds = request.json.get('numRounds', QUIZ_VALIDATION['DRAWING_DEFAULT_ROUNDS'])
+                round_length = request.json.get('roundLength', QUIZ_VALIDATION['DRAWING_DEFAULT_TIME'])  # seconds
                 
                 # Generate drawing questions using our helper function
                 if game_state.is_team_mode:
@@ -272,8 +360,25 @@ def start_game():
                 return jsonify({"error": f"Chyba při přípravě hry: {str(e)}"}), 500
                 
         elif quick_play_type == "WORD_CHAIN":
-            # TODO: Implement Word Chain quick play
-            return jsonify({"error": "Word Chain quick play není zatím implementováno"}), 501
+            try:
+                # Get word chain specific parameters
+                num_rounds = request.json.get('numRounds', QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_ROUNDS'])  # rounds
+                round_length = request.json.get('roundLength', QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_TIME'])  # seconds per player turn
+                
+                # Generate word chain questions
+                word_chain_questions = generate_word_chain_questions(
+                    num_rounds,
+                    round_length,
+                    is_team_mode=game_state.is_team_mode
+                )
+                
+                # Set the questions in the game state
+                game_state.questions = word_chain_questions
+                print(f"Created {len(word_chain_questions)} word chain questions")
+                
+            except Exception as e:
+                print(f"Error setting up word chain game: {str(e)}")
+                return jsonify({"error": f"Chyba při přípravě hry: {str(e)}"}), 500
         else:
             # For unsupported quick play types
             return jsonify({"error": f"Nepodporovaný typ rychlé hry: {quick_play_type}"}), 400
@@ -315,6 +420,19 @@ def start_game():
                     )
                 
                 final_questions.extend(drawing_questions)
+            elif question.get('type') == 'WORD_CHAIN':
+                # Get word chain parameters
+                num_rounds = question.get('rounds', QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_ROUNDS'])
+                round_length = question.get('length', QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_TIME'])
+                
+                # Generate word chain questions
+                word_chain_questions = generate_word_chain_questions(
+                    num_rounds,
+                    round_length,
+                    is_team_mode=game_state.is_team_mode
+                )
+                
+                final_questions.extend(word_chain_questions)
             else:
                 final_questions.append(question)
                 
@@ -324,6 +442,11 @@ def start_game():
     game_state.current_question = 0
     game_state.reset_question_state()
     
+    first_question = game_state.questions[game_state.current_question]
+    
+    # Calculate if this is the last question
+    is_last_question = game_state.current_question + 1 >= len(game_state.questions)
+
     # Team mode setup
     if game_state.is_team_mode:
         # Make sure active_team is properly set for team mode
@@ -345,14 +468,20 @@ def start_game():
     
     first_question = game_state.questions[game_state.current_question]
 
-    # Set the question start time for the first question for drawing question
+    # Set the question start time for the first question depending on type
     if first_question.get('type') == 'DRAWING':
         # For drawing questions, set the start time to be 10 seconds from now
         game_start_at = game_start_time + PREVIEW_TIME_DRAWING
-    else :
-        game_start_at = game_start_time + PREVIEW_TIME # Set the start time for the first question
+    elif first_question.get('type') == 'WORD_CHAIN':
+        # For word chain, use regular preview time
+        game_start_at = game_start_time + PREVIEW_TIME
+        from app.socketio_events.word_chain_events import start_word_chain
+        start_word_chain()  # Direct call - no threading or background task
+    else:
+        game_start_at = game_start_time + PREVIEW_TIME # Standard preview time
 
     game_state.question_start_time = game_start_at
+    
     # Check if first question is a drawing question and identify drawer
     first_drawer = None
     if first_question.get('type') == 'DRAWING':
@@ -363,7 +492,8 @@ def start_game():
         "question": first_question,
         "show_first_question_preview": game_start_time,
         "show_game_at": game_start_at,
-        "active_team": game_state.active_team
+        "active_team": game_state.active_team,
+        "is_last_question": is_last_question  # Add is_last_question flag
     }
 
     # First send the standard event to all (especially for the main display)
@@ -399,7 +529,8 @@ def start_game():
             "active_team": game_state.active_team,
             "role": player_role,  # Include the player's role
             "quizPhase": 1,  # Start with phase 1
-            "is_drawer": first_drawer == player_name  # Let player know if they're the drawer
+            "is_drawer": first_drawer == player_name,  # Let player know if they're the drawer
+            "is_last_question": is_last_question  # Add is_last_question flag
         }
         
         print(f"Player: {player_name}, Team: {player_team}, Role: {player_role}, Active Team: {game_state.active_team}")
@@ -414,13 +545,34 @@ def next_question():
     if game_state.current_question is None or game_state.current_question + 1 >= len(game_state.questions):
         return jsonify({"error": "No more questions"}), 400
     
-    # Reset state for the next question
+    # Get current and next question
+    current_question_index = game_state.current_question
+    next_question_index = current_question_index + 1
+    next_question = game_state.questions[next_question_index]
+    
+    # For Word Chain questions, we need to preserve certain state while resetting others
+    current_question_type = game_state.questions[current_question_index].get('type')
+    next_question_type = next_question.get('type')
+    
+    if current_question_type == 'WORD_CHAIN' and next_question_type == 'WORD_CHAIN':
+        # Reset specific elements of word chain state without losing player order
+        game_state.word_chain_state['used_words'] = set()
+        game_state.word_chain_state['word_chain'] = []
+        game_state.word_chain_state['eliminated_players'] = set()
+        
+        # Set current player from the next question data
+        game_state.word_chain_state['current_player'] = next_question.get('current_player')
+        
+        # Set current letter from the next question's first_letter
+        if next_question.get('first_letter'):
+            game_state.word_chain_state['current_letter'] = next_question.get('first_letter')
+    
+    # Reset other question state
     game_state.reset_question_state()
     
     # Move to the next question
-    game_state.current_question += 1
+    game_state.current_question = next_question_index
     
-    next_question = game_state.questions[game_state.current_question]
     is_last_question = game_state.current_question + 1 == len(game_state.questions)
 
     # Check if the next question is a drawing question

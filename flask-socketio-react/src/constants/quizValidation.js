@@ -16,6 +16,7 @@ export const QUIZ_VALIDATION = {
   WORD_CHAIN: {
     MIN_ROUNDS: 1,
     MAX_ROUNDS: 1,     // Changed max to 1
+    MAX_ROUNDS_QUICK_PLAY: 10,
     DEFAULT_ROUNDS: 1,
     MIN_TIME: 20,
     MAX_TIME: 60,      // Changed max to 60
@@ -27,7 +28,7 @@ export const QUIZ_VALIDATION = {
     MAX_ROUNDS_QUICK_PLAY: 10,
     DEFAULT_ROUNDS: 1,
     MIN_TIME: 10,
-    MAX_TIME: 1000, //120
+    MAX_TIME: 120, //120
     DEFAULT_TIME: 60
   },
   QUIZ_NAME_MAX_LENGTH: 200,

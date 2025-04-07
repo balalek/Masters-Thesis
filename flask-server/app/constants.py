@@ -30,12 +30,16 @@ WAITING_TIME_DRAWING = 15
 
 # Points for ABCD, True/False, Open Answer questions
 POINTS_FOR_CORRECT_ANSWER = 100
+# Points for Word Chain
+POINTS_FOR_WORD_CHAIN = 50
 # Team play for Guess a Number question
 POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER = 150
 POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER_FIRST_PHASE = 300 # Double points in First phase of Guess a Number
 # Free-for-all for Guess a Number question
 POINTS_FOR_PLACEMENT = 100
 POINTS_FOR_EXACT_ANSWER = 200
+# Free-for-all for word-chain question
+POINTS_FOR_LETTER = 3
 
 # Quiz validation constants
 QUIZ_VALIDATION = {
@@ -52,7 +56,8 @@ QUIZ_VALIDATION = {
     'MIN_SEQUENCES': 3,
     # Word Chain validation constants
     'WORD_CHAIN_MIN_ROUNDS': 1,
-    'WORD_CHAIN_MAX_ROUNDS': 1, # TODO carreful with this, if you change it, it may break the code (check it)
+    'WORD_CHAIN_MAX_ROUNDS': 1,
+    'WORD_CHAIN_MAX_ROUNDS_QUICK_PLAY': 10,
     'WORD_CHAIN_DEFAULT_ROUNDS': 1,
     'WORD_CHAIN_MIN_TIME': 20,
     'WORD_CHAIN_MAX_TIME': 60,

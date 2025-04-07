@@ -47,7 +47,8 @@ const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
   );
 
   // Word chain-specific state
-  // TODO: Add word chain settings when implemented
+  const [wordChainRounds, setWordChainRounds] = useState(QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS); // Default 3 rounds
+  const [wordChainTime, setWordChainTime] = useState(QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME); // Default 30 seconds
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -69,9 +70,10 @@ const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
         };
         break;
       case QUIZ_TYPES.WORD_CHAIN:
-        // TODO: Add word chain configuration
         config = {
-          quick_play_type: QUIZ_TYPES.WORD_CHAIN
+          quick_play_type: QUIZ_TYPES.WORD_CHAIN,
+          numRounds: wordChainRounds,
+          roundLength: wordChainTime
         };
         break;
       // Add cases for other quiz types as they become available
@@ -131,10 +133,41 @@ const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
       case QUIZ_TYPES.WORD_CHAIN:
         return (
           <Box sx={{ pt: 2 }}>
-            <Typography>
-              TODO: Word Chain settings will go here
+            <Typography gutterBottom>
+              Počet her: {wordChainRounds}
             </Typography>
-            {/* Placeholder for word chain settings */}
+            <Slider
+              value={wordChainRounds}
+              onChange={(e, value) => setWordChainRounds(value)}
+              aria-labelledby="word-chain-rounds-slider"
+              valueLabelDisplay="auto"
+              step={1}
+              marks
+              min={QUIZ_VALIDATION.WORD_CHAIN.MIN_ROUNDS}
+              max={QUIZ_VALIDATION.WORD_CHAIN.MAX_ROUNDS_QUICK_PLAY}
+              sx={{ mb: 4 }}
+            />
+            
+            <Typography gutterBottom>
+              Časový limit hráče: {wordChainTime} sekund (pouze režim všichni proti všem)
+            </Typography>
+            <Slider
+              value={wordChainTime}
+              onChange={(e, value) => setWordChainTime(value)}
+              aria-labelledby="word-chain-time-slider"
+              valueLabelDisplay="auto"
+              step={5}
+              marks
+              min={QUIZ_VALIDATION.WORD_CHAIN.MIN_TIME}
+              max={QUIZ_VALIDATION.WORD_CHAIN.MAX_TIME}
+            />
+            
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              Hráči budou pokračovat ve slovním řetězu a snažit se vymyslet slovo začínající na poslední písmeno předchozího slova
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              První slovo bude vybráno náhodně ze slovníku
+            </Typography>
           </Box>
         );
       
