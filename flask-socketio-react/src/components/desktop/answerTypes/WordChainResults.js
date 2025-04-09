@@ -204,7 +204,7 @@ const WordChainResults = ({ wordChain = [], eliminatedPlayers = [], isTeamMode =
             </Box>
           )}
           
-          {stats.smartestPlayer && (
+          {stats.smartestPlayer && !isTeamMode && (
             <Box sx={{ 
               flex: '1 1 0', 
               minWidth: { xs: '100%', sm: '45%', md: '22%' }, 
@@ -223,7 +223,17 @@ const WordChainResults = ({ wordChain = [], eliminatedPlayers = [], isTeamMode =
                 </Typography>
               </Box>
               
-              <Typography variant="h3" color="primary" fontWeight="bold">
+              <Typography 
+                variant="h3" 
+                color="primary" 
+                fontWeight="bold"
+                sx={{ 
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '100%'
+                }}
+              >
                 {stats.smartestPlayer}
               </Typography>
               
@@ -233,7 +243,7 @@ const WordChainResults = ({ wordChain = [], eliminatedPlayers = [], isTeamMode =
             </Box>
           )}
           
-          {stats.pacifistPlayer && stats.pacifistPlayer !== stats.smartestPlayer && stats.fewestWords < Infinity && (
+          {stats.pacifistPlayer && stats.pacifistPlayer !== stats.smartestPlayer && stats.fewestWords < Infinity && !isTeamMode && (
             <Box sx={{ 
               flex: '1 1 0', 
               minWidth: { xs: '100%', sm: '45%', md: '22%' }, 
@@ -252,7 +262,17 @@ const WordChainResults = ({ wordChain = [], eliminatedPlayers = [], isTeamMode =
                 </Typography>
               </Box>
               
-              <Typography variant="h3" color="primary" fontWeight="bold">
+              <Typography 
+                variant="h3" 
+                color="primary" 
+                fontWeight="bold"
+                sx={{ 
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '100%'
+                }}
+              >
                 {stats.pacifistPlayer}
               </Typography>
               

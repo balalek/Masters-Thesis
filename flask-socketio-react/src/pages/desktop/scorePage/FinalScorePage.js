@@ -66,6 +66,7 @@ const FinalScorePage = () => {
     ].sort((a, b) => b.score - a.score);
 
     const winningTeam = sortedTeams[0];
+    const isTie = sortedTeams[0].score === sortedTeams[1].score;
     const isWinner = winningTeam.score > sortedTeams[1].score;
 
     return (
@@ -80,7 +81,8 @@ const FinalScorePage = () => {
           display: 'flex', 
           justifyContent: 'space-between',
           alignItems: 'center',
-          p: 3,
+          pt: 3,
+          pr: 8,
           position: 'relative'
         }}>
           <Box sx={{ width: '100px' }} /> {/* Spacer for centering */}
@@ -130,9 +132,9 @@ const FinalScorePage = () => {
                 color: team.color,
                 fontWeight: 'bold',
                 textTransform: 'uppercase',
-                mb: 2,
+                mb: 1,
               }}>
-                {index === 0 ? 'Vítězové' : 'Poražení'}
+                {isTie ? 'REMÍZA' : (index === 0 ? 'Vítězové' : 'Poražení')}
               </Typography>
 
               {/* Win/Lose Status - Now below team name */}
@@ -148,7 +150,6 @@ const FinalScorePage = () => {
                   }}
                 >
                   {team.name}
-                  
                 </Typography>
               )}
 
@@ -156,7 +157,7 @@ const FinalScorePage = () => {
               <Typography variant="h1" sx={{ 
                 fontFamily: 'monospace',
                 fontSize: '5rem',
-                mb: 4,
+                mb: 3,
                 color: team.color,
                 textShadow: `0 0 20px ${team.color}40`
               }}>

@@ -113,7 +113,7 @@ function GamePage() {
     // First check if the question is not null, if yes, then wait for question to be set
     if (question && location.state?.question_end_time && 
       (question.type !== 'GUESS_A_NUMBER' || activeTeam === null) &&
-      question.type !== 'WORD_CHAIN') {  // Exclude WORD_CHAIN
+      (question.type !== 'WORD_CHAIN' || question.is_team_mode)) {  // Allow WORD_CHAIN timer in team mode
       console.log('Hello? question type:', question?.type);
       const timer = setTimeout(() => {
         const socket = getSocket();

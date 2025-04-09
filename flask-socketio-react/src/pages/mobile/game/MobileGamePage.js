@@ -152,16 +152,21 @@ const MobileGamePage = () => {
       // Check for word chain results in additional_data
       if (data.word_chain) {
         console.log('Word chain results received:', data.word_chain);
-        
-        // Get points earned for this player from game_points
-        const playerGamePoints = data.game_points && data.game_points[playerName] ? 
+
+        if (data.scores[playerName] && !data.scores.is_team_mode) {
+          // Get points earned for this player from game_points
+          const playerGamePoints = data.game_points && data.game_points[playerName] ? 
           Math.round(data.game_points[playerName]) : 0;
-        
-        setPointsEarned(playerGamePoints); // Set points earned from game-specific points
-        
-        if (data.scores[playerName]) {
-            // Individual mode structure (direct player data)
-            setTotalPoints(data.scores[playerName].score);
+          setPointsEarned(playerGamePoints); // Set points earned from game-specific points
+          setTotalPoints(data.scores[playerName].score);
+        } else if (data.scores.teams && data.scores.is_team_mode) {
+            // Team mode structure - correctly access the team score
+            if (teamName === data.winning_team) {
+              setPointsEarned(data.game_points);
+            } else {
+              setPointsEarned(0); // No points for losing team
+            }
+            setTotalPoints(data.scores.teams[teamName]);
         }
         
         setWordChainResults({
@@ -462,6 +467,40 @@ const MobileGamePage = () => {
     
     // Check for word chain results first
     if (question?.type === 'WORD_CHAIN' && wordChainResults) {
+      // Special handling for team mode word chain results
+      if (wordChainResults.isTeamMode && wordChainResults.winningTeam && teamName) {
+        const isOnWinningTeam = teamName === wordChainResults.winningTeam;
+        const isOnExplodedTeam = teamName === wordChainResults.explodedTeam;
+        
+        // We're in team mode and have a clear winning team
+        if (isOnWinningTeam) {
+          // Player is on the winning team - show green screen
+          return (
+            <CorrectAnswer
+              points_earned={pointsEarned}
+              total_points={totalPoints}
+              exactGuess={false}
+              guessResult={null}
+              customTitle="Váš tým vyhrál!"
+              customMessage="Gratulujeme k vítězství!"
+            />
+          );
+        } else if (isOnExplodedTeam) {
+          // Player is on the losing team - show red screen
+          return (
+            <IncorrectAnswer
+              points_earned={pointsEarned}
+              total_points={totalPoints}
+              exactGuess={false}
+              guessResult={null}
+              customTitle="Bomba vybuchla!"
+              customMessage="Příště to vyjde!"
+            />
+          );
+        }
+      }
+      
+      // Default word chain result for free-for-all or if team can't be determined
       return <WordChainResult 
         {...wordChainResults} 
         playerName={playerName}

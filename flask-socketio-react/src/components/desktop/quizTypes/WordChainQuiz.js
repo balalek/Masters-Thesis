@@ -46,8 +46,9 @@ const WordChainQuiz = ({ question, question_end_time }) => {
     return {};
   });
   const [isTeamMode, setIsTeamMode] = useState(question?.is_team_mode || false);
-  const [bombTime, setBombTime] = useState(null);
   const [bombTicking, setBombTicking] = useState(false);
+  const [sparklesShowing, setSparklesShowing] = useState(false);  // New state for sparkles at 40%
+  const [timeRemaining, setTimeRemaining] = useState(question?.length || 0);
 
   // New state for tracking timer status
   const [activeTimer, setActiveTimer] = useState(question?.current_player || null);
@@ -60,7 +61,10 @@ const WordChainQuiz = ({ question, question_end_time }) => {
   
   const [gameSpecificPoints, setGameSpecificPoints] = useState({});
 
-  // Initialize with first word if provided in the question
+  const [previousPlayers, setPreviousPlayers] = useState([]);
+  const [nextPlayers, setNextPlayers] = useState(question?.next_players || []);
+
+  // Initialize with first word and next players
   useEffect(() => {
     if (question?.first_word && wordChain.length === 0) {
       setWordChain([{
@@ -69,6 +73,9 @@ const WordChainQuiz = ({ question, question_end_time }) => {
         team: null
       }]);
       setCurrentLetter(question.first_letter || '');
+      // Set system as the previous player when game starts
+      setPreviousPlayers(['system']);
+      setNextPlayers(question?.next_players || []); // Initialize next players from question
       console.log("Initialized word chain with:", question.first_word, "and letter:", question.first_letter);
     }
   }, [question, wordChain.length]);
@@ -127,22 +134,45 @@ const WordChainQuiz = ({ question, question_end_time }) => {
         // Start timer for new player
         startTimeForPlayer(newCurrentPlayer);
       }
+
+      setPreviousPlayers(data.previous_players || []);
+      setNextPlayers(data.next_players || []);
     });
 
-    // For team mode, initialize bomb time
-    if (isTeamMode && !bombTime) {
-      // Set bomb time to be between 2-4 minutes (random)
-      const minTime = 2 * 60 * 1000; // 2 minutes
-      const maxTime = 4 * 60 * 1000; // 4 minutes
-      const randomTime = Math.floor(Math.random() * (maxTime - minTime)) + minTime;
+    // Instead of setting up a bomb timer, we'll update the timeRemaining state regularly
+    // and show the bomb ticking animation when remaining time is low
+    if (isTeamMode && question_end_time) {
+      const timerInterval = setInterval(() => {
+        const now = getServerTime();
+        const remaining = Math.max(0, question_end_time - now);
+        setTimeRemaining(remaining);
+        
+        // Calculate time percentage
+        const totalTime = question?.length * 1000 || 0;
+        const timePercentage = remaining / totalTime * 100;
+        
+        // Start showing sparkles at 40%
+        if (timePercentage < 40) {
+          setSparklesShowing(true);
+        } else {
+          setSparklesShowing(false);
+        }
+        
+        // If less than 10% of time remains, show the bomb ticking animation
+        if (timePercentage < 10) {
+          setBombTicking(true);
+        } else {
+          setBombTicking(false);
+        }
+      }, 100);
       
-      // Set bomb time to current time + random time
-      setBombTime(getServerTime() + randomTime);
-      
-      // Start ticking after 1 minute
-      setTimeout(() => {
-        setBombTicking(true);
-      }, 60000); // Start ticking after 1 minute
+      return () => {
+        clearInterval(timerInterval);
+        if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+        }
+      };
     }
 
     function startTimeForPlayer(player) {
@@ -177,7 +207,7 @@ const WordChainQuiz = ({ question, question_end_time }) => {
         timerIntervalRef.current = null;
       }
     };
-  }, [currentPlayer, isPaused]); // Added activeTimer to dependencies
+  }, [currentPlayer, isPaused, question_end_time, isTeamMode, question]);
 
   // Determine if the current player is from the blue team
   const isCurrentPlayerBlue = isTeamMode && 
@@ -186,37 +216,80 @@ const WordChainQuiz = ({ question, question_end_time }) => {
   // Function to render player timers
   const renderPlayerTimers = () => {
     if (isTeamMode) {
-      // For team mode, we'll show a bomb timer instead of individual timers
-      return (
-        <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography variant="h3" sx={{ mb: 2 }}>
-            {isCurrentPlayerBlue ? 'Modrý tým' : 'Červený tým'} je na tahu
-          </Typography>
-          {bombTicking && (
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: bombTicking ? 'pulse 1.5s infinite' : 'none',
-              '@keyframes pulse': {
-                '0%': {
-                  transform: 'scale(1)',
-                },
-                '50%': {
-                  transform: 'scale(1.05)',
-                },
-                '100%': {
-                  transform: 'scale(1)',
-                }
+      // Helper function to render sparkles - reused for both warning states
+      const renderSparkles = () => (
+        [...Array(12)].map((_, i) => (
+          <Box
+            key={`sparkle-${i}`}
+            sx={{
+              position: 'absolute',
+              width: `${4 + Math.random() * 6}px`,
+              height: `${4 + Math.random() * 6}px`,
+              backgroundColor: i % 3 === 0 ? '#FCD34D' : '#F87171',
+              borderRadius: '50%',
+              opacity: 0.8,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animation: `sparkleFloat${i % 4} ${1 + Math.random() * 2}s infinite linear`,
+              '@keyframes sparkleFloat0': {
+                '0%': { transform: 'translate(0, 0)' },
+                '100%': { transform: `translate(${80 + Math.random() * 50}px, ${-40 - Math.random() * 60}px)`, opacity: 0 }
+              },
+              '@keyframes sparkleFloat1': {
+                '0%': { transform: 'translate(0, 0)' },
+                '100%': { transform: `translate(${-80 - Math.random() * 50}px, ${-40 - Math.random() * 60}px)`, opacity: 0 }
+              },
+              '@keyframes sparkleFloat2': {
+                '0%': { transform: 'translate(0, 0)' },
+                '100%': { transform: `translate(${80 + Math.random() * 50}px, ${40 + Math.random() * 60}px)`, opacity: 0 }
+              },
+              '@keyframes sparkleFloat3': {
+                '0%': { transform: 'translate(0, 0)' },
+                '100%': { transform: `translate(${-80 - Math.random() * 50}px, ${40 + Math.random() * 60}px)`, opacity: 0 }
               }
-            }}>
-              <Typography 
-                variant="h2" 
-                color="error"
-                sx={{ fontWeight: 'bold' }}
-              >
-                BOMBA TIKÁ!
-              </Typography>
+            }}
+          />
+        ))
+      );
+
+      return (
+        <Box sx={{ position: 'relative' }}>
+          {/* Early warning (40-10%) - just sparkles */}
+          {sparklesShowing && !bombTicking && (
+            <Box
+              sx={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                pointerEvents: 'none',
+                zIndex: 1000
+              }}
+            >
+              {renderSparkles()}
+            </Box>
+          )}
+
+          {/* Critical warning (<10%) - sparkles + flashing background */}
+          {bombTicking && (
+            <Box
+              sx={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                pointerEvents: 'none',
+                zIndex: 1000,
+                animation: 'flashWarning 0.7s infinite',
+                '@keyframes flashWarning': {
+                  '0%, 100%': { backgroundColor: 'transparent' },
+                  '50%': { backgroundColor: 'rgba(239, 68, 68, 0.25)' }
+                }
+              }}
+            >
+              {renderSparkles()}
             </Box>
           )}
         </Box>
@@ -426,7 +499,7 @@ const WordChainQuiz = ({ question, question_end_time }) => {
         {wordChain.map((item, index) => {
           const { word, player, team } = item;
           const playerColor = team 
-            ? (team === 'blue' ? '#2196f3' : '#f44336')
+            ? (team === 'blue' ? '#186CF6' : '#EF4444')
             : (scores?.individual?.[player]?.color || '#ccc');
           
           // For the first word (system word) or last word, use different styles
@@ -469,6 +542,145 @@ const WordChainQuiz = ({ question, question_end_time }) => {
             </React.Fragment>
           );
         })}
+      </Box>
+    );
+  };
+
+  const renderPlayerRotation = () => {
+    if (!isTeamMode) return null;
+
+    const playerBoxStyles = {
+      pt: 3,
+      pl: 0.8,
+      pr: 0.8,
+      width: 120,
+      height: 130,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 1.5,
+    };
+
+    // Only keep floating animation keyframes
+    const keyframes = {
+      '@keyframes floatCenter': {
+        '0%': { transform: 'scale(1.25) translateY(0px)' },
+        '50%': { transform: 'scale(1.25) translateY(-10px)' },
+        '100%': { transform: 'scale(1.25) translateY(0px)' }
+      }
+    };
+
+    const nameStyles = {
+      width: '100%',
+      textAlign: 'center',
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical',
+      overflow: 'hidden',
+      lineHeight: '1.2',
+      minHeight: '2.4em' // Space for two lines
+    };
+
+    // Get current player's team based on the current word chain
+    const currentPlayerTeam = wordChain.length > 0 
+      ? (currentPlayer === wordChain[wordChain.length - 1]?.player 
+        ? wordChain[wordChain.length - 1]?.team 
+        : (wordChain[wordChain.length - 1]?.team === 'blue' ? 'red' : 'blue'))
+      : 'blue'; // Default to blue if no words yet
+
+    // Function to get team color
+    const getTeamColor = (isNextDirection, index) => {
+      const startWithTeam = currentPlayerTeam;
+      const isEvenIndex = index % 2 === 0;
+      const firstTeam = isNextDirection ? (startWithTeam === 'blue' ? 'red' : 'blue') : (startWithTeam === 'blue' ? 'red' : 'blue');
+      return (isEvenIndex ? firstTeam : (firstTeam === 'blue' ? 'red' : 'blue')) === 'blue' ? '#186CF6' : '#EF4444';
+    };
+
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 4,
+        mt: 4,
+        mb: 2,
+        ...keyframes
+      }}>
+        {/* Previous players */}
+        <Box sx={{ display: 'flex', gap: 2, opacity: 0.6, flexDirection: 'row-reverse' }}>
+          {previousPlayers.map((player, idx) => (
+            <Paper
+              key={`prev-${player}`}
+              sx={{
+                ...playerBoxStyles,
+                border: `2px solid ${getTeamColor(false, idx)}`,
+                opacity: 0.8 - (idx * 0.2)
+              }}
+            >
+              <Avatar sx={{ color: 'white', bgcolor: scores?.individual?.[player]?.color }}>
+                {player.charAt(0).toUpperCase()}
+              </Avatar>
+              <Typography sx={nameStyles}>
+                {player}
+              </Typography>
+            </Paper>
+          ))}
+        </Box>
+
+        {/* Current player with floating animation */}
+        <Paper
+          elevation={6}
+          sx={{
+            ...playerBoxStyles,
+            width: 140,
+            height: 150,
+            border: `3px solid ${currentPlayerTeam === 'blue' ? '#186CF6' : '#EF4444'}`,
+            animation: 'floatCenter 3s ease-in-out infinite',
+            zIndex: 2
+          }}
+        >
+          <Avatar 
+            sx={{ 
+              bgcolor: scores?.individual?.[currentPlayer]?.color,
+              width: 56,
+              color: 'white',
+              height: 56,
+              fontSize: '1.5rem'
+            }}
+          >
+            {currentPlayer.charAt(0).toUpperCase()}
+          </Avatar>
+          <Typography 
+            variant="h6" 
+            sx={{
+              ...nameStyles,
+              fontSize: '1.1rem', // Slightly smaller to fit better
+            }}
+          >
+            {currentPlayer}
+          </Typography>
+        </Paper>
+
+        {/* Next players */}
+        <Box sx={{ display: 'flex', gap: 2, opacity: 0.6 }}>
+          {nextPlayers.map((player, idx) => (
+            <Paper
+              key={`next-${player}`}
+              sx={{
+                ...playerBoxStyles,
+                border: `2px solid ${getTeamColor(true, idx)}`,
+                opacity: 0.8 - (idx * 0.2)
+              }}
+            >
+              <Avatar sx={{ color: 'white', bgcolor: scores?.individual?.[player]?.color }}>
+                {player.charAt(0).toUpperCase()}
+              </Avatar>
+              <Typography sx={nameStyles}>
+                {player}
+              </Typography>
+            </Paper>
+          ))}
+        </Box>
       </Box>
     );
   };
@@ -520,8 +732,9 @@ const WordChainQuiz = ({ question, question_end_time }) => {
       </Box>
       
       {/* Player timers and scores */}
-      <Box sx={{ mt: 'auto', pt: 4 }}>
+      <Box sx={{ mt: 'auto' }}>
         {renderPlayerTimers()}
+        {isTeamMode && renderPlayerRotation()} {/* Move player rotation here */}
       </Box>
     </Box>
   );

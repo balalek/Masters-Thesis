@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 
-const CorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult }) => {
+const CorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult, customTitle, customMessage }) => {
   return (
     <Box
       sx={{
@@ -34,10 +34,10 @@ const CorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult })
           mb: 1
         }}
       >
-        {exactGuess ? 'Přesně!' : 'Správně!'}
+        {customTitle || (exactGuess ? 'Přesně!' : 'Správně!')}
       </Typography>
       
-      {exactGuess && (
+      {(exactGuess || customMessage) && (
         <Typography 
           variant="h5" 
           sx={{ 
@@ -47,9 +47,13 @@ const CorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult })
             px: 2
           }}
         >
-          GRATULACE!
-          <br />
-          Získáváte dvojnásobný počet bodů!
+          {customMessage || (
+            <>
+              GRATULACE!
+              <br />
+              Získáváte dvojnásobný počet bodů!
+            </>
+          )}
         </Typography>
       )}
 

@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
-const IncorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult }) => {
+const IncorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult, customTitle, customMessage }) => {
   return (
     <Box
       sx={{
@@ -27,13 +27,13 @@ const IncorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult 
           fontWeight: 'bold',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
-          mb: exactGuess ? 1 : 3
+          mb: exactGuess || customMessage ? 1 : 3
         }}
       >
-        {exactGuess ? 'Nevadí!' : 'Špatně!'}
+        {customTitle || (exactGuess ? 'Nevadí!' : 'Špatně!')}
       </Typography>
       
-      {exactGuess && (
+      {(exactGuess || customMessage) && (
         <Typography 
           variant="h5" 
           sx={{ 
@@ -43,9 +43,13 @@ const IncorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult 
             px: 2
           }}
         >
-          Druhý tým uhádl přesnou odpověď!
-          <br />
-          Příště to určitě bude lepší.
+          {customMessage || (
+            <>
+              Druhý tým uhádl přesnou odpověď!
+              <br />
+              Příště to určitě bude lepší.
+            </>
+          )}
         </Typography>
       )}
 

@@ -40,7 +40,9 @@ class GameState:
             'player_order': [],         # Order of players in free-for-all
             'team_order': [],           # Order of players in team mode
             'team_indexes': {'red': -1, 'blue': -1},  # Track current index in each team
-            'eliminated_players': set() # Players who ran out of time in free-for-all
+            'eliminated_players': set(), # Players who ran out of time in free-for-all
+            'previous_players': [],      # Last 2 players who played
+            'next_players': []          # Next 2 players in rotation
         }
         
         # Guess a Number specific state
@@ -91,7 +93,9 @@ class GameState:
             'player_timers': {},
             'current_player': None,
             'team_indexes': {'red': -1, 'blue': -1},  # Track current index in each team
-            'eliminated_players': set()
+            'eliminated_players': set(),
+            'previous_players': [],
+            'next_players': []
         }
         
 # Create singleton instance

@@ -4,7 +4,7 @@ Socket.IO events for Word Chain questions
 from flask_socketio import emit
 from .. import socketio
 from ..game_state import game_state
-from ..constants import POINTS_FOR_WORD_CHAIN, POINTS_FOR_LETTER
+from ..constants import POINTS_FOR_WORD_CHAIN, POINTS_FOR_LETTER, POINTS_FOR_SURVIVING_BOMB
 from time import time
 import random
 import requests
@@ -172,29 +172,21 @@ def start_word_chain():
         pass
 
 def award_points_for_word(player_name, word):
-    """Award points for a valid word submission"""
+    """Award points for a valid word submission (only in free-for-all mode)"""
     global game_points  # Add global declaration
 
-    total_points = len(word) * POINTS_FOR_LETTER
-    
-    # Initialize player in game_points if not exists
-    if player_name not in game_points:
-        game_points[player_name] = 0
-    
-    # Add points to game-specific tracker
-    game_points[player_name] += total_points
-    
-    # Award points based on game mode
-    if game_state.is_team_mode:
-        team = get_player_team(player_name)
-        if team:
-            game_state.team_scores[team] += total_points
-    else:
+    if not game_state.is_team_mode:        
+        total_points = len(word) * POINTS_FOR_LETTER
+        
+        # Initialize player in game_points if not exists
+        if player_name not in game_points:
+            game_points[player_name] = 0
+        
+        # Add points to game-specific tracker
+        game_points[player_name] += total_points
+        
         if player_name in game_state.players:
             game_state.players[player_name]['score'] += total_points
-    
-    # Log the points awarded
-    print(f"Word Chain: {player_name} got {total_points} points for word '{word}' ({len(word)} letters)")
 
 def send_word_chain_update():
     """Send word chain update with scores including player colors"""
@@ -212,10 +204,12 @@ def send_word_chain_update():
         'word_chain': game_state.word_chain_state['word_chain'],
         'current_letter': game_state.word_chain_state['current_letter'],
         'current_player': game_state.word_chain_state['current_player'],
+        'previous_players': game_state.word_chain_state['previous_players'],
+        'next_players': game_state.word_chain_state['next_players'],
         'eliminated_players': list(game_state.word_chain_state['eliminated_players']),
         'player_timers': game_state.word_chain_state['player_timers'],
         'scores': scores,
-        'game_points': game_points  # Add game-specific points
+        'game_points': game_points
     })
 
 def handle_word_chain_game_end():
@@ -323,38 +317,69 @@ def get_next_player(current_player):
         # Determine next team (always alternate)
         next_team = 'blue' if current_team == 'red' else 'red'
         
-        # Update the appropriate index
-        team_indexes[next_team] = (team_indexes[next_team] + 1) % len(
-            blue_players if next_team == 'blue' else red_players
-        )
+        # Calculate the immediate next player first
+        next_team_players = blue_players if next_team == 'blue' else red_players
+        next_idx = (team_indexes[next_team] + 1) % len(next_team_players)
+        immediate_next_player = next_team_players[next_idx]
         
-        # Get next player from the appropriate team
-        if next_team == 'blue':
-            next_player = blue_players[team_indexes['blue']]
-        else:
-            next_player = red_players[team_indexes['red']]
-            
-        # Add the next player to the team order (for tracking)
-        game_state.word_chain_state['team_order'].append((next_player, next_team))
+        # Calculate future players for display (get the two players after the immediate next)
+        next_players = []
+        temp_team = next_team
+        temp_indexes = team_indexes.copy()
+        temp_indexes[next_team] = next_idx  # Start from after the immediate next player
         
-        return next_player
+        # Get two players after the immediate next
+        for i in range(2):
+            temp_team = 'blue' if temp_team == 'red' else 'red'
+            players = blue_players if temp_team == 'blue' else red_players
+            temp_idx = (temp_indexes[temp_team] + 1) % len(players)
+            next_players.append(players[temp_idx])
+            temp_indexes[temp_team] = temp_idx
+
+        game_state.word_chain_state['next_players'] = next_players
+        
+        # Update the game state
+        team_indexes[next_team] = next_idx
+        
+        # Update previous and next players arrays
+        game_state.word_chain_state['previous_players'] = [current_player]
+        if len(game_state.word_chain_state['word_chain']) > 1:
+            last_word = game_state.word_chain_state['word_chain'][-2]
+            game_state.word_chain_state['previous_players'].append(last_word['player'])
+        
+        return immediate_next_player
+
     else:
         # Free-for-all mode: use player order
         player_order = game_state.word_chain_state['player_order']
-        # Filter out eliminated players
-        active_players = [p for p in player_order if p not in game_state.word_chain_state['eliminated_players']]
         
-        if not active_players:
-            # No active players left, game should end
+        # Find the index of the current player in the ORIGINAL order
+        # (even if they've just been eliminated)
+        try:
+            original_index = player_order.index(current_player)
+            
+            # Start looking from the next position in the original order
+            next_index = (original_index + 1) % len(player_order)
+            
+            # Now find the next active player starting from this position
+            eliminated_players = game_state.word_chain_state['eliminated_players']
+            
+            # We may need to loop through all players to find the next active one
+            for _ in range(len(player_order)):
+                next_candidate = player_order[next_index]
+                if next_candidate not in eliminated_players:
+                    return next_candidate
+                
+                # Move to the next player in the order
+                next_index = (next_index + 1) % len(player_order)
+                
+            # If we've gone through all players and found none active
             return None
             
-        # Find current player's position
-        try:
-            current_index = active_players.index(current_player)
-            next_index = (current_index + 1) % len(active_players)
-            return active_players[next_index]
         except ValueError:
-            # Current player not found in active players (should not happen)
+            # Current player not found in player_order (shouldn't happen)
+            # Fall back to first non-eliminated player
+            active_players = [p for p in player_order if p not in game_state.word_chain_state['eliminated_players']]
             return active_players[0] if active_players else None
 
 def initialize_team_order():
@@ -493,7 +518,7 @@ def handle_word_chain_time_up(scores):
         
         # Award points to the winning team
         winning_team = 'red' if active_team == 'blue' else 'blue'
-        game_state.team_scores[winning_team] += POINTS_FOR_WORD_CHAIN * 5  # Bonus for winning team
+        game_state.team_scores[winning_team] += POINTS_FOR_SURVIVING_BOMB  # Bonus for winning team
         
         # Update scores
         scores = get_scores_data()
@@ -506,22 +531,7 @@ def handle_word_chain_time_up(scores):
                 'word_chain': game_state.word_chain_state['word_chain'],
                 'exploded_team': active_team,
                 'winning_team': winning_team,
-                'exploded_player': game_state.word_chain_state['current_player']
+                'exploded_player': game_state.word_chain_state['current_player'],
+                'game_points': POINTS_FOR_SURVIVING_BOMB  # Add game-specific points
             }
         )
-    else:
-        # In free-for-all mode, time up should eliminate the current player
-        current_player = game_state.word_chain_state['current_player']
-        if current_player and current_player not in game_state.word_chain_state['eliminated_players']:
-            eliminate_player(current_player)
-            
-            # Check if game should end
-            active_players = [p for p in game_state.word_chain_state['player_order'] 
-                            if p not in game_state.word_chain_state['eliminated_players']]
-            
-            if len(active_players) <= 1:
-                # Game is over
-                handle_word_chain_game_end()
-            else:
-                # Game continues with next player
-                broadcast_word_chain_update()

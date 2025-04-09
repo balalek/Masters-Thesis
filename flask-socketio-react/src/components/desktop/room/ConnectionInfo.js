@@ -28,6 +28,8 @@ const ConnectionInfo = ({ connectionUrl }) => (
     <Box sx={{ textAlign: 'center' }}>
       <Typography variant="h6" gutterBottom>Adresa pro připojení:</Typography>
       <Typography>{connectionUrl}</Typography>
+      <Typography sx={{ pt:1 }}  color="textSecondary">Pro připojení musíte být </Typography>
+      <Typography color="textSecondary">připojeni na stejnou Wi-Fi.</Typography>
     </Box>
   </Box>
 );

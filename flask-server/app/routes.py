@@ -10,6 +10,9 @@ from .services.local_storage_service import LocalStorageService
 from .utils import convert_mongo_doc, get_device_id, check_internet_connection
 from .services.cloudinary_service import CloudinaryService
 from .services.unfinished_quiz_service import UnfinishedQuizService  # Add this import
+from app.socketio_events.word_chain_events import initialize_team_order
+from random import randint
+from app.socketio_events.word_chain_events import start_word_chain
 
 @app.route('/')
 def index():
@@ -199,14 +202,14 @@ def generate_drawing_questions(players, num_rounds, round_length, blue_team=None
 def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
     """
     Generate word chain questions for the specified number of rounds
-    
-    Args:
-        num_rounds (int): Number of rounds to play
-        round_length (int): Length in seconds for each player's turn
-        is_team_mode (bool): Whether we're in team mode
-    
-    Returns:
-        list: List of word chain questions
+        
+        Args:
+            num_rounds (int): Number of rounds to play
+            round_length (int): Length in seconds for each player's turn
+            is_team_mode (bool): Whether we're in team mode
+        
+        Returns:
+            list: List of word chain questions
     """
     try:
         # Get enough words for all rounds
@@ -238,10 +241,46 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
         
         # Initialize player order based on game mode
         if game_state.is_team_mode:
-            from app.socketio_events.word_chain_events import initialize_team_order
             initialize_team_order()
             # Team mode: start with first player in team order
             first_player = game_state.word_chain_state['team_order'][0][0]
+
+            # Calculate the immediate next player first
+            blue_players = game_state.blue_team
+            red_players = game_state.red_team
+            next_team = 'red' if first_player in blue_players else 'blue'
+            team_indexes = {'blue': 0 if first_player in blue_players else -1, 
+                            'red': 0 if first_player in red_players else -1}
+            
+            # Calculate the immediate next player first
+            next_team_players = blue_players if next_team == 'blue' else red_players
+            next_idx = (team_indexes[next_team] + 1) % len(next_team_players)
+            immediate_next_player = next_team_players[next_idx]
+            
+            # Calculate future players for display - start with the immediate next player
+            next_players = [immediate_next_player]  # Include the immediate next player
+            temp_team = next_team
+            temp_indexes = team_indexes.copy()
+            temp_indexes[next_team] = next_idx  # Start after the current player
+            
+            # Get one more player after the immediate next (for a total of 2 next players)
+            for i in range(1):  # Changed from 2 to 1 since we already added the immediate next
+                temp_team = 'blue' if temp_team == 'red' else 'red'
+                players = blue_players if temp_team == 'blue' else red_players
+                temp_idx = (temp_indexes[temp_team] + 1) % len(players)
+                next_players.append(players[temp_idx])
+                temp_indexes[temp_team] = temp_idx
+
+            game_state.word_chain_state['next_players'] = next_players
+
+            # Initialize bomb timer (random between 2-4 mins)
+            #round_length = randint(120, 240) * 1000  # Convert to milliseconds TODO uncomment
+            round_length = 30  # For testing, set to 10 seconds TODO comment
+
+            
+            # In team mode, we don't need player_order
+            if 'player_order' not in game_state.word_chain_state:
+                game_state.word_chain_state['player_order'] = []
         else:
             from app.socketio_events.word_chain_events import initialize_player_order
             initialize_player_order(round_length)
@@ -272,7 +311,8 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
                 "is_team_mode": is_team_mode,
                 "current_player": first_player,
                 "players": game_state.players,
-                "player_order": game_state.word_chain_state['player_order']
+                "player_order": game_state.word_chain_state['player_order'],
+                "next_players": game_state.word_chain_state.get('next_players', [])  # Include next players in question
             }
             word_chain_questions.append(question)
         
@@ -475,7 +515,6 @@ def start_game():
     elif first_question.get('type') == 'WORD_CHAIN':
         # For word chain, use regular preview time
         game_start_at = game_start_time + PREVIEW_TIME
-        from app.socketio_events.word_chain_events import start_word_chain
         start_word_chain()  # Direct call - no threading or background task
     else:
         game_start_at = game_start_time + PREVIEW_TIME # Standard preview time
@@ -558,7 +597,18 @@ def next_question():
         # Reset specific elements of word chain state without losing player order
         game_state.word_chain_state['used_words'] = set()
         game_state.word_chain_state['word_chain'] = []
+        game_state.word_chain_state['word_chain'].append({
+            'word': next_question.get('first_word', ''),
+            'player': 'system',
+            'team': None
+        })
         game_state.word_chain_state['eliminated_players'] = set()
+        
+        # Determine which team the current player belongs to and set indexes accordingly
+        if next_question.get('current_player') in game_state.red_team:
+            game_state.word_chain_state['team_indexes'] = {'red': 0, 'blue': -1}
+        else:
+            game_state.word_chain_state['team_indexes'] = {'red': -1, 'blue': 0}
         
         # Set current player from the next question data
         game_state.word_chain_state['current_player'] = next_question.get('current_player')
@@ -566,6 +616,21 @@ def next_question():
         # Set current letter from the next question's first_letter
         if next_question.get('first_letter'):
             game_state.word_chain_state['current_letter'] = next_question.get('first_letter')
+
+    elif next_question_type == 'WORD_CHAIN':
+        # Initialize word chain state for the first word chain question
+        start_word_chain()  # Initialize the word chain
+
+        game_state.word_chain_state['word_chain'] = []
+        game_state.word_chain_state['word_chain'].append({
+            'word': next_question.get('first_word', ''),
+            'player': 'system',
+            'team': None
+        })
+
+        if next_question.get('first_letter'):
+            game_state.word_chain_state['current_letter'] = next_question.get('first_letter')
+        # Ensure current_letter is set from the question
     
     # Reset other question state
     game_state.reset_question_state()

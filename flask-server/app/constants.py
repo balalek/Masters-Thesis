@@ -22,11 +22,11 @@ MAX_PLAYERS = 10
 
 # Preview time in milliseconds
 PREVIEW_TIME = 5000  # TODO 5 seconds in milliseconds
-PREVIEW_TIME_DRAWING = 10000  # TODO 10 seconds in milliseconds
+PREVIEW_TIME_DRAWING = 8000  # TODO 8 seconds in milliseconds
 START_GAME_TIME = 2000  # TODO 5 seconds in milliseconds
 PHASE_TRANSITION_TIME = 5000  # TODO 5 seconds in milliseconds
-WAITING_TIME = 10
-WAITING_TIME_DRAWING = 15
+WAITING_TIME = 10 # TODO 13s
+WAITING_TIME_DRAWING = 13 # TODO 16s
 
 # Points for ABCD, True/False, Open Answer questions
 POINTS_FOR_CORRECT_ANSWER = 100
@@ -40,6 +40,7 @@ POINTS_FOR_PLACEMENT = 100
 POINTS_FOR_EXACT_ANSWER = 200
 # Free-for-all for word-chain question
 POINTS_FOR_LETTER = 3
+POINTS_FOR_SURVIVING_BOMB = 200
 
 # Quiz validation constants
 QUIZ_VALIDATION = {
