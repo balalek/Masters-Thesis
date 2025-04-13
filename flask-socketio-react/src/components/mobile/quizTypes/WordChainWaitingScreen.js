@@ -1,8 +1,7 @@
 import React from 'react';
-import { Box, Typography, Paper, Chip, List, ListItem, ListItemText } from '@mui/material';
-import CancelIcon from '@mui/icons-material/Cancel';
+import { Box, Typography, Paper, Chip } from '@mui/material';
 
-const WordChainWaitingScreen = ({ currentLetter, currentPlayer, lastWord, eliminatedPlayers = [] }) => {
+const WordChainWaitingScreen = ({ currentLetter, currentPlayer, lastWord }) => {
   return (
     <Box sx={{ 
       display: 'flex', 
@@ -74,35 +73,6 @@ const WordChainWaitingScreen = ({ currentLetter, currentPlayer, lastWord, elimin
           </Box>
         )}
       </Paper>
-      
-      {/* Eliminated players section - only show if there are eliminated players */}
-      {eliminatedPlayers && eliminatedPlayers.length > 0 && (
-        <Paper 
-          elevation={2}
-          sx={{ 
-            p: 2,
-            mt: 2,
-            bgcolor: 'error.light'
-          }}
-        >
-          <Typography variant="h6" color="error.dark" gutterBottom>
-            Vyřazení hráči:
-          </Typography>
-          <List dense>
-            {eliminatedPlayers.map(player => (
-              <ListItem key={player}>
-                <CancelIcon color="error" sx={{ mr: 1 }} />
-                <ListItemText 
-                  primary={player} 
-                  slotProps={{
-                    primary: { sx: { fontWeight: 'medium' } }
-                  }}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </Paper>
-      )}
     </Box>
   );
 };

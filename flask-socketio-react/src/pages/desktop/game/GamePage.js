@@ -8,6 +8,7 @@ import OpenAnswerQuiz from '../../../components/desktop/quizTypes/OpenAnswerQuiz
 import GuessANumberQuiz from '../../../components/desktop/quizTypes/GuessANumberQuiz';
 import DrawingQuiz from '../../../components/desktop/quizTypes/DrawingQuiz';
 import WordChainQuiz from '../../../components/desktop/quizTypes/WordChainQuiz';
+import MathQuiz from '../../../components/desktop/quizTypes/MathQuiz'; // Add this import
 
 function GamePage() {
   const location = useLocation();
@@ -55,6 +56,11 @@ function GamePage() {
         navigationState.question.winning_team = data.winning_team;
         navigationState.question.exploded_team = data.exploded_team;
         navigationState.question.exploded_player = data.exploded_player;
+      } else if (question?.type === 'MATH_QUIZ') {
+        // Add math quiz specific data from server response
+        navigationState.question.sequences = data.sequences || [];
+        navigationState.question.player_answers = data.player_answers || {};
+        navigationState.question.eliminated_players = data.eliminated_players || [];
       } else {
         navigationState.answerCounts = data.answer_counts;
       }
@@ -113,7 +119,8 @@ function GamePage() {
     // First check if the question is not null, if yes, then wait for question to be set
     if (question && location.state?.question_end_time && 
       (question.type !== 'GUESS_A_NUMBER' || activeTeam === null) &&
-      (question.type !== 'WORD_CHAIN' || question.is_team_mode)) {  // Allow WORD_CHAIN timer in team mode
+      (question.type !== 'WORD_CHAIN' || question.is_team_mode) &&
+      (question.type !== 'MATH_QUIZ')) {
       console.log('Hello? question type:', question?.type);
       const timer = setTimeout(() => {
         const socket = getSocket();
@@ -170,6 +177,11 @@ function GamePage() {
         />;
       case 'WORD_CHAIN':
         return <WordChainQuiz 
+          question={question} 
+          question_end_time={location.state?.question_end_time}
+        />;
+      case 'MATH_QUIZ':
+        return <MathQuiz 
           question={question} 
           question_end_time={location.state?.question_end_time}
         />;

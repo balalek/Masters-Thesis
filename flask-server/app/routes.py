@@ -13,6 +13,7 @@ from .services.unfinished_quiz_service import UnfinishedQuizService  # Add this 
 from app.socketio_events.word_chain_events import initialize_team_order
 from random import randint
 from app.socketio_events.word_chain_events import start_word_chain
+from app.socketio_events.math_quiz_events import initialize_math_quiz
 
 @app.route('/')
 def index():
@@ -516,6 +517,17 @@ def start_game():
         # For word chain, use regular preview time
         game_start_at = game_start_time + PREVIEW_TIME
         start_word_chain()  # Direct call - no threading or background task
+    elif first_question.get('type') == 'MATH_QUIZ':
+        game_start_at = game_start_time + PREVIEW_TIME
+        initialize_math_quiz(True) # isFirstQuestion=True
+        first_question['is_team_mode'] = game_state.is_team_mode  # Include team mode in the question
+        first_question['blue_team'] = game_state.blue_team  # Include blue team in the question
+        first_question['red_team'] = game_state.red_team  # Include red team in the question
+        # Set a proper title for the Math Quiz question
+        first_question['question'] = "Matematický kvíz - vyřazovací hra"
+        # Add players to the question like in word chain
+        first_question['players'] = game_state.players
+        
     else:
         game_start_at = game_start_time + PREVIEW_TIME # Standard preview time
 
@@ -634,6 +646,17 @@ def next_question():
     
     # Reset other question state
     game_state.reset_question_state()
+
+    # For Math Quiz questions, initialize the state
+    if next_question_type == 'MATH_QUIZ':
+        initialize_math_quiz(False)  # IsFirstQuestion=False
+        next_question['is_team_mode'] = game_state.is_team_mode  # Include team mode in the question
+        next_question['blue_team'] = game_state.blue_team  # Include blue team in the question
+        next_question['red_team'] = game_state.red_team  # Include red team in the question
+        # Set a proper title for the Math Quiz question
+        next_question['question'] = "Matematický kvíz - vyřazovací hra"
+        # Add players to the question like in word chain
+        next_question['players'] = game_state.players
     
     # Move to the next question
     game_state.current_question = next_question_index

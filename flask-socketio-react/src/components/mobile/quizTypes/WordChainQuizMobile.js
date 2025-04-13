@@ -220,7 +220,6 @@ const WordChainQuizMobile = ({ onAnswer, question, playerName }) => {
         currentLetter={currentLetter}
         currentPlayer={currentPlayer}
         lastWord={lastAddedWord}
-        eliminatedPlayers={eliminatedPlayers}
       />
     );
   }

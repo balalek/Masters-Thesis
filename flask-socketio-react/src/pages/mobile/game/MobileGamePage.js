@@ -23,6 +23,9 @@ import DrawerResultScreen from '../../../components/mobile/DrawerResultScreen';
 import DrawerWaitingScreen from '../../../components/mobile/quizTypes/DrawerWaitingScreen';
 import WordChainQuizMobile from '../../../components/mobile/quizTypes/WordChainQuizMobile';
 import WordChainResult from '../../../components/mobile/quizTypes/WordChainResult';
+import MathQuizMobile from '../../../components/mobile/quizTypes/MathQuizMobile';
+import MathQuizCorrectAnswer from '../../../components/mobile/MathQuizCorrectAnswer';
+import MathQuizEliminatedAnswer from '../../../components/mobile/MathQuizEliminatedAnswer';
 import { DRAWER_EXTRA_TIME } from '../../../constants/quizValidation';
 
 const MobileGamePage = () => {
@@ -57,6 +60,73 @@ const MobileGamePage = () => {
   const [canvasVisible, setCanvasVisible] = useState(false); // State for controlling canvas visibility
   const [drawerLate, setDrawerLate] = useState(false); // State for detecting late word selection
   const [wordChainResults, setWordChainResults] = useState(null); // State for word chain results
+  // Add new state variables for math quiz results
+  const [mathQuizResults, setMathQuizResults] = useState(null); // State for math quiz results
+  const [wasEliminated, setWasEliminated] = useState(false);
+
+  // Function to process Math Quiz results
+  const processMathQuizResults = (data, playerName, teamName, question) => {
+    const isTeamMode = data.scores?.is_team_mode || false;
+    // In team mode, we determine team elimination rather than individual elimination
+    const eliminated = isTeamMode 
+      ? (teamName === 'blue' 
+          ? data.eliminated_players?.filter(p => data.scores?.blue_team?.includes(p))?.length === data.scores?.blue_team?.length
+          : data.eliminated_players?.filter(p => data.scores?.red_team?.includes(p))?.length === data.scores?.red_team?.length)
+      : data.eliminated_players?.includes(playerName) || false;
+    
+    const totalSequences = data.sequences?.length || 0;
+    let correctCount = 0;
+    let pointsEarnedThisQuestion = 0;
+    let currentTotalPoints = 0;
+    let eliminationSequence = totalSequences; // Default to total if not eliminated - fixed to avoid "4 z 3"
+
+    if (isTeamMode) {
+      // Team mode calculations
+      pointsEarnedThisQuestion = data.math_quiz_points?.team_points?.[teamName] || 0;
+      currentTotalPoints = data.scores?.teams?.[teamName] || 0;
+      
+      // Count correct sequences for the team
+      for (let i = 0; i < totalSequences; i++) {
+        const teamAnswersForSeq = data.player_answers?.[i]?.filter(ans => ans.team === teamName && ans.correct);
+        if (teamAnswersForSeq && teamAnswersForSeq.length > 0) {
+          correctCount++;
+        } else if (eliminated && eliminationSequence === totalSequences) {
+          // If team was eliminated, find first sequence the team didn't answer correctly
+          eliminationSequence = i + 1; 
+        }
+      }
+    } else {
+      // Free-for-all calculations
+      pointsEarnedThisQuestion = data.math_quiz_points?.player_points?.[playerName] || 0;
+      currentTotalPoints = data.scores?.[playerName]?.score || 0;
+
+      // Count correct sequences for the player
+      for (let i = 0; i < totalSequences; i++) {
+        const playerAnswerForSeq = data.player_answers?.[i]?.find(ans => ans.player === playerName && ans.correct);
+        if (playerAnswerForSeq) {
+          correctCount++;
+        } else if (eliminated && eliminationSequence === totalSequences) {
+          // If player was eliminated, find first sequence they didn't answer correctly
+          eliminationSequence = i + 1;
+        }
+      }
+    }
+    
+    const results = {
+      correctCount: correctCount,
+      totalCount: totalSequences,
+      currentSequence: Math.min(eliminationSequence, totalSequences), // Never exceed totalCount
+      isTeamMode: isTeamMode,
+      teamName: teamName
+    };
+
+    return {
+      results,
+      eliminated,
+      pointsEarnedThisQuestion,
+      currentTotalPoints
+    };
+  };
 
   useEffect(() => {
     const socket = getSocket();
@@ -73,6 +143,8 @@ const MobileGamePage = () => {
       setCanvasVisible(false); // Explicitly reset canvas visibility to false for every new question
       setDrawerLate(false); // Reset the drawerLate state for new questions
       setWordChainResults(null); // Reset word chain results for new questions
+      setMathQuizResults(null); // Reset math quiz results
+      setWasEliminated(false); // Reset elimination status
       
       // Check if player is drawer for current question - don't hide buttons for drawer
       const isNextDrawer = data.drawer === playerName || data.question.player === playerName;
@@ -135,6 +207,25 @@ const MobileGamePage = () => {
 
     socket.on('all_answers_received', (data) => {
       console.log('all_answers_received event received in MobileGamePage:', data);
+      
+      // Process Math Quiz results specifically
+      if (question?.type === 'MATH_QUIZ') {
+        const { 
+          results, 
+          eliminated, 
+          pointsEarnedThisQuestion, 
+          currentTotalPoints 
+        } = processMathQuizResults(data, playerName, teamName, question);
+        
+        setWasEliminated(eliminated);
+        setPointsEarned(pointsEarnedThisQuestion);
+        setTotalPoints(currentTotalPoints);
+        setMathQuizResults(results);
+
+        setShowResult(true); // Ensure result screen is shown for math quiz
+        setLoading(true); // Show loading briefly before result screen
+        // No return here, let the general logic below handle the rest if needed
+      }
       
       // Skip setting showResult for GUESS_A_NUMBER questions in free-for-all mode only
       // In team mode or for other question types, show the result
@@ -414,6 +505,17 @@ const MobileGamePage = () => {
     });
   };
 
+  // Add handler for math answers
+  const handleMathAnswer = (answer) => {
+    const socket = getSocket();
+    
+    socket.emit('submit_math_answer', {
+      player_name: playerName,
+      answer: answer,
+      answer_time: getServerTime()
+    });
+  };
+
   if (showFinalScore && finalScoreData) {
     return (
       <MobileFinalScore
@@ -462,10 +564,33 @@ const MobileGamePage = () => {
   }
 
   if (showResult) {
+    // Check if we should show math quiz results first
+    if (question?.type === "MATH_QUIZ" && mathQuizResults) { // Check if mathQuizResults is populated
+      if (wasEliminated) {
+        return <MathQuizEliminatedAnswer 
+          points_earned={pointsEarned}
+          total_points={totalPoints}
+          currentSequence={mathQuizResults.currentSequence}
+          totalSequences={mathQuizResults.totalCount}
+          isTeamMode={mathQuizResults.isTeamMode}
+          teamName={mathQuizResults.teamName}
+        />;
+      } else {
+        return <MathQuizCorrectAnswer 
+          points_earned={pointsEarned}
+          total_points={totalPoints}
+          correctCount={mathQuizResults.correctCount}
+          totalCount={mathQuizResults.totalCount}
+          isTeamMode={mathQuizResults.isTeamMode}
+          teamName={mathQuizResults.teamName}
+        />;
+      }
+    }
+    
     // Check if this player is the drawer for a drawing question
     const isDrawer = question?.type === 'DRAWING' && question?.player === playerName;
     
-    // Check for word chain results first
+    // Check for word chain results next
     if (question?.type === 'WORD_CHAIN' && wordChainResults) {
       // Special handling for team mode word chain results
       if (wordChainResults.isTeamMode && wordChainResults.winningTeam && teamName) {
@@ -591,6 +716,12 @@ const MobileGamePage = () => {
           onAnswer={handleWordChainSubmit}
           question={question} // Pass the question data to component
           playerName={playerName} // Add playerName prop
+        />;
+      case 'MATH_QUIZ':
+        return <MathQuizMobile 
+          onAnswer={handleMathAnswer}
+          question={question}
+          playerName={playerName}
         />;
       case 'GUESS_A_NUMBER':
         // Check if we're in free-for-all mode (not team mode)

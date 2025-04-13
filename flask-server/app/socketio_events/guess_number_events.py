@@ -624,11 +624,13 @@ def handle_guess_number_time_up(scores):
                 game_state.number_guess_phase = 2
                 game_state.active_team = 'red' if game_state.active_team == 'blue' else 'blue'
                 update_player_roles_for_phase2()
-
+                
                 # Calculate absolute timestamps instead of durations
                 current_time = int(time() * 1000)
                 transition_end_time = current_time + PHASE_TRANSITION_TIME
 
+                game_state.answer_counts = [0, 0, 0, 0]
+                game_state.answers_received = 0
                 game_state.voted_players = {}  # Reset voted players for the new phase
                 
                 # Notify the UI about the phase transition - sending absolute timestamp

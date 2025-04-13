@@ -45,6 +45,21 @@ class GameState:
             'next_players': []          # Next 2 players in rotation
         }
         
+        # Math Quiz specific state
+        self.math_quiz_state = {
+            'current_sequence': 0,       # Current equation index
+            'eliminated_players': set(),  # Players who answered incorrectly
+            'player_answers': {},         # Map of sequence index -> array of player answers
+            'team_answers': {},           # Map of team -> sequence index -> array of player answers
+            'sequence_start_times': {}    # Map of sequence index -> start time
+        }
+        
+        # Points specifically earned in the current math quiz question
+        self.math_quiz_points = {
+            'player_points': {},  # Map of player -> points earned in this quiz
+            'team_points': {'blue': 0, 'red': 0}  # Points earned by each team in this quiz
+        }
+        
         # Guess a Number specific state
         self.number_guess_phase = 1  # 1 = first team guessing, 2 = second team more/less
         self.first_team_final_answer = None  # The final answer from the first team
@@ -83,6 +98,21 @@ class GameState:
         self.first_team_final_answer = None
         self.team_player_guesses = {'blue': [], 'red': []}
         self.voted_players = {}
+
+        # Reset math quiz specific state
+        self.math_quiz_state = {
+            'current_sequence': 0,
+            'eliminated_players': set(),
+            'player_answers': {},
+            'team_answers': {},
+            'sequence_start_times': {}
+        }
+        
+        # Reset math quiz points
+        self.math_quiz_points = {
+            'player_points': {},
+            'team_points': {'blue': 0, 'red': 0}
+        }
 
     def reset_word_chain_state(self):
         """Reset state for word chain questions"""

@@ -49,7 +49,7 @@ export const QUIZ_VALIDATION = {
 export const MAX_PLAYERS = 10;
 
 // Extra time for the drawer in seconds - must be consistent with the server PREVIEW_TIME_DRAWING
-export const DRAWER_EXTRA_TIME = 10000; 
+export const DRAWER_EXTRA_TIME = 8000; 
 
 // Categories for questions with types ABCD, True/False, Open Answer, Guess a Number
 export const QUIZ_CATEGORIES = [

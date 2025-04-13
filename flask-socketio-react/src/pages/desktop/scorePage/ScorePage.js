@@ -9,6 +9,7 @@ import Leaderboard from '../../../components/desktop/Leaderboard';
 import GuessNumberResult from '../../../components/desktop/answerTypes/GuessNumberResult';
 import DrawingAnswerResult from '../../../components/desktop/answerTypes/DrawingAnswerResult';
 import WordChainResults from '../../../components/desktop/answerTypes/WordChainResults';
+import MathQuizResults from '../../../components/desktop/answerTypes/MathQuizResults';
 
 const ScorePage = () => {
   const location = useLocation();
@@ -182,6 +183,13 @@ const ScorePage = () => {
           lastPlayer={question.last_player || question.current_player}
           explodedTeam={question.exploded_team}
           explodedPlayer={question.exploded_player}
+        />;
+      case 'MATH_QUIZ':
+        return <MathQuizResults 
+          sequences={question.sequences || []}
+          eliminatedPlayers={question.eliminated_players || []}
+          isTeamMode={scores.is_team_mode}
+          playerAnswers={question.player_answers || {}}
         />;
       case 'ABCD':
       default:

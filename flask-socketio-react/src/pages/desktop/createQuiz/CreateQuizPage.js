@@ -217,7 +217,8 @@ const CreateQuizPage = () => {
                 sequences: q.sequences?.map(seq => ({
                   id: Date.now() + Math.random(),
                   equation: seq.equation || '',
-                  answer: seq.answer || '',
+                  // Fix: Use nullish coalescing to preserve zero values
+                  answer: seq.answer !== undefined && seq.answer !== null ? seq.answer : '',
                   length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT
                 })) || []
               };

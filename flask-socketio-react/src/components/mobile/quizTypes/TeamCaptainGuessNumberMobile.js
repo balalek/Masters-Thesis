@@ -142,9 +142,11 @@ const TeamCaptainGuessNumberMobile = ({ onAnswer, teamName }) => {
                   value={customAnswer}
                   onChange={(e) => setCustomAnswer(e.target.value)}
                   type="number"
-                  inputProps={{ 
-                    inputMode: 'decimal',
-                    pattern: '[0-9]*(\.[0-9]+)?'
+                  slotProps={{ 
+                    input: {
+                      inputMode: 'decimal',
+                      pattern: '[0-9]*(\.[0-9]+)?'
+                    }
                   }}
                   sx={{ 
                     mb: 2,

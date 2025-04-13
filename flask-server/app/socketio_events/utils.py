@@ -57,6 +57,7 @@ def emit_all_answers_received(scores, correct_answer, additional_data=None):
     # Add any additional data provided
     data.update(additional_data)
     
+    print (f"Emitting eliminated players: {game_state.math_quiz_state['eliminated_players']}")
     # Emit the event
     socketio.emit('all_answers_received', data)
     

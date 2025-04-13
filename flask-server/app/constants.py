@@ -25,13 +25,15 @@ PREVIEW_TIME = 5000  # TODO 5 seconds in milliseconds
 PREVIEW_TIME_DRAWING = 8000  # TODO 8 seconds in milliseconds
 START_GAME_TIME = 2000  # TODO 5 seconds in milliseconds
 PHASE_TRANSITION_TIME = 5000  # TODO 5 seconds in milliseconds
-WAITING_TIME = 10 # TODO 13s
-WAITING_TIME_DRAWING = 13 # TODO 16s
+WAITING_TIME = 13 # 10 TODO 13s
+WAITING_TIME_DRAWING = 16 # 13 TODO 16s
 
 # Points for ABCD, True/False, Open Answer questions
 POINTS_FOR_CORRECT_ANSWER = 100
 # Points for Word Chain
 POINTS_FOR_WORD_CHAIN = 50
+# Points for Math Quiz
+POINTS_FOR_MATH_CORRECT_ANSWER = 75
 # Team play for Guess a Number question
 POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER = 150
 POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER_FIRST_PHASE = 300 # Double points in First phase of Guess a Number

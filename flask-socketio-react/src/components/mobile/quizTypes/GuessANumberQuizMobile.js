@@ -137,9 +137,11 @@ const GuessANumberQuizMobile = ({ onAnswer, playerRole = 'player' }) => {
             autoFocus
             autoComplete="off"
             type="number"
-            inputProps={{ 
-              inputMode: 'decimal',
-              pattern: '[0-9]*(\.[0-9]+)?'
+            slotProps={{ 
+              input: { 
+                inputMode: 'decimal',
+                pattern: '[0-9]*(\.[0-9]+)?'
+              } 
             }}
             sx={{ 
               flex: 3,
