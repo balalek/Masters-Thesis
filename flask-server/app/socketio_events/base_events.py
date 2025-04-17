@@ -97,6 +97,9 @@ def handle_time_up():
     elif question_type == 'MATH_QUIZ':
         from .math_quiz_events import handle_math_quiz_time_up
         handle_math_quiz_time_up(scores)
+    elif question_type == 'BLIND_MAP':
+        from .blind_map_events import handle_blind_map_time_up
+        handle_blind_map_time_up(scores)
     else:
         # ABCD and TRUE_FALSE questions
         from .abcd_events import handle_abcd_time_up

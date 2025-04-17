@@ -14,6 +14,7 @@ from app.socketio_events.word_chain_events import initialize_team_order
 from random import randint
 from app.socketio_events.word_chain_events import start_word_chain
 from app.socketio_events.math_quiz_events import initialize_math_quiz
+from app.socketio_events.blind_map_events import initialize_blind_map
 
 @app.route('/')
 def index():
@@ -527,6 +528,9 @@ def start_game():
         first_question['question'] = "Matematický kvíz - vyřazovací hra"
         # Add players to the question like in word chain
         first_question['players'] = game_state.players
+    elif first_question.get('type') == 'BLIND_MAP':
+        game_start_at = game_start_time + PREVIEW_TIME
+        initialize_blind_map()
         
     else:
         game_start_at = game_start_time + PREVIEW_TIME # Standard preview time
@@ -658,6 +662,9 @@ def next_question():
         # Add players to the question like in word chain
         next_question['players'] = game_state.players
     
+    if next_question_type == 'BLIND_MAP':
+        initialize_blind_map()
+
     # Move to the next question
     game_state.current_question = next_question_index
     

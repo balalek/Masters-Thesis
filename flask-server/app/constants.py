@@ -43,6 +43,10 @@ POINTS_FOR_EXACT_ANSWER = 200
 # Free-for-all for word-chain question
 POINTS_FOR_LETTER = 3
 POINTS_FOR_SURVIVING_BOMB = 200
+# Points for blind map quiz
+ANAGRAM_PHASE_POINTS = 100
+MAP_PHASE_POINTS = 100
+BLIND_MAP_TEAM_MODE_POINTS = 200
 
 # Quiz validation constants
 QUIZ_VALIDATION = {

@@ -12,6 +12,8 @@ from .abcd_events import *
 from .open_answer_events import *
 from .guess_number_events import *
 from .drawing_events import *  # Import the new drawing events
+from .math_quiz_events import * # TODO why did it worked without this?
+from .blind_map_events import *  # Import the new blind map events
 
 # Initialize the module
 def init_socketio(app):

@@ -70,6 +70,21 @@ class GameState:
         self.active_team = None  # Currently active team ('blue' or 'red')
         self.voted_players = {}  # Players who have voted in the current question and what they voted for
 
+        # Blind Map specific state
+        self.blind_map_state = {
+            'phase': 1,                   # Current phase (1 or 2 or 3)
+            'correct_players': set(),     # Set of players who solved the anagram
+            'correct_order': [],          # Order in which players solved the anagram
+            'anagram_points': {},         # Points earned in anagram phase by player
+            'player_locations': {},       # Player locations in map phase
+            'location_results': {},       # Results of location submissions
+            'winning_team': None,         # Team that solved the anagram first (team mode)
+            'team_guesses': {},           # Team member guesses on map
+            'captain_guesses': {},        # Team captains' final guesses
+            'clue_index': 0,              # Current clue index (0-2)
+            'results': {}                 # Final results for score page
+        }
+
     def reset(self):
         self.__init__()
         
@@ -112,6 +127,21 @@ class GameState:
         self.math_quiz_points = {
             'player_points': {},
             'team_points': {'blue': 0, 'red': 0}
+        }
+
+        # Reset blind map specific state
+        self.blind_map_state = {
+            'phase': 1,
+            'correct_players': set(),
+            'correct_order': [],
+            'anagram_points': {},
+            'player_locations': {},
+            'location_results': {},
+            'winning_team': None,
+            'team_guesses': {},
+            'captain_guesses': {},
+            'clue_index': 0,
+            'results': {}
         }
 
     def reset_word_chain_state(self):

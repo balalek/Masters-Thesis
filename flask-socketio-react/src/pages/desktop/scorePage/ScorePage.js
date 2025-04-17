@@ -10,6 +10,7 @@ import GuessNumberResult from '../../../components/desktop/answerTypes/GuessNumb
 import DrawingAnswerResult from '../../../components/desktop/answerTypes/DrawingAnswerResult';
 import WordChainResults from '../../../components/desktop/answerTypes/WordChainResults';
 import MathQuizResults from '../../../components/desktop/answerTypes/MathQuizResults';
+import BlindMapResult from '../../../components/desktop/answerTypes/BlindMapResult'; // Add this import
 
 const ScorePage = () => {
   const location = useLocation();
@@ -60,7 +61,8 @@ const ScorePage = () => {
                     showGameAt: showQuestionPreviewAt + data.preview_time,
                     question_end_time: question_end_time,
                     is_last_question: data.is_last_question,
-                    activeTeam: data.active_team
+                    activeTeam: data.active_team,
+                    blind_map_is_team_play: data.activeTeam !== null
                   } 
                 });
               }
@@ -132,10 +134,8 @@ const ScorePage = () => {
   // Add logging to inspect what question data we're receiving
   useEffect(() => {
     console.log('ScorePage question data:', {
-      type: question?.type,
-      correctAnswer,
-      answerCounts,
-      playerAnswers: question?.playerAnswers || []
+      question: question,
+      locationState: location.state
     });
   }, [question, correctAnswer, answerCounts]);
 
@@ -190,6 +190,16 @@ const ScorePage = () => {
           eliminatedPlayers={question.eliminated_players || []}
           isTeamMode={scores.is_team_mode}
           playerAnswers={question.player_answers || {}}
+        />;
+      case 'BLIND_MAP':
+        // Make sure to pass blind map data directly to the component
+        return <BlindMapResult 
+          question={question} 
+          team_guesses={location.state?.team_guesses || question?.team_guesses}
+          captain_guesses={location.state?.captain_guesses || question?.captain_guesses}
+          player_locations={location.state?.player_locations || question?.player_locations}
+          winning_team={location.state?.winning_team || question?.winning_team}
+          is_team_mode={location.state?.is_team_mode || question?.is_team_mode}
         />;
       case 'ABCD':
       default:

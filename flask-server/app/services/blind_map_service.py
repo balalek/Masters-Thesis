@@ -13,12 +13,12 @@ class BlindMapService:
         return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
     
     @staticmethod
-    def calculate_score(question_id: str, user_x: float, user_y: float) -> Dict[str, Any]:
-        """Calculate the score for a blind map guess."""
+    def check_location_guess(question_id: str, user_x: float, user_y: float) -> Dict[str, Any]:
+        """Check if a location guess is within the correct radius."""
         # Get the question
         question = db.questions.find_one({"_id": ObjectId(question_id)})
         if not question:
-            return {"score": 0, "correct": False, "message": "Otázka nenalezena"}
+            return {"correct": False, "message": "Otázka nenalezena", "correctLocation": {"x": 0, "y": 0}}
         
         # Get the correct location
         correct_x = question.get("location_x", 0)
@@ -33,11 +33,10 @@ class BlindMapService:
         # Get the presets
         presets = QUIZ_VALIDATION["BLIND_MAP_RADIUS_PRESETS"]
         
-        # Exact hit
+        # Check if within radius
         exact_radius = presets[radius_preset]["exact"]
         if distance <= exact_radius:
             return {
-                "score": 100, 
                 "correct": True,
                 "message": "Přesné umístění!",
                 "correctLocation": {"x": correct_x, "y": correct_y}
@@ -58,7 +57,6 @@ class BlindMapService:
         
         # No score
         return {
-            "score": 0,
             "correct": False,
             "message": "Špatné umístění",
             "correctLocation": {"x": correct_x, "y": correct_y}

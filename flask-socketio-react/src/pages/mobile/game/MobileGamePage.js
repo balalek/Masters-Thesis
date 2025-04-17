@@ -27,6 +27,7 @@ import MathQuizMobile from '../../../components/mobile/quizTypes/MathQuizMobile'
 import MathQuizCorrectAnswer from '../../../components/mobile/MathQuizCorrectAnswer';
 import MathQuizEliminatedAnswer from '../../../components/mobile/MathQuizEliminatedAnswer';
 import { DRAWER_EXTRA_TIME } from '../../../constants/quizValidation';
+import BlindMapRoleHandler from '../../../components/mobile/quizTypes/BlindMapRoleHandler';
 
 const MobileGamePage = () => {
   const location = useLocation();
@@ -63,6 +64,7 @@ const MobileGamePage = () => {
   // Add new state variables for math quiz results
   const [mathQuizResults, setMathQuizResults] = useState(null); // State for math quiz results
   const [wasEliminated, setWasEliminated] = useState(false);
+  const [customTitle, setCustomTitle] = useState(null); // State for custom title in results
 
   // Function to process Math Quiz results
   const processMathQuizResults = (data, playerName, teamName, question) => {
@@ -145,6 +147,8 @@ const MobileGamePage = () => {
       setWordChainResults(null); // Reset word chain results for new questions
       setMathQuizResults(null); // Reset math quiz results
       setWasEliminated(false); // Reset elimination status
+      setCustomTitle(null); // Reset custom title for new question
+      setPointsEarned(0); // Reset points earned for new question
       
       // Check if player is drawer for current question - don't hide buttons for drawer
       const isNextDrawer = data.drawer === playerName || data.question.player === playerName;
@@ -164,6 +168,8 @@ const MobileGamePage = () => {
       setIsCorrect(data.correct);
       setPointsEarned(data.points_earned);
       setTotalPoints(data.total_points);
+
+      setCustomTitle(data.custom_title || null);
       
       // Handle guess-a-number placement data for free for all mode
       if (data.guessResult && data.correct !== null && !data.exactGuess) {
@@ -208,6 +214,41 @@ const MobileGamePage = () => {
     socket.on('all_answers_received', (data) => {
       console.log('all_answers_received event received in MobileGamePage:', data);
       
+      // check also if its team mode
+      if (question?.type === 'BLIND_MAP' && !data.scores.is_team_mode) {
+        let playerScore = 0;
+        let pointsFromAnagram = 0;
+
+        // Free-for-all mode - get individual player score
+        playerScore = data.scores[playerName]?.score || 0;
+        
+        // Extract anagram points from results if available
+        if (data.anagram_points) {
+          pointsFromAnagram = data.anagram_points[playerName] || 0;
+        }
+        
+        // Check if this player submitted a location in phase 2
+        let playerSubmittedLocation = undefined;
+        if (data.player_locations) {
+          // Find player in the locations array by checking playerName property
+          Object.values(data.player_locations).forEach(location => {
+            if (location.playerName === playerName) {
+              playerSubmittedLocation = location;
+            }
+          });
+        }
+        console.log('Player submitted locations:', data.player_locations, 'player:', playerSubmittedLocation);
+
+        // Only set total points for everyone (safe)
+        setTotalPoints(playerScore);
+
+        // ONLY set pointsEarned for players who didn't submit a location
+        if (!playerSubmittedLocation) {
+          console.log('Setting pointsEarned for player:', playerName, 'points:', pointsFromAnagram);
+          setPointsEarned(pointsFromAnagram);
+        }
+      }
+
       // Process Math Quiz results specifically
       if (question?.type === 'MATH_QUIZ') {
         const { 
@@ -407,6 +448,29 @@ const MobileGamePage = () => {
     }
   }, [canvasVisible, selectedWord, question, playerName]);
 
+  /*useEffect(() => {
+    const socket = getSocket();
+    
+    // ...existing socket listeners...
+    
+    // Only handle the global successful feedback here, local feedback handled in components
+    socket.on('blind_map_feedback', (data) => {
+      // Only handle global success feedback that should affect the MobileGamePage
+      if (data.isCorrect && data.points_earned !== undefined) {
+        setIsCorrect(true);
+        setPointsEarned(data.points_earned || 0);
+        setTotalPoints(data.total_points || 0);
+        setShowResult(true);
+        setLoading(true);
+      }
+    });
+
+    return () => {
+      // ...existing cleanup...
+      socket.off('blind_map_feedback');
+    };
+  }, [navigate, playerName, finalScoreData, question, showGuessPlacement]);*/
+
   const handleAnswer = (index) => {
     const socket = getSocket();
     const answerTime = getServerTime();  // Get the current server time
@@ -514,6 +578,13 @@ const MobileGamePage = () => {
       answer: answer,
       answer_time: getServerTime()
     });
+  };
+
+  // Add handlers for blind map submissions
+  const handleBlindMapAnswer = (answer) => {
+    // This is a proxy function that will be passed to the BlindMapRoleHandler
+    // The actual submission happens in the handler component
+    console.log("Handling blind map answer");
   };
 
   if (showFinalScore && finalScoreData) {
@@ -646,20 +717,26 @@ const MobileGamePage = () => {
         />;
       }
       // For everyone else, show the normal "too late" screen
-      return <TooLateAnswer total_points={totalPoints} />;
+      if (question?.type === 'BLIND_MAP') {
+        return <TooLateAnswer total_points={totalPoints} points_earned={pointsEarned} />;
+      } else {
+        return <TooLateAnswer total_points={totalPoints} />;
+      }
     }
     return isCorrect ? 
       <CorrectAnswer 
         points_earned={pointsEarned} 
         total_points={totalPoints} 
         exactGuess={exactGuess} 
-        guessResult={guessResult} 
+        guessResult={guessResult}
+        customTitle={customTitle}
       /> : 
       <IncorrectAnswer 
         points_earned={pointsEarned} 
         total_points={totalPoints} 
         exactGuess={exactGuess} 
         guessResult={guessResult} 
+        customTitle={customTitle}
       />;
   }
 
@@ -756,6 +833,15 @@ const MobileGamePage = () => {
               : "Čekej, nyní hraje druhý tým"}
           />;
         }
+      case 'BLIND_MAP':
+        return (
+          <BlindMapRoleHandler 
+            onAnswer={handleBlindMapAnswer}
+            playerName={playerName}
+            questionId={question._id}
+            teamName={teamName != "Unknown Team" ? teamName : null}
+          />
+        );
       default:
         console.warn('Unknown question type:', questionType); // Debug log
         return <ABCDQuizMobile onAnswer={handleAnswer} />;

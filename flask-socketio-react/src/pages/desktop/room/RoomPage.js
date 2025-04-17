@@ -329,7 +329,8 @@ const RoomPage = () => {
         showGameAt: gameData.show_game_at,
         question_end_time: question_end_time,
         is_last_question: gameData.is_last_question,
-        activeTeam: gameData.active_team
+        activeTeam: gameData.active_team,
+        blind_map_is_team_play: selectedMode === 'team'
       } 
     });
   };

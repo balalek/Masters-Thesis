@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import TimerOffIcon from '@mui/icons-material/TimerOff';  // Using timer icon for "too late"
 
-const TooLateAnswer = ({ total_points }) => {
+const TooLateAnswer = ({ total_points, points_earned = 0 }) => {
   return (
     <Box
       sx={{
@@ -40,7 +40,7 @@ const TooLateAnswer = ({ total_points }) => {
           fontWeight: 'light'
         }}
       >
-        +0 bodů
+        +{points_earned} bodů
       </Typography>
 
       <Box sx={{ mt: 3, textAlign: 'center' }}>
