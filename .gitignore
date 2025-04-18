@@ -1,3 +1,5 @@
 flask-socketio-react/node_modules
+flask-socketio-react/build
+flask-server/static
 .env
 .idea

@@ -5,14 +5,22 @@ a = Analysis(
     ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[('static', 'static')],
+    datas=[
+        ('static', 'static'),
+        ('templates', 'templates'),
+        ('app/resources', 'app/resources')
+    ],
     hiddenimports=[
         'engineio.async_drivers.threading',
         'flask_socketio',
         'socketio',
         'engineio',
         'requests',
-        'urllib3'
+        'urllib3',
+        'pymongo',
+        'bson',
+        'cloudinary',
+        'tinydb'
     ],
     hookspath=[],
     hooksconfig={},
@@ -40,7 +48,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,  # Set to True temporarily for debugging
+    console=True,  # Changed from False to True to show console output
     disable_windowed_traceback=False,
     target_arch=None,
     codesign_identity=None,

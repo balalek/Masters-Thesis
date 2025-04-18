@@ -54,6 +54,7 @@ const ScorePage = () => {
                 const current_time = getServerTime();
                 const game_time = showQuestionPreviewAt + data.preview_time - current_time; // Time until game starts
                 const question_end_time = current_time + (data.question.length * 1000) + game_time;
+                console.log('active team:', data.active_team, 'is active team blind map:', data.activeTeam !== null);
 
                 navigate('/game', { 
                   state: { 
@@ -62,7 +63,7 @@ const ScorePage = () => {
                     question_end_time: question_end_time,
                     is_last_question: data.is_last_question,
                     activeTeam: data.active_team,
-                    blind_map_is_team_play: data.activeTeam !== null
+                    blind_map_is_team_play: data.active_team !== null
                   } 
                 });
               }

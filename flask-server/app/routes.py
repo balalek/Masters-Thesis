@@ -27,6 +27,15 @@ def serve_static(path):
         return send_from_directory(app.static_folder, path)
     else:
         return send_from_directory(app.static_folder, 'index.html')
+    
+# Explicit routes for React client-side routes needed for .exe app for refreshing
+@app.route('/play')
+def play():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/remote')
+def remote():
+    return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/available_colors', methods=['GET'])
 def get_available_colors():
