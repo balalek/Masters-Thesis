@@ -11,11 +11,33 @@ from flask import request, jsonify
 import socket
 from .constants import is_online
 
+def get_local_ip():
+    """Get the local IP address that can be used for network communication"""
+    try:
+        # This creates a socket and connects to an external service
+        # to determine which local interface/IP is used for internet connectivity
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # Doesn't need to be reachable, just forces socket routing
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        # Fallback method
+        try:
+            hostname = socket.gethostname()
+            ip = socket.gethostbyname(hostname)
+            return ip
+        except:
+            return "127.0.0.1"  # Default fallback
+
 def create_window(port):
     root = tk.Tk()
     root.title("Domácí kvíz")
-    root.geometry("200x100")
+    root.geometry("300x100")
     root.eval('tk::PlaceWindow . center')
+    
+    ip_address = get_local_ip()
     
     def open_website():
         url = f'http://localhost:{port}'
@@ -25,10 +47,11 @@ def create_window(port):
         root.destroy()
         sys.exit(0)
     
-    ttk.Button(root, text="Spustit", command=open_website).pack(pady=10)
+    ttk.Label(root, text=f"Lokální IP: {ip_address}").pack(pady=5)
+    ttk.Button(root, text="Spustit", command=open_website).pack(pady=5)
     ttk.Button(root, text="Ukončit", command=exit_app).pack(pady=5)
     
-    return root
+    return root, ip_address
 
 def convert_mongo_doc(doc):
     """Convert MongoDB document to JSON serializable format."""

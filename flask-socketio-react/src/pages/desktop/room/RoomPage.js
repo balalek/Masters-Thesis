@@ -26,7 +26,26 @@ const RoomPage = () => {
   const [gameData, setGameData] = useState(null);
   const [isRemoteDisplayConnected, setIsRemoteDisplayConnected] = useState(false);
   const [isRemoteGame, setIsRemoteGame] = useState(false);
+const [serverIP, setServerIP] = useState('');
+  const [serverPort, setServerPort] = useState('');
   const navigate = useNavigate();
+
+  // Get server IP address on component mount
+  useEffect(() => {
+    fetch(`/server_ip`)
+      .then(response => response.json())
+      .then(data => {
+        setServerIP(data.ip);
+        setServerPort(data.port || location.port || '5000');
+        console.log("Server IP address:", data.ip);
+      })
+      .catch(error => {
+        console.error("Error fetching server IP:", error);
+        // Fallback to using the current hostname
+        setServerIP(window.location.hostname);
+        setServerPort(location.port || '5000');
+      });
+  }, []);
 
   useEffect(() => {
     const socket = getSocket();
@@ -313,8 +332,16 @@ const RoomPage = () => {
     }
   };
 
-  const connectionUrl = `http://192.168.0.102:3000/play`;
-  const remoteGameUrl = `http://192.168.0.102:3000/remote`;
+  // Get connection URLs using the serverIP and port
+  const getConnectionUrl = () => {
+    if (!serverIP) return `http://${window.location.hostname}:3000/play`;
+    return `http://${serverIP}:5000/play`; // For .exe app 5000 port
+};
+
+  const getRemoteGameUrl = () => {
+    if (!serverIP) return `http://${window.location.hostname}:3000/remote`;
+    return `http://${serverIP}:5000/remote`; // For .exe app 5000 port
+};
 
   const handleCountdownComplete = () => {
     const current_time = getServerTime();
@@ -447,7 +474,7 @@ const RoomPage = () => {
         </Box>
 
         {/* Connection info - will be centered between table and buttons */}
-        <ConnectionInfo connectionUrl={connectionUrl} />
+        <ConnectionInfo connectionUrl={getConnectionUrl()} />
 
         {/* Bottom buttons */}
         <Box sx={{ 
@@ -472,7 +499,7 @@ const RoomPage = () => {
               >
                 Spustit na jiné obrazovce
               </Button>
-              <StartGameTooltip gameUrl={remoteGameUrl || 'Loading...'} />
+              <StartGameTooltip gameUrl={getRemoteGameUrl()} />
             </Box>
           </Box>
         </Box>

@@ -1056,3 +1056,10 @@ def delete_unfinished_quiz(identifier):
     if result:
         return jsonify({"success": True}), 200
     return jsonify({"error": "Failed to delete unfinished quiz"}), 500
+
+@app.route('/server_ip', methods=['GET'])
+def get_server_ip():
+    """Return the server's IP address that's used for network communication"""
+    from app.utils import get_local_ip
+    ip_address = get_local_ip()
+    return jsonify({"ip": ip_address, "port": 5000})
