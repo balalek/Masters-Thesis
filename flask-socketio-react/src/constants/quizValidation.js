@@ -73,6 +73,7 @@ export const QUIZ_CATEGORIES = [
 // Quiz types constants
 export const QUIZ_TYPES = {
   ABCD: 'ABCD',
+  TRUE_FALSE: 'TRUE_FALSE',
   OPEN_ANSWER: 'OPEN_ANSWER',
   BLIND_MAP: 'BLIND_MAP',
   DRAWING: 'DRAWING',
@@ -97,6 +98,7 @@ export const QUESTION_TYPES = {
 // Translated quiz types to Czech
 export const QUIZ_TYPE_TRANSLATIONS = {
   [QUIZ_TYPES.ABCD]: 'ABCD kvíz',
+  [QUIZ_TYPES.TRUE_FALSE]: 'Pravda/lež',
   [QUIZ_TYPES.OPEN_ANSWER]: 'Otevřené odpovědi',
   [QUIZ_TYPES.BLIND_MAP]: 'Slepá mapa',
   [QUIZ_TYPES.DRAWING]: 'Kreslení',

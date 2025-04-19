@@ -26,7 +26,7 @@ const RoomPage = () => {
   const [gameData, setGameData] = useState(null);
   const [isRemoteDisplayConnected, setIsRemoteDisplayConnected] = useState(false);
   const [isRemoteGame, setIsRemoteGame] = useState(false);
-const [serverIP, setServerIP] = useState('');
+  const [serverIP, setServerIP] = useState('');
   const [serverPort, setServerPort] = useState('');
   const navigate = useNavigate();
 
@@ -150,17 +150,10 @@ const [serverIP, setServerIP] = useState('');
     if (quickPlayConfig) {
       payload.quick_play_type = quickPlayConfig.quick_play_type;
       
-      // Add type-specific parameters
-      if (quickPlayConfig.quick_play_type === QUIZ_TYPES.DRAWING) {
-        payload.numRounds = quickPlayConfig.numRounds;
-        payload.roundLength = quickPlayConfig.roundLength;
+      // Add typesConfig for combined quiz format
+      if (quickPlayConfig.typesConfig) {
+        payload.typesConfig = quickPlayConfig.typesConfig;
       }
-      // Add Word Chain parameters
-      else if (quickPlayConfig.quick_play_type === QUIZ_TYPES.WORD_CHAIN) {
-        payload.numRounds = quickPlayConfig.numRounds;
-        payload.roundLength = quickPlayConfig.roundLength;
-      }
-      // Add other quiz type parameters here when supported
     }
 
     fetch(`http://${window.location.hostname}:5000/start_game`, {
@@ -200,17 +193,10 @@ const [serverIP, setServerIP] = useState('');
     if (quickPlayConfig) {
       payload.quick_play_type = quickPlayConfig.quick_play_type;
       
-      // Add type-specific parameters
-      if (quickPlayConfig.quick_play_type === QUIZ_TYPES.DRAWING) {
-        payload.numRounds = quickPlayConfig.numRounds;
-        payload.roundLength = quickPlayConfig.roundLength;
+      // Add typesConfig for combined quiz format
+      if (quickPlayConfig.typesConfig) {
+        payload.typesConfig = quickPlayConfig.typesConfig;
       }
-      // Add Word Chain parameters
-      else if (quickPlayConfig.quick_play_type === QUIZ_TYPES.WORD_CHAIN) {
-        payload.numRounds = quickPlayConfig.numRounds;
-        payload.roundLength = quickPlayConfig.roundLength;
-      }
-      // Add other quiz type parameters here when supported
     }
 
     fetch(`http://${window.location.hostname}:5000/start_game`, {
@@ -414,38 +400,37 @@ const [serverIP, setServerIP] = useState('');
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         Čekárna {isQuickPlayMode ? `- ${QUIZ_TYPE_TRANSLATIONS[quickPlayType] || "Rychlá hra"}` : ""}
       </Typography>
-      
-                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2, mt: 1 }}>
-            <Button
-              variant={selectedMode === 'team' ? 'contained' : 'outlined'}
-              onClick={() => handleModeChange('team')}
-              sx={{ width: '150px' }}
-            >
-              Týmový režim
-            </Button>
-            <Button
-              variant={selectedMode === 'freeforall' ? 'contained' : 'outlined'}
-              onClick={() => handleModeChange('freeforall')}
-              sx={{ width: '150px' }}
-            >
-              Všichni proti všem
-            </Button>
-          </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2, mt: 1 }}>
+        <Button
+          variant={selectedMode === 'team' ? 'contained' : 'outlined'}
+          onClick={() => handleModeChange('team')}
+          sx={{ width: '150px' }}
+        >
+          Týmový režim
+        </Button>
+        <Button
+          variant={selectedMode === 'freeforall' ? 'contained' : 'outlined'}
+          onClick={() => handleModeChange('freeforall')}
+          sx={{ width: '150px' }}
+        >
+          Všichni proti všem
+        </Button>
+      </Box>
 
-          {/* Captain explanation text - only show in team mode */}
-          {selectedMode === 'team' && (
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                textAlign: 'center', 
-                mb: 2,
-                fontStyle: 'italic',
-                color: 'text.secondary'
-              }}
-            >
-              ⭐ Označuje kapitána týmu
-            </Typography>
-                )}
+      {/* Captain explanation text - only show in team mode */}
+      {selectedMode === 'team' && (
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            textAlign: 'center', 
+            mb: 2,
+            fontStyle: 'italic',
+            color: 'text.secondary'
+          }}
+        >
+          ⭐ Označuje kapitána týmu
+        </Typography>
+      )}
 
       {/* Main content with flexible spacing */}
       <Box sx={{ 

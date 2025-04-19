@@ -2,7 +2,7 @@ from flask import jsonify, send_from_directory, request
 from pathlib import Path
 from . import app, socketio
 from .game_state import game_state
-from .constants import AVAILABLE_COLORS, MAX_PLAYERS, PREVIEW_TIME, PREVIEW_TIME_DRAWING, START_GAME_TIME, QUIZ_VALIDATION, QUIZ_CATEGORIES, is_online
+from .constants import AVAILABLE_COLORS, MAX_PLAYERS, PREVIEW_TIME, PREVIEW_TIME_DRAWING, START_GAME_TIME, QUIZ_VALIDATION, QUIZ_CATEGORIES, QUESTION_TYPES, is_online
 from time import time
 import requests  # Add this import for HTTP requests
 from .services.quiz_service import QuizService
@@ -255,7 +255,6 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
             initialize_team_order()
             # Team mode: start with first player in team order
             first_player = game_state.word_chain_state['team_order'][0][0]
-
             # Calculate the immediate next player first
             blue_players = game_state.blue_team
             red_players = game_state.red_team
@@ -333,6 +332,145 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
         print(f"Error generating word chain questions: {str(e)}")
         raise e
 
+def generate_random_abcd_questions(num_questions=5, categories=None, device_id=None):
+    """Generate random ABCD questions from public quizzes"""
+    try:
+        # Get questions from public quizzes
+        questions = QuizService.get_random_questions(
+            question_type=QUESTION_TYPES["ABCD"],
+            categories=categories,
+            device_id=device_id,
+            limit=num_questions
+        )
+        
+        if not questions:
+            print("Warning: No ABCD questions found")
+            
+        return questions
+    except Exception as e:
+        print(f"Error generating ABCD questions: {str(e)}")
+        return []
+
+def generate_random_true_false_questions(num_questions=5, categories=None, device_id=None):
+    """Generate random TRUE_FALSE questions from public quizzes"""
+    try:
+        # Get questions from public quizzes
+        questions = QuizService.get_random_questions(
+            question_type=QUESTION_TYPES["TRUE_FALSE"],
+            categories=categories,
+            device_id=device_id,
+            limit=num_questions
+        )
+        
+        if not questions:
+            print("Warning: No True/False questions found")
+            
+        return questions
+    except Exception as e:
+        print(f"Error generating TRUE_FALSE questions: {str(e)}")
+        return []
+
+def generate_random_open_answer_questions(num_questions=5, categories=None, device_id=None, exclude_audio=False):
+    """Generate random OPEN_ANSWER questions from public quizzes"""
+    try:
+        # Get questions from public quizzes
+        questions = QuizService.get_random_questions(
+            question_type=QUESTION_TYPES["OPEN_ANSWER"],
+            categories=categories,
+            device_id=device_id,
+            limit=num_questions,
+            exclude_audio=exclude_audio
+        )
+        
+        if not questions:
+            print("Warning: No Open Answer questions found")
+            
+        return questions
+    except Exception as e:
+        print(f"Error generating OPEN_ANSWER questions: {str(e)}")
+        return []
+
+def generate_random_guess_number_questions(num_questions=5, categories=None, device_id=None):
+    """Generate random GUESS_A_NUMBER questions from public quizzes"""
+    try:
+        # Get questions from public quizzes
+        questions = QuizService.get_random_questions(
+            question_type=QUESTION_TYPES["GUESS_A_NUMBER"],
+            categories=categories,
+            device_id=device_id,
+            limit=num_questions
+        )
+        
+        if not questions:
+            print("Warning: No Guess a Number questions found")
+            
+        return questions
+    except Exception as e:
+        print(f"Error generating GUESS_A_NUMBER questions: {str(e)}")
+        return []
+
+def generate_random_math_quiz_questions(num_questions=2, device_id=None):
+    """Generate random MATH_QUIZ questions from public quizzes"""
+    try:
+        # Get questions from public quizzes
+        questions = QuizService.get_random_questions(
+            question_type=QUESTION_TYPES["MATH_QUIZ"],
+            device_id=device_id,
+            limit=num_questions
+        )
+        
+        if not questions:
+            print("Warning: No Math Quiz questions found")
+            
+        return questions
+    except Exception as e:
+        print(f"Error generating Math Quiz questions: {str(e)}")
+        return []
+
+def generate_random_blind_map_questions(num_rounds=3, preferred_map=None, device_id=None):
+    """Generate random BLIND_MAP questions from public quizzes with map preference filtering
+    
+    Args:
+        num_rounds (int): Number of rounds/questions to generate
+        preferred_map (str): Map preference 'cz', 'eu', or 'both'
+        device_id (str): Device ID to exclude questions from this device
+    
+    Returns:
+        list: List of Blind Map questions
+    """
+    try:
+        # Set map filter based on preference
+        map_filter = None
+        if preferred_map == 'cz':
+            map_filter = 'cz'
+        elif preferred_map == 'eu':
+            map_filter = 'europe'
+        # 'both' or None means no filter - we'll get a mix of maps
+        
+        # Get questions from public quizzes
+        questions = QuizService.get_random_questions(
+            question_type=QUESTION_TYPES["BLIND_MAP"],
+            device_id=device_id,
+            limit=num_rounds,
+            map_filter=map_filter
+        )
+        
+        if not questions:
+            print(f"Warning: No Blind Map questions found with map filter: {preferred_map}")
+            # If no questions found with the specified map filter, try without filter
+            if map_filter:
+                print("Trying to fetch Blind Map questions without map filter")
+                questions = QuizService.get_random_questions(
+                    question_type=QUESTION_TYPES["BLIND_MAP"],
+                    device_id=device_id,
+                    limit=num_rounds
+                )
+            
+        return questions
+    except Exception as e:
+        print(f"Error generating Blind Map questions: {str(e)}")
+        return []
+
 @app.route('/start_game', methods=['POST'])
 def start_game():
     if len(game_state.players) < 2:
@@ -379,61 +517,212 @@ def start_game():
     
     # Handle quick play modes - now we can use team information
     if quick_play_type:
-        # Handle based on the type of quick play
-        if quick_play_type == "DRAWING":
+        # First handle the COMBINED_QUIZ type (multiple quiz types selected)
+        if quick_play_type == "COMBINED_QUIZ":
             try:
-                # Get drawing specific parameters
-                num_rounds = request.json.get('numRounds', QUIZ_VALIDATION['DRAWING_DEFAULT_ROUNDS'])
-                round_length = request.json.get('roundLength', QUIZ_VALIDATION['DRAWING_DEFAULT_TIME'])  # seconds
+                # Get the types configuration from the request
+                types_config = request.json.get('typesConfig', [])
                 
-                # Generate drawing questions using our helper function
-                if game_state.is_team_mode:
-                    drawing_questions = generate_drawing_questions(
-                        game_state.players,
-                        num_rounds,
-                        round_length,
-                        blue_team=game_state.blue_team,
-                        red_team=game_state.red_team
-                    )
+                if not types_config:
+                    return jsonify({"error": "Chybí konfigurace typů kvízů pro kombinovaný kvíz"}), 400
+                
+                # Initialize an array to hold all generated questions
+                all_questions = []
+                
+                # Process each quiz type configuration
+                for config in types_config:
+                    quiz_type = config.get('type')
+                    
+                    if quiz_type == "DRAWING":
+                        # Generate drawing questions
+                        num_rounds = config.get('numRounds', QUIZ_VALIDATION['DRAWING_DEFAULT_ROUNDS'])
+                        round_length = config.get('roundLength', QUIZ_VALIDATION['DRAWING_DEFAULT_TIME'])
+                        
+                        if game_state.is_team_mode:
+                            drawing_questions = generate_drawing_questions(
+                                game_state.players,
+                                num_rounds,
+                                round_length,
+                                blue_team=game_state.blue_team,
+                                red_team=game_state.red_team
+                            )
+                        else:
+                            drawing_questions = generate_drawing_questions(
+                                game_state.players,
+                                num_rounds,
+                                round_length
+                            )
+                        
+                        all_questions.extend(drawing_questions)
+                        
+                    elif quiz_type == "WORD_CHAIN":
+                        # Generate word chain questions
+                        num_rounds = config.get('numRounds', QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_ROUNDS'])
+                        round_length = config.get('roundLength', QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_TIME'])
+                        
+                        word_chain_questions = generate_word_chain_questions(
+                            num_rounds,
+                            round_length,
+                            is_team_mode=game_state.is_team_mode
+                        )
+                        
+                        all_questions.extend(word_chain_questions)
+
+                    elif quiz_type == "ABCD":
+                        # Generate ABCD questions
+                        num_questions = config.get('numQuestions', 5)
+                        categories = config.get('categories', None)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        abcd_questions = generate_random_abcd_questions(
+                            num_questions=num_questions,
+                            categories=categories,
+                            device_id=device_id
+                        )
+                        
+                        if not abcd_questions:
+                            print("Warning: No ABCD questions found with the specified criteria")
+                            # If no questions are found with specified categories, try without category filter
+                            if categories:
+                                print("Trying to fetch ABCD questions without category filter")
+                                abcd_questions = generate_random_abcd_questions(
+                                    num_questions=num_questions,
+                                    device_id=device_id
+                                )
+                        
+                        all_questions.extend(abcd_questions)
+                        
+                    elif quiz_type == "TRUE_FALSE":
+                        # Generate True/False questions
+                        num_questions = config.get('numQuestions', 5)
+                        categories = config.get('categories', None)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        true_false_questions = generate_random_true_false_questions(
+                            num_questions=num_questions,
+                            categories=categories,
+                            device_id=device_id
+                        )
+                        
+                        if not true_false_questions:
+                            print("Warning: No True/False questions found with the specified criteria")
+                            # If no questions are found with specified categories, try without category filter
+                            if categories:
+                                print("Trying to fetch True/False questions without category filter")
+                                true_false_questions = generate_random_true_false_questions(
+                                    num_questions=num_questions,
+                                    device_id=device_id
+                                )
+                        
+                        all_questions.extend(true_false_questions)
+
+                    elif quiz_type == "OPEN_ANSWER":
+                        # Generate Open Answer questions
+                        num_questions = config.get('numQuestions', 5)
+                        categories = config.get('categories', None)
+                        # Get exclude audio preference
+                        exclude_audio = config.get('excludeOpenAnswerAudio', False)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        open_answer_questions = generate_random_open_answer_questions(
+                            num_questions=num_questions,
+                            categories=categories,
+                            device_id=device_id,
+                            exclude_audio=exclude_audio
+                        )
+                        
+                        if not open_answer_questions:
+                            print("Warning: No Open Answer questions found with the specified criteria")
+                            # If no questions are found with specified categories, try without category filter
+                            if categories:
+                                print("Trying to fetch Open Answer questions without category filter")
+                                open_answer_questions = generate_random_open_answer_questions(
+                                    num_questions=num_questions,
+                                    device_id=device_id,
+                                    exclude_audio=exclude_audio
+                                )
+                        
+                        all_questions.extend(open_answer_questions)
+
+                    elif quiz_type == "GUESS_A_NUMBER":
+                        # Generate Guess a Number questions
+                        num_questions = config.get('numQuestions', 5)
+                        categories = config.get('categories', None)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        guess_number_questions = generate_random_guess_number_questions(
+                            num_questions=num_questions,
+                            categories=categories,
+                            device_id=device_id
+                        )
+                        
+                        if not guess_number_questions:
+                            print("Warning: No Guess a Number questions found with the specified criteria")
+                            # If no questions are found with specified categories, try without category filter
+                            if categories:
+                                print("Trying to fetch Guess a Number questions without category filter")
+                                guess_number_questions = generate_random_guess_number_questions(
+                                    num_questions=num_questions,
+                                    device_id=device_id
+                                )
+                        
+                        all_questions.extend(guess_number_questions)
+                    
+                    elif quiz_type == "MATH_QUIZ":
+                        # Generate Math Quiz questions
+                        num_questions = config.get('numQuestions', 2)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        math_quiz_questions = generate_random_math_quiz_questions(
+                            num_questions=num_questions,
+                            device_id=device_id
+                        )
+                        
+                        if not math_quiz_questions:
+                            print("Warning: No Math Quiz questions found with the specified criteria")
+                        
+                        all_questions.extend(math_quiz_questions)
+                    
+                    elif quiz_type == "BLIND_MAP":
+                        # Generate Blind Map questions
+                        num_rounds = config.get('numRounds', 3)
+                        preferred_map = config.get('preferredMap', None)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        blind_map_questions = generate_random_blind_map_questions(
+                            num_rounds=num_rounds,
+                            preferred_map=preferred_map,
+                            device_id=device_id
+                        )
+                        
+                        if not blind_map_questions:
+                            print("Warning: No Blind Map questions found with the specified criteria")
+                        
+                        all_questions.extend(blind_map_questions)
+                
+                # Set all generated questions in the game state
+                if all_questions:
+                    game_state.questions = all_questions
+                    print(f"Created {len(all_questions)} questions for combined quiz")
                 else:
-                    drawing_questions = generate_drawing_questions(
-                        game_state.players,
-                        num_rounds,
-                        round_length
-                    )
-                
-                # Set the questions in the game state
-                game_state.questions = drawing_questions
-                print(f"Created {len(drawing_questions)} drawing questions")
+                    return jsonify({"error": "Nepodařilo se vytvořit žádné otázky pro kombinovaný kvíz"}), 400
                 
             except Exception as e:
-                print(f"Error setting up drawing game: {str(e)}")
-                return jsonify({"error": f"Chyba při přípravě hry: {str(e)}"}), 500
-                
-        elif quick_play_type == "WORD_CHAIN":
-            try:
-                # Get word chain specific parameters
-                num_rounds = request.json.get('numRounds', QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_ROUNDS'])  # rounds
-                round_length = request.json.get('roundLength', QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_TIME'])  # seconds per player turn
-                
-                # Generate word chain questions
-                word_chain_questions = generate_word_chain_questions(
-                    num_rounds,
-                    round_length,
-                    is_team_mode=game_state.is_team_mode
-                )
-                
-                # Set the questions in the game state
-                game_state.questions = word_chain_questions
-                print(f"Created {len(word_chain_questions)} word chain questions")
-                
-            except Exception as e:
-                print(f"Error setting up word chain game: {str(e)}")
-                return jsonify({"error": f"Chyba při přípravě hry: {str(e)}"}), 500
-        else:
-            # For unsupported quick play types
-            return jsonify({"error": f"Nepodporovaný typ rychlé hry: {quick_play_type}"}), 400
-    
+                print(f"Error setting up combined quiz: {str(e)}")
+                return jsonify({"error": f"Chyba při přípravě kombinovaného kvízu: {str(e)}"}), 500
+
     elif not quiz_id:
         # For regular games, make sure quiz_id is provided
         return jsonify({"error": "Nebyl vybrán žádný kvíz"}), 400
@@ -539,8 +828,7 @@ def start_game():
         first_question['players'] = game_state.players
     elif first_question.get('type') == 'BLIND_MAP':
         game_start_at = game_start_time + PREVIEW_TIME
-        initialize_blind_map()
-        
+        initialize_blind_map() 
     else:
         game_start_at = game_start_time + PREVIEW_TIME # Standard preview time
 

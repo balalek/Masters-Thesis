@@ -563,3 +563,68 @@ class QuizService:
             {"_id": ObjectId(question_id)},
             {"$set": update_dict}
         )
+
+    @staticmethod
+    def get_random_questions(question_type, categories=None, device_id=None, limit=5, exclude_audio=False, map_filter=None):
+        """
+        Get random questions from public quizzes that include full document structure with _id
+        
+        Args:
+            question_type (str): Type of question (ABCD or TRUE_FALSE)
+            categories (list): Optional list of categories to filter by
+            device_id (str): Device ID to exclude questions created by this device
+            limit (int): Maximum number of questions to return
+            exclude_audio (bool): Whether to exclude questions with audio media
+            map_type (str): Optional map type for blind map questions (e.g., 'czech', 'europe')
+            
+        Returns:
+            list: List of randomly selected questions with complete document structure
+        """
+        try:
+            # First, find public quizzes that have questions of the requested type
+            pipeline = [
+                # Match only public quizzes not created by current device
+                {"$match": {
+                    "is_public": True,
+                    "created_by": {"$ne": device_id} if device_id else {"$exists": True}
+                }},
+                # Look up the associated questions
+                {"$lookup": {
+                    "from": "questions",
+                    "localField": "questions.questionId",
+                    "foreignField": "_id",
+                    "as": "full_questions"
+                }},
+                # Filter to quizzes that have matching question types
+                {"$match": {"full_questions.type": question_type}},
+                # Unwind to work with individual questions
+                {"$unwind": "$full_questions"},
+                # Keep only the questions of the target type
+                {"$match": {"full_questions.type": question_type}},
+                # Apply category filter if provided
+                {"$match": {"full_questions.category": {"$in": categories}} if categories else {}},
+                # Exclude audio questions if requested
+                {"$match": {"full_questions.media_type": {"$ne": "audio"}} if question_type == QUESTION_TYPES["OPEN_ANSWER"] and exclude_audio else {}},
+                # Filter by map type for blind map questions if provided
+                {"$match": {"full_questions.map_type": map_filter} if question_type == QUESTION_TYPES["BLIND_MAP"] and map_filter else {}},
+                # Project to get just the question documents
+                {"$replaceRoot": {"newRoot": "$full_questions"}},
+                # Sample random questions
+                {"$sample": {"size": limit}}
+            ]
+            
+            # Execute aggregation
+            questions = list(db.quizzes.aggregate(pipeline))
+            
+            # Convert MongoDB documents to JSON-serializable format
+            results = []
+            for q in questions:
+                # Use the existing convert_mongo_doc utility to handle ObjectId conversion
+                question_data = convert_mongo_doc(q)
+                results.append(question_data)
+                
+            return results
+            
+        except Exception as e:
+            print(f"Error getting random questions: {str(e)}")
+            return []

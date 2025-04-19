@@ -6,17 +6,36 @@ import {
   DialogActions, 
   Button, 
   Typography, 
-  Tabs, 
-  Tab, 
   Box, 
-  Slider
+  Slider,
+  Checkbox,
+  FormControlLabel,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Divider,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Chip,
+  OutlinedInput,
+  ListItemText
 } from '@mui/material';
-import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS, QUIZ_VALIDATION } from '../../constants/quizValidation';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS, QUIZ_VALIDATION, QUIZ_CATEGORIES } from '../../constants/quizValidation';
+import { scrollbarStyle } from '../../utils/scrollbarStyle';
 
 // Available quiz type configurations for quick play
 const QUICK_PLAY_TYPES = [
+  QUIZ_TYPES.ABCD,
+  QUIZ_TYPES.TRUE_FALSE,
+  QUIZ_TYPES.OPEN_ANSWER,
   QUIZ_TYPES.DRAWING,
   QUIZ_TYPES.WORD_CHAIN,
+  QUIZ_TYPES.GUESS_A_NUMBER,
+  QUIZ_TYPES.MATH_QUIZ,
+  QUIZ_TYPES.BLIND_MAP,
   // Add more types as they become available for quick play
 ];
 
@@ -29,14 +48,10 @@ const QUICK_PLAY_TYPES = [
  * @param {string} props.selectedType - The currently selected quiz type
  */
 const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
-  // Get the tab index based on the selected type
-  const getInitialTabIndex = () => {
-    const index = QUICK_PLAY_TYPES.indexOf(selectedType);
-    return index >= 0 ? index : 0;
-  };
-
-  const [activeTab, setActiveTab] = useState(getInitialTabIndex());
   const [loading, setLoading] = useState(false);
+  
+  // State to track which quiz types are selected
+  const [selectedTypes, setSelectedTypes] = useState({});
   
   // Drawing-specific state
   const [drawingRounds, setDrawingRounds] = useState(
@@ -47,140 +62,139 @@ const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
   );
 
   // Word chain-specific state
-  const [wordChainRounds, setWordChainRounds] = useState(QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS); // Default 3 rounds
-  const [wordChainTime, setWordChainTime] = useState(QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME); // Default 30 seconds
+  const [wordChainRounds, setWordChainRounds] = useState(QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS);
+  const [wordChainTime, setWordChainTime] = useState(QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME);
+  
+  // ABCD-specific state
+  const [abcdQuestions, setAbcdQuestions] = useState(5);
+  const [abcdCategories, setAbcdCategories] = useState([]);
 
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+  // True/False-specific state
+  const [trueFalseQuestions, setTrueFalseQuestions] = useState(5);
+  const [trueFalseCategories, setTrueFalseCategories] = useState([]);
+  
+  // Open Answer-specific state
+  const [openAnswerQuestions, setOpenAnswerQuestions] = useState(5);
+  const [openAnswerCategories, setOpenAnswerCategories] = useState([]);
+  const [excludeOpenAnswerAudio, setExcludeOpenAnswerAudio] = useState(false);
+  
+  // Guess a Number-specific state
+  const [guessNumberQuestions, setGuessNumberQuestions] = useState(5);
+  const [guessNumberCategories, setGuessNumberCategories] = useState([]);
+  
+  // Math Quiz-specific state
+  const [mathQuizQuestions, setMathQuizQuestions] = useState(2);
+  
+  // Blind Map-specific state
+  const [blindMapRounds, setBlindMapRounds] = useState(2);
+  const [blindMapPreferredMap, setBlindMapPreferredMap] = useState('both'); // 'cz', 'eu', or 'both'
+  
+  // Track expanded accordion panels
+  const [expanded, setExpanded] = useState(false);
+
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
+  const handleTypeSelect = (type) => (event) => {
+    setSelectedTypes(prev => ({
+      ...prev,
+      [type]: event.target.checked
+    }));
+
+    // If checked, expand the panel
+    if (event.target.checked) {
+      setExpanded(type);
+    }
   };
 
   const handleStartGame = () => {
     setLoading(true);
     
-    const quizType = QUICK_PLAY_TYPES[activeTab];
-    let config = {};
+    // Get all selected quiz types
+    const types = Object.keys(selectedTypes).filter(type => selectedTypes[type]);
     
-    // Prepare configuration based on the selected quiz type
-    switch (quizType) {
-      case QUIZ_TYPES.DRAWING:
-        config = {
-          quick_play_type: QUIZ_TYPES.DRAWING,
-          numRounds: drawingRounds,
-          roundLength: drawingTime
-        };
-        break;
-      case QUIZ_TYPES.WORD_CHAIN:
-        config = {
-          quick_play_type: QUIZ_TYPES.WORD_CHAIN,
-          numRounds: wordChainRounds,
-          roundLength: wordChainTime
-        };
-        break;
-      // Add cases for other quiz types as they become available
-      default:
-        config = { quick_play_type: quizType };
+    if (types.length === 0) {
+      alert('Vyberte alespoň jeden typ kvízu');
+      setLoading(false);
+      return;
     }
+
+    // Create configuration for each selected type
+    const typesConfig = types.map(type => {
+      switch (type) {
+        case QUIZ_TYPES.DRAWING:
+          return {
+            type: QUIZ_TYPES.DRAWING,
+            numRounds: drawingRounds,
+            roundLength: drawingTime
+          };
+        case QUIZ_TYPES.WORD_CHAIN:
+          return {
+            type: QUIZ_TYPES.WORD_CHAIN,
+            numRounds: wordChainRounds,
+            roundLength: wordChainTime
+          };
+        case QUIZ_TYPES.ABCD:
+          return {
+            type: QUIZ_TYPES.ABCD,
+            numQuestions: abcdQuestions,
+            categories: abcdCategories.length > 0 ? abcdCategories : null
+          };
+        case QUIZ_TYPES.TRUE_FALSE:
+          return {
+            type: QUIZ_TYPES.TRUE_FALSE,
+            numQuestions: trueFalseQuestions,
+            categories: trueFalseCategories.length > 0 ? trueFalseCategories : null
+          };
+        case QUIZ_TYPES.OPEN_ANSWER:
+          return {
+            type: QUIZ_TYPES.OPEN_ANSWER,
+            numQuestions: openAnswerQuestions,
+            categories: openAnswerCategories.length > 0 ? openAnswerCategories : null,
+            excludeAudio: excludeOpenAnswerAudio
+          };
+        case QUIZ_TYPES.GUESS_A_NUMBER:
+          return {
+            type: QUIZ_TYPES.GUESS_A_NUMBER,
+            numQuestions: guessNumberQuestions,
+            categories: guessNumberCategories.length > 0 ? guessNumberCategories : null
+          };
+        case QUIZ_TYPES.MATH_QUIZ:
+          return {
+            type: QUIZ_TYPES.MATH_QUIZ,
+            numQuestions: mathQuizQuestions
+          };
+        case QUIZ_TYPES.BLIND_MAP:
+          return {
+            type: QUIZ_TYPES.BLIND_MAP,
+            numRounds: blindMapRounds,
+            preferredMap: blindMapPreferredMap
+          };
+        default:
+          return { type };
+      }
+    });
+
+    // Always use the COMBINED_QUIZ format, even for a single quiz type
+    const config = {
+      quick_play_type: QUIZ_TYPES.COMBINED_QUIZ,
+      typesConfig
+    };
     
     onStartGame(config);
   };
 
-  // Render content based on selected tab
-  const renderTabContent = () => {
-    const quizType = QUICK_PLAY_TYPES[activeTab];
-    
-    switch (quizType) {
-      case QUIZ_TYPES.DRAWING:
-        return (
-          <Box sx={{ pt: 2 }}>
-            <Typography gutterBottom>
-              Počet kol: {drawingRounds}
-            </Typography>
-            <Slider
-              value={drawingRounds}
-              onChange={(e, value) => setDrawingRounds(value)}
-              aria-labelledby="rounds-slider"
-              valueLabelDisplay="auto"
-              step={1}
-              marks
-              min={QUIZ_VALIDATION.DRAWING.MIN_ROUNDS}
-              max={QUIZ_VALIDATION.DRAWING.MAX_ROUNDS_QUICK_PLAY}
-              sx={{ mb: 4 }}
-            />
-            
-            <Typography gutterBottom>
-              Délka kola: {drawingTime} sekund
-            </Typography>
-            <Slider
-              value={drawingTime}
-              onChange={(e, value) => setDrawingTime(value)}
-              aria-labelledby="time-slider"
-              valueLabelDisplay="auto"
-              step={15}
-              marks
-              min={QUIZ_VALIDATION.DRAWING.MIN_TIME}
-              max={QUIZ_VALIDATION.DRAWING.MAX_TIME}
-            />
-            
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Celkový počet kol: {drawingRounds} × počet hráčů
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              V každém kole dostane hráč na výběr ze 3 slov ke kreslení
-            </Typography>
-          </Box>
-        );
-      
-      case QUIZ_TYPES.WORD_CHAIN:
-        return (
-          <Box sx={{ pt: 2 }}>
-            <Typography gutterBottom>
-              Počet her: {wordChainRounds}
-            </Typography>
-            <Slider
-              value={wordChainRounds}
-              onChange={(e, value) => setWordChainRounds(value)}
-              aria-labelledby="word-chain-rounds-slider"
-              valueLabelDisplay="auto"
-              step={1}
-              marks
-              min={QUIZ_VALIDATION.WORD_CHAIN.MIN_ROUNDS}
-              max={QUIZ_VALIDATION.WORD_CHAIN.MAX_ROUNDS_QUICK_PLAY}
-              sx={{ mb: 4 }}
-            />
-            
-            <Typography gutterBottom>
-              Časový limit hráče: {wordChainTime} sekund (pouze režim všichni proti všem)
-            </Typography>
-            <Slider
-              value={wordChainTime}
-              onChange={(e, value) => setWordChainTime(value)}
-              aria-labelledby="word-chain-time-slider"
-              valueLabelDisplay="auto"
-              step={5}
-              marks
-              min={QUIZ_VALIDATION.WORD_CHAIN.MIN_TIME}
-              max={QUIZ_VALIDATION.WORD_CHAIN.MAX_TIME}
-            />
-            
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Hráči budou pokračovat ve slovním řetězu a snažit se vymyslet slovo začínající na poslední písmeno předchozího slova
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              První slovo bude vybráno náhodně ze slovníku
-            </Typography>
-          </Box>
-        );
-      
-      // Add cases for other quiz types as they become available
-      default:
-        return (
-          <Box sx={{ pt: 2 }}>
-            <Typography>
-              Nastavení pro tento typ kvízu nejsou k dispozici
-            </Typography>
-          </Box>
-        );
-    }
+  const atLeastOneSelected = Object.values(selectedTypes).some(Boolean);
+
+  const MenuProps = {
+    PaperProps: {
+      style: {
+        maxHeight: 224,
+        width: 250,
+        ...scrollbarStyle
+      },
+    },
   };
 
   return (
@@ -192,22 +206,399 @@ const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
     >
       <DialogTitle>Rychlá hra</DialogTitle>
       
-      <DialogContent>
-        {/* Tabs for different quiz types */}
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
-        >
-          {QUICK_PLAY_TYPES.map((type, index) => (
-            <Tab key={type} label={QUIZ_TYPE_TRANSLATIONS[type]} value={index} />
-          ))}
-        </Tabs>
-        
-        {/* Content based on selected tab */}
-        {renderTabContent()}
+      <DialogContent sx={{ ...scrollbarStyle }}>
+        <Typography variant="body1" gutterBottom sx={{ mb: 2 }}>
+          Vyberte typy kvízů, které chcete zahrnout:
+        </Typography>
+
+        {QUICK_PLAY_TYPES.map((type) => (
+          <Box key={type} sx={{ mb: 2 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={!!selectedTypes[type]}
+                  onChange={handleTypeSelect(type)}
+                  name={type}
+                />
+              }
+              label={QUIZ_TYPE_TRANSLATIONS[type]}
+            />
+            
+            {selectedTypes[type] && (
+              <Accordion 
+                expanded={expanded === type}
+                onChange={handleAccordionChange(type)}
+                sx={{ mt: 1, ml: 4 }}
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography>Nastavení</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {type === QUIZ_TYPES.DRAWING && (
+                    <Box>
+                      <Typography gutterBottom>
+                        Počet kol: {drawingRounds}
+                      </Typography>
+                      <Slider
+                        value={drawingRounds}
+                        onChange={(e, value) => setDrawingRounds(value)}
+                        aria-labelledby="rounds-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={QUIZ_VALIDATION.DRAWING.MIN_ROUNDS}
+                        max={QUIZ_VALIDATION.DRAWING.MAX_ROUNDS_QUICK_PLAY}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      <Typography gutterBottom>
+                        Délka kola: {drawingTime} sekund
+                      </Typography>
+                      <Slider
+                        value={drawingTime}
+                        onChange={(e, value) => setDrawingTime(value)}
+                        aria-labelledby="time-slider"
+                        valueLabelDisplay="auto"
+                        step={15}
+                        marks
+                        min={QUIZ_VALIDATION.DRAWING.MIN_TIME}
+                        max={QUIZ_VALIDATION.DRAWING.MAX_TIME}
+                      />
+                      
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        Celkový počet kol: {drawingRounds} × počet hráčů (všichni hráči se vystřídají s kreslením)
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        V každém kole dostane hráč na výběr ze 3 slov ke kreslení
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {type === QUIZ_TYPES.WORD_CHAIN && (
+                    <Box>
+                      <Typography gutterBottom>
+                        Počet her: {wordChainRounds}
+                      </Typography>
+                      <Slider
+                        value={wordChainRounds}
+                        onChange={(e, value) => setWordChainRounds(value)}
+                        aria-labelledby="word-chain-rounds-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={QUIZ_VALIDATION.WORD_CHAIN.MIN_ROUNDS}
+                        max={QUIZ_VALIDATION.WORD_CHAIN.MAX_ROUNDS_QUICK_PLAY}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      <Typography gutterBottom>
+                        Časový limit hráče: {wordChainTime} sekund (pouze režim všichni proti všem)
+                      </Typography>
+                      <Slider
+                        value={wordChainTime}
+                        onChange={(e, value) => setWordChainTime(value)}
+                        aria-labelledby="word-chain-time-slider"
+                        valueLabelDisplay="auto"
+                        step={5}
+                        marks
+                        min={QUIZ_VALIDATION.WORD_CHAIN.MIN_TIME}
+                        max={QUIZ_VALIDATION.WORD_CHAIN.MAX_TIME}
+                      />
+                      
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        Hráči budou pokračovat ve slovním řetězu a snažit se vymyslet slovo začínající na poslední písmeno předchozího slova
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        První slovo bude vybráno náhodně ze slovníku
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {type === QUIZ_TYPES.ABCD && (
+                    <Box>
+                      <Typography gutterBottom>
+                        Počet otázek: {abcdQuestions}
+                      </Typography>
+                      <Slider
+                        value={abcdQuestions}
+                        onChange={(e, value) => setAbcdQuestions(value)}
+                        aria-labelledby="abcd-questions-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      <FormControl sx={{ width: '100%', mb: 2 }}>
+                        <InputLabel id="abcd-categories-label">Kategorie (volitelné)</InputLabel>
+                        <Select
+                          labelId="abcd-categories-label"
+                          id="abcd-categories"
+                          multiple
+                          value={abcdCategories}
+                          onChange={(e) => setAbcdCategories(e.target.value)}
+                          input={<OutlinedInput label="Kategorie (volitelné)" />}
+                          renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                <Chip key={value} label={value} />
+                              ))}
+                            </Box>
+                          )}
+                          MenuProps={MenuProps}
+                        >
+                          {QUIZ_CATEGORIES.map((category) => (
+                            <MenuItem key={category} value={category}>
+                              <Checkbox checked={abcdCategories.indexOf(category) > -1} />
+                              <ListItemText primary={category} />
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      
+                      <Typography variant="body2" color="text.secondary">
+                        Náhodné ABCD otázky vybrané z veřejných kvízů
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {type === QUIZ_TYPES.TRUE_FALSE && (
+                    <Box>
+                      <Typography gutterBottom>
+                        Počet otázek: {trueFalseQuestions}
+                      </Typography>
+                      <Slider
+                        value={trueFalseQuestions}
+                        onChange={(e, value) => setTrueFalseQuestions(value)}
+                        aria-labelledby="true-false-questions-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      <FormControl sx={{ width: '100%', mb: 2 }}>
+                        <InputLabel id="true-false-categories-label">Kategorie (volitelné)</InputLabel>
+                        <Select
+                          labelId="true-false-categories-label"
+                          id="true-false-categories"
+                          multiple
+                          value={trueFalseCategories}
+                          onChange={(e) => setTrueFalseCategories(e.target.value)}
+                          input={<OutlinedInput label="Kategorie (volitelné)" />}
+                          renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                <Chip key={value} label={value} />
+                              ))}
+                            </Box>
+                          )}
+                          MenuProps={MenuProps}
+                        >
+                          {QUIZ_CATEGORIES.map((category) => (
+                            <MenuItem key={category} value={category}>
+                              <Checkbox checked={trueFalseCategories.indexOf(category) > -1} />
+                              <ListItemText primary={category} />
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      
+                      <Typography variant="body2" color="text.secondary">
+                        Náhodné Pravda/Lež otázky vybrané z veřejných kvízů
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {type === QUIZ_TYPES.OPEN_ANSWER && (
+                    <Box>
+                      <Typography gutterBottom>
+                        Počet otázek: {openAnswerQuestions}
+                      </Typography>
+                      <Slider
+                        value={openAnswerQuestions}
+                        onChange={(e, value) => setOpenAnswerQuestions(value)}
+                        aria-labelledby="open-answer-questions-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      <FormControl sx={{ width: '100%', mb: 2 }}>
+                        <InputLabel id="open-answer-categories-label">Kategorie (volitelné)</InputLabel>
+                        <Select
+                          labelId="open-answer-categories-label"
+                          id="open-answer-categories"
+                          multiple
+                          value={openAnswerCategories}
+                          onChange={(e) => setOpenAnswerCategories(e.target.value)}
+                          input={<OutlinedInput label="Kategorie (volitelné)" />}
+                          renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                <Chip key={value} label={value} />
+                              ))}
+                            </Box>
+                          )}
+                          MenuProps={MenuProps}
+                        >
+                          {QUIZ_CATEGORIES.map((category) => (
+                            <MenuItem key={category} value={category}>
+                              <Checkbox checked={openAnswerCategories.indexOf(category) > -1} />
+                              <ListItemText primary={category} />
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      <FormControlLabel
+                        control={
+                          <Checkbox 
+                            checked={excludeOpenAnswerAudio}
+                            onChange={(e) => setExcludeOpenAnswerAudio(e.target.checked)}
+                          />
+                        }
+                        label="Nepřidávat audio otázky"
+                      />
+                      <Typography variant="body2" color="text.secondary">
+                        Náhodné otázky s otevřenou odpovědí vybrané z veřejných kvízů
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {type === QUIZ_TYPES.GUESS_A_NUMBER && (
+                    <Box>
+                      <Typography gutterBottom>
+                        Počet otázek: {guessNumberQuestions}
+                      </Typography>
+                      <Slider
+                        value={guessNumberQuestions}
+                        onChange={(e, value) => setGuessNumberQuestions(value)}
+                        aria-labelledby="guess-number-questions-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      <FormControl sx={{ width: '100%', mb: 2 }}>
+                        <InputLabel id="guess-number-categories-label">Kategorie (volitelné)</InputLabel>
+                        <Select
+                          labelId="guess-number-categories-label"
+                          id="guess-number-categories"
+                          multiple
+                          value={guessNumberCategories}
+                          onChange={(e) => setGuessNumberCategories(e.target.value)}
+                          input={<OutlinedInput label="Kategorie (volitelné)" />}
+                          renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                <Chip key={value} label={value} />
+                              ))}
+                            </Box>
+                          )}
+                          MenuProps={MenuProps}
+                        >
+                          {QUIZ_CATEGORIES.map((category) => (
+                            <MenuItem key={category} value={category}>
+                              <Checkbox checked={guessNumberCategories.indexOf(category) > -1} />
+                              <ListItemText primary={category} />
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      
+                      <Typography variant="body2" color="text.secondary">
+                        Náhodné otázky typu Hádej číslo vybrané z veřejných kvízů
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {type === QUIZ_TYPES.MATH_QUIZ && (
+                    <Box>
+                      <Typography gutterBottom>
+                        Počet otázek: {mathQuizQuestions}
+                      </Typography>
+                      <Slider
+                        value={mathQuizQuestions}
+                        onChange={(e, value) => setMathQuizQuestions(value)}
+                        aria-labelledby="math-quiz-questions-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Náhodné matematické otázky vybrané z veřejných kvízů
+                      </Typography>
+                      <Typography variant="body2" color="warning.main" sx={{ mt: 1, fontWeight: 'medium' }}>
+                        Pozor, jedna otázka obsahuje více matematických rovnic
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {type === QUIZ_TYPES.BLIND_MAP && (
+                    <Box>
+                      <Typography gutterBottom>
+                        Počet kol: {blindMapRounds}
+                      </Typography>
+                      <Slider
+                        value={blindMapRounds}
+                        onChange={(e, value) => setBlindMapRounds(value)}
+                        aria-labelledby="blind-map-rounds-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 3 }}
+                      />
+                      
+                      <FormControl fullWidth sx={{ mb: 2 }}>
+                        <InputLabel id="map-selection-label">Preferované mapy</InputLabel>
+                        <Select
+                          labelId="map-selection-label"
+                          value={blindMapPreferredMap}
+                          label="Preferované mapy"
+                          onChange={(e) => setBlindMapPreferredMap(e.target.value)}
+                        >
+                          <MenuItem value="cz">Česká republika</MenuItem>
+                          <MenuItem value="eu">Evropa</MenuItem>
+                          <MenuItem value="both">Obě mapy</MenuItem>
+                        </Select>
+                      </FormControl>
+                      
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Náhodné otázky typu Slepá mapa vybrané z veřejných kvízů
+                      </Typography>
+                    </Box>
+                  )}
+                </AccordionDetails>
+              </Accordion>
+            )}
+            
+            {type !== QUICK_PLAY_TYPES[QUICK_PLAY_TYPES.length - 1] && (
+              <Divider sx={{ my: 2 }} />
+            )}
+          </Box>
+        ))}
+
+        {!atLeastOneSelected && (
+          <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+            Vyberte alespoň jeden typ kvízu
+          </Typography>
+        )}
       </DialogContent>
       
       <DialogActions>
@@ -215,7 +606,7 @@ const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
         <Button 
           onClick={handleStartGame} 
           variant="contained"
-          disabled={loading}
+          disabled={loading || !atLeastOneSelected}
         >
           {loading ? 'Načítání...' : 'Spustit hru'}
         </Button>
