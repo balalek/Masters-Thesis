@@ -378,10 +378,8 @@ class QuizService:
         for question in questions:
             if question.get('_id'):
                 original = db.questions.find_one({"_id": ObjectId(question['_id'])})
-                if original and original.get('media_url'):
-                    # If media URL changed, delete old file if not used by other questions
-                    if question.get('mediaUrl') != original['media_url']:
-                        CloudinaryService.delete_file(original['media_url'], db)
+                if original and original.get('media_url') and question.get('mediaUrl') != original['media_url']:
+                    CloudinaryService.delete_file(original['media_url'], db)
 
         # Handle questions
         question_refs = QuizService._handle_quiz_questions(

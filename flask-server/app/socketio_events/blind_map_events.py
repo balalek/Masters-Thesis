@@ -4,10 +4,67 @@ Socket.IO events for Blind Map questions
 from flask_socketio import emit
 from .. import socketio
 from ..game_state import game_state
-from ..constants import PHASE_TRANSITION_TIME, ANAGRAM_PHASE_POINTS, MAP_PHASE_POINTS, BLIND_MAP_TEAM_MODE_POINTS
+from ..constants import PHASE_TRANSITION_TIME, ANAGRAM_PHASE_POINTS, MAP_PHASE_POINTS, BLIND_MAP_TEAM_MODE_POINTS, QUIZ_VALIDATION
 from time import time
 from .utils import emit_all_answers_received, get_scores_data
-from ..services.blind_map_service import BlindMapService
+from bson import ObjectId
+from ..db import db
+from typing import Dict, Any
+
+# Functions moved from BlindMapService
+def calculate_distance(x1: float, y1: float, x2: float, y2: float) -> float:
+        """Calculate the Euclidean distance between two points on the map."""
+        # Simple Euclidean distance in map coordinates
+        return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+
+def check_location_guess(question_id: str, user_x: float, user_y: float) -> Dict[str, Any]:
+    """Check if a location guess is within the correct radius."""
+    # Get the question
+    question = db.questions.find_one({"_id": ObjectId(question_id)})
+    if not question:
+        return {"correct": False, "message": "Otázka nenalezena", "correctLocation": {"x": 0, "y": 0}}
+    
+    # Get the correct location
+    correct_x = question.get("location_x", 0)
+    correct_y = question.get("location_y", 0)
+    
+    # Get the radius preset
+    radius_preset = question.get("radius_preset", "HARD")
+    
+    # Calculate distance
+    distance = calculate_distance(user_x, user_y, correct_x, correct_y)
+    
+    # Get the presets
+    presets = QUIZ_VALIDATION["BLIND_MAP_RADIUS_PRESETS"]
+    
+    # Check if within radius
+    exact_radius = presets[radius_preset]["exact"]
+    if distance <= exact_radius:
+        return {
+            "correct": True,
+            "message": "Přesné umístění!",
+            "correctLocation": {"x": correct_x, "y": correct_y}
+        }
+    
+    # For EASY mode, check area hit
+    if radius_preset == "EASY" and "area" in presets["EASY"]:
+        area_radius = presets["EASY"]["area"]
+        if distance <= area_radius:
+            # Calculate score based on distance within area
+            score = int(100 - ((distance - exact_radius) / (area_radius - exact_radius)) * 50)
+            return {
+                "score": max(50, score),  # At least 50 points for being in the area
+                "correct": True,
+                "message": "Blízko správného umístění!",
+                "correctLocation": {"x": correct_x, "y": correct_y}
+            }
+    
+    # No score
+    return {
+        "correct": False,
+        "message": "Špatné umístění",
+        "correctLocation": {"x": correct_x, "y": correct_y}
+    }
 
 def initialize_blind_map():
     """Initialize blind map state"""
@@ -298,7 +355,7 @@ def handle_team_location_submission(player_name, player_guess, question):
     # If this is the captain, process the guess immediately to check if it's correct
     if is_captain:
         # Check if the location is correct using the BlindMapService
-        result = BlindMapService.check_location_guess(
+        result = check_location_guess(
             str(question['_id']), 
             player_guess['x'], 
             player_guess['y']
@@ -397,13 +454,13 @@ def handle_team_location_submission(player_name, player_guess, question):
                     correct_y = question.get('location_y', 0)
                     
                     # Calculate distances using the existing service function
-                    blue_distance = BlindMapService.calculate_distance(
+                    blue_distance = calculate_distance(
                         blue_captain_guess['x'], 
                         blue_captain_guess['y'], 
                         correct_x, 
                         correct_y
                     )
-                    red_distance = BlindMapService.calculate_distance(
+                    red_distance = calculate_distance(
                         red_captain_guess['x'], 
                         red_captain_guess['y'], 
                         correct_x, 
@@ -476,7 +533,7 @@ def handle_ffa_location_submission(player_name, player_guess, question_id):
     game_state.blind_map_state['player_locations'][player_name] = player_guess
     
     # Check the accuracy using the BlindMapService
-    result = BlindMapService.check_location_guess(
+    result = check_location_guess(
         question_id, 
         player_guess['x'], 
         player_guess['y']

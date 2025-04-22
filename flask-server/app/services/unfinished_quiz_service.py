@@ -70,6 +70,7 @@ class UnfinishedQuizService:
                 print(f"Created new autosave with ID: {identifier}")
             
             return True, identifier
+        
         except Exception as e:
             print(f"Error saving unfinished quiz: {e}")
             return False, None
