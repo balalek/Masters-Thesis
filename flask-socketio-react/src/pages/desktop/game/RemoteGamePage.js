@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { getSocket, getServerTime } from '../../../utils/socket';
-import GameCountdown from '../../../components/desktop/GameCountdown';
+import GameCountdown from '../../../components/desktop/miscellaneous/GameCountdown';
 import { useNavigate } from 'react-router-dom';
 
 const RemoteGamePage = () => {

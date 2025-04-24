@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
 import { getSocket, getServerTime } from '../../../utils/socket';
-import GameCountdown from '../../../components/desktop/GameCountdown';
+import GameCountdown from '../../../components/desktop/miscellaneous/GameCountdown';
 import PlayersList from '../../../components/desktop/room/PlayersList';
 import TeamMode from '../../../components/desktop/room/TeamMode';
 import ConnectionInfo from '../../../components/desktop/room/ConnectionInfo';
@@ -75,6 +75,24 @@ const RoomPage = () => {
       }
     });
 
+    // Add listener for player leaving the room
+    socket.on('player_left', (data) => {
+      const playerName = data.player_name;
+      
+      // Update players array if in free-for-all mode
+      if (selectedMode === 'freeforall') {
+        setPlayers(prev => prev.filter(player => player.name !== playerName));
+      } 
+      // Update team arrays if in team mode
+      else {
+        // Remove from blue team if player is there
+        setBlueTeam(prev => prev.filter(player => player.name !== playerName));
+        
+        // Remove from red team if player is there
+        setRedTeam(prev => prev.filter(player => player.name !== playerName));
+      }
+    });
+
     socket.on('game_started', (data) => {
       setGameData(data); // Store the game data
       setShowCountdown(true); // Show countdown instead of immediate navigation
@@ -88,14 +106,40 @@ const RoomPage = () => {
     socket.on('game_started_remote', () => {
       setIsRemoteGame(true);
     });
+    
+    // Add listener for player name changes
+    socket.on('player_name_changed', (data) => {
+      const { old_name, new_name, color } = data;
+      
+      // Update players array if in free-for-all mode
+      if (selectedMode === 'freeforall') {
+        setPlayers(prev => prev.map(player => 
+          player.name === old_name ? { ...player, name: new_name } : player
+        ));
+      } 
+      // Update team arrays if in team mode
+      else {
+        // Update blue team if player is there
+        setBlueTeam(prev => prev.map(player => 
+          player.name === old_name ? { ...player, name: new_name } : player
+        ));
+        
+        // Update red team if player is there
+        setRedTeam(prev => prev.map(player => 
+          player.name === old_name ? { ...player, name: new_name } : player
+        ));
+      }
+    });
 
     return () => {
       socket.off('player_joined');
       socket.off('game_started');
       socket.off('remote_display_connected');
       socket.off('game_started_remote');
+      socket.off('player_name_changed');
+      socket.off('player_left'); // Clean up the new event listener
     };
-  }, [navigate, selectedMode, blueTeam.length, redTeam.length]);
+}, [navigate, selectedMode, blueTeam.length, redTeam.length]);
 
   // Activate quiz when component mounts so players can join
   useEffect(() => {

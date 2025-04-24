@@ -23,8 +23,8 @@ import {
   ListItemText
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS, QUIZ_VALIDATION, QUIZ_CATEGORIES } from '../../constants/quizValidation';
-import { scrollbarStyle } from '../../utils/scrollbarStyle';
+import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS, QUIZ_VALIDATION, QUIZ_CATEGORIES } from '../../../constants/quizValidation';
+import { scrollbarStyle } from '../../../utils/scrollbarStyle';
 
 // Available quiz type configurations for quick play
 const QUICK_PLAY_TYPES = [

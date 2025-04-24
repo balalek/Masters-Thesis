@@ -5,12 +5,12 @@ import { getSocket, getServerTime } from '../../../utils/socket';
 import ABCDAnswers from '../../../components/desktop/answerTypes/ABCDAnswers';
 import TrueFalseAnswers from '../../../components/desktop/answerTypes/TrueFalseAnswers';
 import OpenAnswerResult from '../../../components/desktop/answerTypes/OpenAnswerResult';
-import Leaderboard from '../../../components/desktop/Leaderboard';
+import Leaderboard from '../../../components/desktop/miscellaneous/Leaderboard';
 import GuessNumberResult from '../../../components/desktop/answerTypes/GuessNumberResult';
 import DrawingAnswerResult from '../../../components/desktop/answerTypes/DrawingAnswerResult';
 import WordChainResults from '../../../components/desktop/answerTypes/WordChainResults';
 import MathQuizResults from '../../../components/desktop/answerTypes/MathQuizResults';
-import BlindMapResult from '../../../components/desktop/answerTypes/BlindMapResult'; // Add this import
+import BlindMapResult from '../../../components/desktop/answerTypes/BlindMapResult';
 
 const ScorePage = () => {
   const location = useLocation();

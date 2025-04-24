@@ -11,10 +11,11 @@ This module provides core Socket.IO event handlers that apply across all questio
 These handlers form the foundation for real-time communication in the application.
 """
 from flask import request, session
-from flask_socketio import emit, join_room
+from flask_socketio import emit, join_room, leave_room
 from .. import socketio
 from ..game_state import game_state
 from .utils import get_scores_data
+from ..constants import AVAILABLE_COLORS
 
 @socketio.on('join_room')
 def handle_join_room(data):
@@ -30,6 +31,68 @@ def handle_join_room(data):
     player_name = data['player_name']
     join_room(player_name)
     print(f'Player {player_name} joined room {player_name}')
+
+@socketio.on('player_name_changed')
+def handle_player_name_change(data):
+    """
+    Handle player changing their name and room association.
+    
+    Updates the player's socket.io room to match their new name for 
+    continued direct communication.
+    
+    Args:
+        data: Dictionary containing old_name and new_name keys
+    """
+    old_name = data['old_name']
+    new_name = data['new_name']
+    
+    # Leave the old room first
+    leave_room(old_name)
+    
+    # Join the new room with the new name
+    join_room(new_name)
+    
+    print(f'Player changed name from {old_name} to {new_name}, left room {old_name}, joined room {new_name}')
+
+@socketio.on('player_leaving')
+def handle_player_leaving(data):
+    """
+    Handle a player explicitly notifying the server that they are leaving.
+    
+    This is triggered by the beforeunload event in the browser when a player
+    refreshes or closes the page.
+    
+    Args:
+        data: Dictionary containing player_name
+    """
+    player_name = data.get('player_name')
+    
+    if player_name and player_name in game_state.players:
+        print(f'Player {player_name} explicitly left the game')
+        
+        # Store player color before removing
+        player_color = game_state.players[player_name]['color']
+        
+        # Remove player from game state
+        del game_state.players[player_name]
+        
+        # Remove from teams if in team mode
+        if player_name in game_state.blue_team:
+            game_state.blue_team.remove(player_name)
+        if player_name in game_state.red_team:
+            game_state.red_team.remove(player_name)
+        
+        # Notify clients about the player leaving
+        socketio.emit('player_left', {
+            'player_name': player_name,
+            'color': player_color
+        })
+        
+        # Make the color available again
+        used_colors = [player['color'] for player in game_state.players.values()]
+        available_colors = [color for color in AVAILABLE_COLORS if color not in used_colors]
+        
+        socketio.emit('colors_updated', {"colors": available_colors})
 
 @socketio.on('connect')
 def handle_connect():
@@ -49,9 +112,12 @@ def handle_disconnect():
     """
     Handle client disconnection. Automatically triggers when a client disconnects.
     
-    Cleans up session data when clients disconnect.
+    Logs disconnection but does not try to map the socket to a player name 
+    since we're not storing socket IDs with players. The player_leaving event
+    should be used instead for explicit player departures.
     """
-    print('Client disconnected')
+    print(f'Client disconnected from {request.remote_addr}')
+    
     if 'server' in session:
         del session['server']
 

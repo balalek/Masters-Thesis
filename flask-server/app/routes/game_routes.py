@@ -461,6 +461,7 @@ def start_game():
         # Send it to the specific player's room (each player has their own room)
         socketio.emit('game_started_mobile', player_game_data, room=player_name)
     
+    game_state.is_game_running = True
     return jsonify({"message": "Game started"}), 200
 
 @game_routes.route('/next_question', methods=['POST'])

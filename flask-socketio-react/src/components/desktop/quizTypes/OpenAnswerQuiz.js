@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Grid, Button } from '@mui/material';
+import { Box, Typography, Paper } from '@mui/material';
 import { getSocket, getServerTime } from '../../../utils/socket';
 import { createInitialMask, shouldRevealLetter } from '../../../utils/letterReveal';
-import ImageBlockReveal from '../ImageBlockReveal';
+import ImageBlockReveal from '../miscellaneous/ImageBlockReveal';
 
 const OpenAnswerQuiz = ({ question, question_end_time }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);

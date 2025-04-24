@@ -65,7 +65,11 @@ def join():
     if player_color not in AVAILABLE_COLORS or player_color in used_colors:
         return jsonify({"error": "Tato barva je již zabraná"}), 400
     
-    # Add player to game state
+    # Check if game is running at the moment
+    if game_state.is_game_running:
+        return jsonify({"error": "Hra již probíhá, nelze se připojit"}), 400
+    
+    # Add player to game state (without socket ID)
     game_state.players[player_name] = {
         "score": 0,
         "color": player_color
@@ -80,3 +84,55 @@ def join():
     socketio.emit('player_joined', {"player_name": player_name, "color": player_color})
     
     return jsonify({"message": "Player joined", "colors": new_available_colors}), 200
+
+
+@player_routes.route('/change_name', methods=['POST'])
+def change_name():
+    """
+    Handle a player changing their name during the waiting room phase.
+    
+    Validates that:
+
+    - The old name exists
+    - The new name is unique
+    - The new name meets length requirements
+    
+    Request body (JSON):
+
+        - old_name: The current name of the player
+        - new_name: The desired new name for the player
+    
+    Returns:
+        200 JSON: Success confirmation
+        400 JSON: Error if requirements aren't met
+    """
+    if not game_state.is_quiz_active:
+        return jsonify({"error": "Žádný kvíz není momentálně připraven"}), 400
+        
+    old_name = request.json.get('old_name')
+    new_name = request.json.get('new_name')
+    
+    # Validate that old name exists
+    if old_name not in game_state.players:
+        return jsonify({"error": "Původní jméno nebylo nalezeno"}), 400
+        
+    # Validate that new name is unique
+    if new_name in game_state.players and new_name != old_name:
+        return jsonify({"error": "Tato přezdívka je již zabraná"}), 400
+        
+    # Validate name length
+    if len(new_name) < 3 or len(new_name) > 16:
+        return jsonify({"error": "Přezdívka musí mít 3 až 16 znaků"}), 400
+        
+    # Get player data and update the name
+    player_data = game_state.players.pop(old_name)
+    game_state.players[new_name] = player_data
+    
+    # Emit a socket event to update clients
+    socketio.emit('player_name_changed', {
+        "old_name": old_name,
+        "new_name": new_name,
+        "color": player_data["color"]
+    })
+    
+    return jsonify({"success": True, "message": "Jméno úspěšně změněno"}), 200

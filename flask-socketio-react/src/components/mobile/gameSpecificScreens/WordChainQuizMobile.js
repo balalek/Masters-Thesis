@@ -329,7 +329,7 @@ const WordChainQuizMobile = ({ onAnswer, question, playerName }) => {
             autoComplete="off"
             error={!!error}
             disabled={isSubmitting}
-            sx={{ 
+            sx={{
               flex: 3,
               mb: 2,
               '& .MuiOutlinedInput-root': {

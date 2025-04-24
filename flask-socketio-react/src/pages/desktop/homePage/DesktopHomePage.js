@@ -13,7 +13,7 @@ import ShuffleIcon from '@mui/icons-material/Shuffle';
 import QuestionAnswerIcon from '@mui/icons-material/EditNote';
 import SearchIcon from '@mui/icons-material/Search';
 import QuizListItem from './QuizListItem';
-import QuickPlayModal from '../../../components/desktop/QuickPlayModal';
+import QuickPlayModal from '../../../components/desktop/miscellaneous/QuickPlayModal';
 import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
 
 const QuizTypeButton = ({ icon: Icon, label, value, selected, onChange }) => (

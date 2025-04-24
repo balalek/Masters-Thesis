@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
-import { getServerTime } from '../../utils/socket';
+import { getServerTime } from '../../../utils/socket';
 
 const GameCountdown = ({ onCountdownComplete, showAt }) => {
   const [count, setCount] = useState(5);

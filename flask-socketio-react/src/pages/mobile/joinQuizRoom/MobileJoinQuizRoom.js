@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'; // Add useLocation
 import { Box, TextField, Button, Typography, Container, Avatar } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import { getSocket } from '../../../utils/socket';
-import WaitingRoom from '../../../components/mobile/WaitingRoom';
+import WaitingRoom from '../../../components/mobile/screensBetweenRounds/WaitingRoom';
 
 function MobileJoinQuizRoom() {
   const location = useLocation(); // Add this

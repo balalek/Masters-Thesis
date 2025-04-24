@@ -38,6 +38,7 @@ class GameState:
         self.questions = []  # List of questions in the quiz
         self.answers_received = 0  # How many players have answered the current question
         self.answer_counts = [0, 0, 0, 0]  # How many players answered each option (0-3)
+        self.is_game_running = False  # Is the game currently running?
         self.is_quiz_active = False  # Is the quiz currently active? (meaning we are in RoomPage in the frontend)
         self.is_team_mode = False
         self.blue_team = []

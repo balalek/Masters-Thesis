@@ -2,7 +2,6 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CancelIcon from '@mui/icons-material/Cancel';
-import Paper from '@mui/material/Paper';
 
 const MathQuizEliminatedAnswer = ({ points_earned, total_points, currentSequence, totalSequences, isTeamMode, teamName }) => {
   return (

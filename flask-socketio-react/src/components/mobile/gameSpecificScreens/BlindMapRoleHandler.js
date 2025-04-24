@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { getSocket, getServerTime } from '../../../utils/socket';
 import BlindMapQuizMobile from './BlindMapQuizMobile';
 import BlindMapLocationMobile from './BlindMapLocationMobile';
-import TeamWaitingScreen from '../TeamWaitingScreen';
-import BlindMapPhaseTransitionMobile from '../BlindMapPhaseTransitionMobile';
+import TeamWaitingScreen from '../screensBetweenRounds/TeamWaitingScreen';
+import BlindMapPhaseTransitionMobile from '../screensBetweenRounds/BlindMapPhaseTransitionMobile';
 
 const BlindMapRoleHandler = ({ onAnswer, playerName, questionId, teamName }) => {
   const [phase, setPhase] = useState(1);

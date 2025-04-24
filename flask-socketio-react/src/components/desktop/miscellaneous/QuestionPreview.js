@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
-import { getSocket, getServerTime } from '../../utils/socket';
+import { getSocket, getServerTime } from '../../../utils/socket';
 
 const QuestionPreview = ({ question, onPreviewComplete, showAt }) => { // Added showAt prop
   const [count, setCount] = useState(5);

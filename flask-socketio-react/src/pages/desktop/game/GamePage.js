@@ -3,13 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { getSocket, getServerTime } from '../../../utils/socket';
 import ABCDQuiz from '../../../components/desktop/quizTypes/ABCDQuiz';
 import TrueFalseQuiz from '../../../components/desktop/quizTypes/TrueFalseQuiz';
-import QuestionPreview from '../../../components/desktop/QuestionPreview';
+import QuestionPreview from '../../../components/desktop/miscellaneous/QuestionPreview';
 import OpenAnswerQuiz from '../../../components/desktop/quizTypes/OpenAnswerQuiz';
 import GuessANumberQuiz from '../../../components/desktop/quizTypes/GuessANumberQuiz';
 import DrawingQuiz from '../../../components/desktop/quizTypes/DrawingQuiz';
 import WordChainQuiz from '../../../components/desktop/quizTypes/WordChainQuiz';
 import MathQuiz from '../../../components/desktop/quizTypes/MathQuiz';
-import BlindMapQuiz from '../../../components/desktop/quizTypes/BlindMapQuiz'; // Add this import
+import BlindMapQuiz from '../../../components/desktop/quizTypes/BlindMapQuiz';
 
 function GamePage() {
   const location = useLocation();

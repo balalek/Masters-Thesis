@@ -2,7 +2,6 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 const MathQuizCorrectAnswer = ({ points_earned, total_points, correctCount, totalCount, isTeamMode, teamName }) => {
   return (
