@@ -1,5 +1,18 @@
-"""
-Socket.IO events for Blind Map questions
+"""Socket.IO event handlers for Blind Map gameplay.
+
+This module provides real-time event handling for Blind Map questions:
+
+- Two-phase gameplay: anagram solving followed by map location guessing
+- Team mode with captain-based final answers and team alternation
+- Free-for-all mode with individual scoring and placement
+- Progressive clue reveals and location validation
+- Map coordinate validation against correct locations
+- Point distribution based on answer accuracy and speed
+- Real-time captain position preview for team collaboration
+
+Blind Map is a geography-based game where players first solve an anagram
+of a city name, then try to locate that city on a map, with different
+mechanics for team vs individual play modes.
 """
 from flask_socketio import emit
 from .. import socketio
@@ -11,14 +24,46 @@ from bson import ObjectId
 from ..db import db
 from typing import Dict, Any
 
-# Functions moved from BlindMapService
 def calculate_distance(x1: float, y1: float, x2: float, y2: float) -> float:
-        """Calculate the Euclidean distance between two points on the map."""
-        # Simple Euclidean distance in map coordinates
-        return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+    """
+    Calculate the Euclidean distance between two points on the map.
+    
+    Uses the standard Euclidean distance formula to determine how far
+    a player's guess is from the correct location.
+    
+    Args:
+        x1: X-coordinate of first point
+        y1: Y-coordinate of first point
+        x2: X-coordinate of second point
+        y2: Y-coordinate of second point
+        
+    Returns:
+        float: The distance between the two points
+    """
+    # Simple Euclidean distance in map coordinates
+    return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
 
 def check_location_guess(question_id: str, user_x: float, user_y: float) -> Dict[str, Any]:
-    """Check if a location guess is within the correct radius."""
+    """
+    Check if a location guess is within the correct radius.
+    
+    Validates a player's location guess against the correct answer,
+    using different radius settings based on the question's difficulty.
+    Supports exact matches inside a radius and provides feedback on the guess.
+    
+    Args:
+        question_id: MongoDB ID of the question
+        user_x: X-coordinate of player's guess
+        user_y: Y-coordinate of player's guess
+        
+    Returns:
+        dict:
+
+            - correct: Whether the guess was correct
+            - message: Feedback message about the guess
+            - correctLocation: Coordinates of the correct answer
+            - score: (For partial matches) Calculated score
+    """
     # Get the question
     question = db.questions.find_one({"_id": ObjectId(question_id)})
     if not question:
@@ -46,19 +91,6 @@ def check_location_guess(question_id: str, user_x: float, user_y: float) -> Dict
             "correctLocation": {"x": correct_x, "y": correct_y}
         }
     
-    # For EASY mode, check area hit
-    if radius_preset == "EASY" and "area" in presets["EASY"]:
-        area_radius = presets["EASY"]["area"]
-        if distance <= area_radius:
-            # Calculate score based on distance within area
-            score = int(100 - ((distance - exact_radius) / (area_radius - exact_radius)) * 50)
-            return {
-                "score": max(50, score),  # At least 50 points for being in the area
-                "correct": True,
-                "message": "Blízko správného umístění!",
-                "correctLocation": {"x": correct_x, "y": correct_y}
-            }
-    
     # No score
     return {
         "correct": False,
@@ -67,8 +99,17 @@ def check_location_guess(question_id: str, user_x: float, user_y: float) -> Dict
     }
 
 def initialize_blind_map():
-    """Initialize blind map state"""
-    # Reset blind map specific state
+    """
+    Initialize blind map state for a new question.
+    
+    Resets all the tracking properties needed for blind map questions:
+
+    - Phase tracking (anagram vs location placement)
+    - Correct player tracking and ordering
+    - Point accumulation
+    - Team and captain guesses
+    - Results preparation
+    """
     game_state.blind_map_state = {
         'phase': 1,
         'correct_players': set(),
@@ -85,7 +126,22 @@ def initialize_blind_map():
 
 @socketio.on('submit_blind_map_anagram')
 def submit_blind_map_anagram(data):
-    """Handle anagram submission in the first phase of Blind Map"""
+    """
+    Handle player submission of city name anagram solution.
+    
+    Processes the first phase of the Blind Map question where players
+    must identify the city name from an anagram before proceeding
+    to locate it on the map.
+    
+    Args:
+        data (dict):
+
+            - player_name: Name of the player submitting the answer
+            - answer: The player's solution to the anagram
+            
+    Emits:
+        - 'blind_map_feedback': Success/error feedback to the player
+    """
     player_name = data['player_name']
     answer = data.get('answer', '').strip().lower()
     current_question = game_state.questions[game_state.current_question]
@@ -103,7 +159,7 @@ def submit_blind_map_anagram(data):
     # Check if the answer is correct
     is_correct = answer == correct_answer
     
-    if is_team_mode():
+    if game_state.is_team_mode:
         # Team mode logic
         handle_team_anagram_submission(player_name, is_correct, current_question)
     else:
@@ -111,7 +167,22 @@ def submit_blind_map_anagram(data):
         handle_ffa_anagram_submission(player_name, is_correct, current_question)
 
 def handle_team_anagram_submission(player_name, is_correct, question):
-    """Handle team mode anagram submission"""
+    """
+    Process anagram submission in team mode.
+    
+    In team mode, the first team to correctly solve the anagram
+    gets to place their guess on the map first. Handles phase
+    transition when a team successfully solves the anagram.
+    
+    Args:
+        player_name: Name of the player submitting the answer
+        is_correct: Whether the answer is correct
+        question: The current blind map question object
+        
+    Emits:
+        - 'blind_map_feedback': Feedback to the player about their submission
+        - 'blind_map_phase_transition': Phase change notification if correct
+    """
     team = 'blue' if player_name in game_state.blue_team else 'red'
     
     # If player is not in a team or already submitted correct answer
@@ -163,7 +234,7 @@ def handle_team_anagram_submission(player_name, is_correct, question):
                 "correctAnswer": question.get('city_name', '')
             }, room=player_name)
         else:
-            # Another player from the same team or opposing team got the answer correct later
+            # Another player from the same team or opposing team got the answer correct later, but should't happen
             game_state.blind_map_state['correct_players'].add(player_name)
             
             # Send feedback to the player
@@ -182,7 +253,22 @@ def handle_team_anagram_submission(player_name, is_correct, question):
         }, room=player_name)
 
 def handle_ffa_anagram_submission(player_name, is_correct, question):
-    """Handle free-for-all mode anagram submission"""
+    """
+    Process anagram submission in free-for-all mode.
+    
+    In free-for-all mode, each player can solve the anagram individually
+    to proceed to the map guessing phase. Points are awarded based on solving
+    order, with faster solutions earning more points.
+    
+    Args:
+        player_name: Name of the player submitting the answer
+        is_correct: Whether the answer is correct
+        question: The current blind map question object
+        
+    Emits:
+        - 'blind_map_feedback': Feedback to the player about their submission
+        - 'blind_map_anagram_solved': Notification that a player solved the anagram
+    """
     if is_correct:
         # Check if player already solved the anagram
         if player_name not in game_state.blind_map_state['correct_players']:
@@ -228,7 +314,18 @@ def handle_ffa_anagram_submission(player_name, is_correct, question):
         }, room=player_name)
 
 def transition_to_phase2_ffa(question):
-    """Transition to phase 2 in free-for-all mode"""
+    """
+    Transition from anagram phase to map guessing phase in free-for-all mode.
+    
+    Notifies all clients that the anagram phase is complete and the map
+    guessing phase is beginning. Adjusts game timers for the new phase.
+    
+    Args:
+        question: The current blind map question object
+        
+    Emits:
+        - 'blind_map_phase_transition': Phase change notification with timing info
+    """
     current_time = int(time() * 1000)
     transition_end_time = current_time + PHASE_TRANSITION_TIME
     
@@ -242,12 +339,17 @@ def transition_to_phase2_ffa(question):
         'mapType': question.get('map_type', 'cz'),
         'phase': 2
     })
-    
-    # Set a new question end time for phase 2 based on original question length
-    game_state.question_end_time = transition_end_time + (question.get('length', 30) * 1000)
 
 def calculate_anagram_points(player_name):
-    """Calculate points for anagram solving based on order"""
+    """
+    Calculate points earned for solving the anagram based on solving order.
+    
+    Points decrease as more players solve the anagram, rewarding speed.
+    These points are stored but not awarded until after the map phase.
+    
+    Args:
+        player_name: Name of the player who solved the anagram
+    """
     order = len(game_state.blind_map_state['correct_order'])
     total_players = len(game_state.players)
     
@@ -268,7 +370,24 @@ def calculate_anagram_points(player_name):
 
 @socketio.on('submit_blind_map_location')
 def submit_blind_map_location(data):
-    """Handle location submission in the second phase of Blind Map"""
+    """
+    Handle player submission of a location guess on the map.
+    
+    Routes the guess to the appropriate handler based on game mode.
+    This is the second phase of the Blind Map question after solving
+    the anagram.
+    
+    Args:
+        data (dict):
+
+            - player_name: Name of the player submitting the guess
+            - x: X-coordinate of the guess
+            - y: Y-coordinate of the guess
+            - questionId: MongoDB ID of the question
+            
+    Emits:
+        - 'blind_map_feedback': Error feedback if coordinates are invalid
+    """
     player_name = data['player_name']
     x = data.get('x')
     y = data.get('y')
@@ -283,7 +402,7 @@ def submit_blind_map_location(data):
     
     current_question = game_state.questions[game_state.current_question]
     
-    # Create player_guess regardless of mode (moved this outside of the if statement)
+    # Create player_guess regardless of mode
     team = 'blue' if player_name in game_state.blue_team else 'red' if player_name in game_state.red_team else None
     player_guess = {
         'playerName': player_name,
@@ -294,15 +413,33 @@ def submit_blind_map_location(data):
     }
     
     # Continue with normal processing based on mode
-    if is_team_mode():
-        # Team mode logic - REMOVED duplicate emit here
+    if game_state.is_team_mode:
+        # Team mode logic
         handle_team_location_submission(player_name, player_guess, current_question)
     else:
         # Free-for-all mode logic
         handle_ffa_location_submission(player_name, player_guess, question_id)
 
 def handle_team_location_submission(player_name, player_guess, question):
-    """Handle team mode location submission"""
+    """
+    Process location submission in team mode.
+    
+    Team captains' guesses are considered final for their team.
+    For the active team, validates the guess against the correct location
+    and determines if they win points. If incorrect, transitions to the
+    other team's turn.
+    
+    Args:
+        player_name: Name of the player submitting the guess
+        player_guess: Object containing the guess coordinates and metadata
+        question: The current blind map question object
+        
+    Emits:
+        - 'blind_map_feedback': Feedback to the player
+        - 'blind_map_location_submitted': Broadcasts the guess to all clients
+        - 'answer_correctness': Results notification to team members
+        - 'blind_map_phase_transition': Phase change if first team was incorrect
+    """
     team = 'blue' if player_name in game_state.blue_team else 'red'
     phase = game_state.blind_map_state['phase']
     
@@ -354,7 +491,7 @@ def handle_team_location_submission(player_name, player_guess, question):
     
     # If this is the captain, process the guess immediately to check if it's correct
     if is_captain:
-        # Check if the location is correct using the BlindMapService
+        # Check if the location is correct
         result = check_location_guess(
             str(question['_id']), 
             player_guess['x'], 
@@ -520,7 +657,22 @@ def handle_team_location_submission(player_name, player_guess, question):
                 )
 
 def handle_ffa_location_submission(player_name, player_guess, question_id):
-    """Handle free-for-all mode location submission"""
+    """
+    Process location submission in free-for-all mode.
+    
+    Each player's guess is evaluated individually against the correct location.
+    Total points combine anagram points and location accuracy points.
+    
+    Args:
+        player_name: Name of the player submitting the guess
+        player_guess: Object containing the guess coordinates and metadata
+        question_id: MongoDB ID of the question
+        
+    Emits:
+        - 'blind_map_feedback': Feedback if player already submitted
+        - 'blind_map_location_submitted': Broadcasts the guess to all clients
+        - 'answer_correctness': Results notification to the player
+    """
     # Check if the player already submitted a location
     if player_name in game_state.blind_map_state['player_locations']:
         emit('blind_map_feedback', {
@@ -532,7 +684,7 @@ def handle_ffa_location_submission(player_name, player_guess, question_id):
     # Store the player's guess
     game_state.blind_map_state['player_locations'][player_name] = player_guess
     
-    # Check the accuracy using the BlindMapService
+    # Check the accuracy
     result = check_location_guess(
         question_id, 
         player_guess['x'], 
@@ -587,7 +739,21 @@ def handle_ffa_location_submission(player_name, player_guess, question_id):
         )
 
 def prepare_blind_map_results(question, last_result=None, free_for_all=False):
-    """Prepare result data for the blind map question"""
+    """
+    Prepare final result data for the blind map question.
+    
+    Collects all relevant data about the question outcome for display
+    on the results screen, with different data structures for team
+    and free-for-all modes.
+    
+    Args:
+        question: The current blind map question object
+        last_result: Result from the last location check (team mode)
+        free_for_all: Whether this is free-for-all mode
+        
+    Returns:
+        Nothing, but The prepared results are stored in game_state.blind_map_state['results']
+    """
     results = {
         'city_name': question.get('city_name', ''),
         'map_type': question.get('map_type', 'cz'),
@@ -596,7 +762,7 @@ def prepare_blind_map_results(question, last_result=None, free_for_all=False):
             'y': question.get('location_y', 0)
         },
         'radius_preset': question.get('radius_preset', 'HARD'),
-        'is_team_mode': is_team_mode()
+        'is_team_mode': game_state.is_team_mode
     }
     
     if free_for_all:
@@ -614,7 +780,15 @@ def prepare_blind_map_results(question, last_result=None, free_for_all=False):
     game_state.blind_map_state['results'] = results
 
 def determine_winning_team(last_result):
-    """Determine which team won the blind map question"""
+    """
+    Determine which team won the blind map question based on their guess.
+    
+    Args:
+        last_result: Result from the location check for the team's guess
+        
+    Returns:
+        str: Team name ('red' or 'blue') if a team won, None otherwise
+    """
     if not last_result:
         return None
     
@@ -623,16 +797,27 @@ def determine_winning_team(last_result):
     
     return None
 
-def is_team_mode():
-    """Check if the game is in team mode"""
-    return game_state.is_team_mode
-
 def handle_blind_map_time_up(scores):
-    """Handle time up for Blind Map questions"""
+    """
+    Handle time expiration for Blind Map questions.
+    
+    Processes different behaviors based on the current phase and game mode:
+    
+    - In team mode phase 1: End the question if no team solved the anagram
+    - In team mode phase 2: Switch to the other team if the first team didn't submit
+    - In team mode phase 3: End the question and determine a winner by proximity
+    - In free-for-all: Ensure all players who solved the anagram get points
+    
+    Args:
+        scores: Current game scores for inclusion in results
+        
+    Emits:
+        - Multiple possible events depending on phase and mode
+    """
     current_question = game_state.questions[game_state.current_question]
     phase = game_state.blind_map_state['phase']
     
-    if is_team_mode():
+    if game_state.is_team_mode:
         if phase == 1:
             # No team solved the anagram, end the question
             prepare_blind_map_results(current_question)
@@ -716,7 +901,21 @@ def handle_blind_map_time_up(scores):
 
 @socketio.on('request_next_clue')
 def request_next_clue(data):
-    """Handle manual request for revealing the next clue"""
+    """
+    Handle manual request for revealing the next clue in Blind Map questions.
+    
+    Manages the progressive reveal of location clues to help players identify
+    the location on the map. Ensures clues are revealed in order and only if
+    they actually contain content.
+    
+    Args:
+        data (dict):
+        
+            - clueIndex: Current clue index (0-2)
+    
+    Emits:
+        - 'blind_map_clue_revealed': New clue content with index to all clients
+    """
     current_clue_index = data.get('clueIndex', 0)
     next_clue_index = current_clue_index
     
@@ -737,7 +936,7 @@ def request_next_clue(data):
                 # Update the clue index in game state
                 game_state.blind_map_state['clue_index'] = next_clue_index + 1
                 
-                # Emit the clue to all clients
+                # Emit the clue to all clients (only main screen listens)
                 socketio.emit('blind_map_clue_revealed', {
                     'clue_index': next_clue_index,
                     'clue': clue_content
@@ -745,7 +944,24 @@ def request_next_clue(data):
 
 @socketio.on('captain_location_preview')
 def handle_captain_preview(data):
-    """Handle real-time preview of captain's selected location"""
+    """
+    Handle real-time preview of captain's selected location for team mode.
+    
+    Provides live feedback to team members about where their captain is considering
+    placing their guess on the map. Useful for team collaboration during the
+    location-guessing phase.
+    
+    Args:
+        data (dict):
+
+            - team: Team identifier ('blue' or 'red')
+            - x: X-coordinate of captain's cursor position
+            - y: Y-coordinate of captain's cursor position
+    
+    Emits:
+        - 'captain_preview_update': Captain's cursor position to all clients
+          for real-time visualization on the map
+    """
     team = data.get('team')
     x = data.get('x')
     y = data.get('y')

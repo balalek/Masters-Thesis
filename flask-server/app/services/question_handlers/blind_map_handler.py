@@ -1,3 +1,7 @@
+"""Handler for Blind Map questions in the quiz application.
+Provides specialized validation, formatting and processing
+for geography questions where users identify locations on maps.
+"""
 from typing import Dict, Any
 from ...constants import QUESTION_TYPES
 from .base_handler import BaseQuestionHandler
@@ -6,13 +10,31 @@ from typing import Optional
 from ...models import QuestionMetadata
 
 class BlindMapQuestionHandler(BaseQuestionHandler):
-    """Handler for Blind Map type questions."""
+    """
+    Handler for Blind Map type questions.
+    
+    Processes geography questions where users must identify cities
+    on a map from clues or anagrams. Implements specific validation for map
+    coordinates, city names, and related properties.
+    """
     
     def __init__(self):
+        """Initialize the handler with the BLIND_MAP question type."""
         super().__init__(QUESTION_TYPES["BLIND_MAP"])
     
     def validate(self, question_data: Dict[str, Any]) -> bool:
-        """Validate blind map data is valid."""
+        """
+        Validate blind map question data.
+        
+        Different from standard questions, Blind Map questions don't require
+        a "question" field but instead need specific geographic data.
+        
+        Args:
+            question_data: The question data to validate
+            
+        Returns:
+            bool: True if the data contains valid blind map information
+        """
         # Override base validation to skip question validation
         # since BlindMap doesn't require a "question" field
         if not question_data or question_data.get('type') != self.question_type:
@@ -38,6 +60,18 @@ class BlindMapQuestionHandler(BaseQuestionHandler):
         return True
     
     def add_type_specific_fields(self, question_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Add fields specific to Blind Map questions.
+        
+        Extracts geographic data including coordinates, city name,
+        anagram clues, map type, and difficulty settings.
+        
+        Args:
+            question_data: Raw question data from the frontend
+            
+        Returns:
+            Dict: Dictionary with blind map specific fields
+        """
         return {
             "city_name": question_data.get("cityName", ""),
             "anagram": question_data.get("anagram", ""),
@@ -51,7 +85,19 @@ class BlindMapQuestionHandler(BaseQuestionHandler):
         }
     
     def format_for_frontend(self, question: Dict[str, Any], quiz_name: str = "Unknown Quiz") -> Dict[str, Any]:
-        """Format blind map question for frontend display."""
+        """
+        Format blind map question for frontend display.
+        
+        Transforms database field names to frontend field names and adds
+        a default question title and generated answer object for display.
+        
+        Args:
+            question: Database question document
+            quiz_name: Name of the parent quiz
+            
+        Returns:
+            Dict: Formatted blind map question for frontend display
+        """
         # Safety check to avoid NoneType errors
         if not question:
             return {
@@ -78,7 +124,7 @@ class BlindMapQuestionHandler(BaseQuestionHandler):
         
         # Add the blind map specific fields
         question_data.update({
-            'question': 'Slepá mapa',  # Default title for frontend
+            'question': 'Slepá mapa',
             'cityName': question.get('city_name', ''),
             'anagram': question.get('anagram', ''),
             'locationX': question.get('location_x', 0),
@@ -99,8 +145,21 @@ class BlindMapQuestionHandler(BaseQuestionHandler):
     
     def create_question_dict(self, question_data: Dict[str, Any], quiz_id: ObjectId, 
                            device_id: str, original: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Create question dict without the question and category fields."""
-        # Add additional safety check for question_data
+        """
+        Create question dictionary for a Blind Map question.
+        
+        Overrides the base method to provide a default question title
+        and handle the special field structure of blind map questions.
+        
+        Args:
+            question_data: Raw question data from frontend
+            quiz_id: MongoDB ObjectId of the parent quiz
+            device_id: Device identifier of the creator/editor
+            original: Original question document if this is an update
+            
+        Returns:
+            Dict: Processed blind map question ready for database storage
+        """
         if not question_data:
             question_data = {}
         
@@ -108,7 +167,7 @@ class BlindMapQuestionHandler(BaseQuestionHandler):
         is_existing = original is not None
         
         question_dict = {
-            "question": "Slepá mapa",  # Default title for storage
+            "question": "Slepá mapa",
             "type": self.question_type,
             "length": question_data.get("timeLimit", question_data.get("length", 30)),
             "category": '',  # Add empty category field explicitly

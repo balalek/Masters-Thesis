@@ -1,9 +1,7 @@
-"""
-File: base_routes.py
-Authors: Bc. Martin Baláž
-Description: Core routing module for the Flask application.
-             Contains basic routes for serving the frontend application,
-             system information endpoints, and connectivity status checks.
+"""Core routing module for the Flask application.
+
+Contains basic routes for serving the frontend application,
+system information endpoints, and connectivity status checks.
 """
 from flask import Blueprint, jsonify, send_from_directory
 from pathlib import Path
@@ -70,9 +68,9 @@ def get_server_time():
     
     Returns:
         JSON object with server timestamp in milliseconds
-        {
-            "server_time": 1234567890123
-        }
+            {
+                "server_time": 1234567890123
+            }
     """
     return jsonify({"server_time": int(time() * 1000)})  # Return time in milliseconds
 
@@ -84,10 +82,10 @@ def get_server_ip():
     
     Returns:
         JSON object containing the server's IP address and port
-        {
-            "ip": "192.168.1.100",
-            "port": 5000
-        }
+            {
+                "ip": "192.168.1.100",
+                "port": 5000
+            }
     """
     ip_address = get_local_ip()
     return jsonify({"ip": ip_address, "port": 5000})
@@ -95,15 +93,15 @@ def get_server_ip():
 @base_routes.route('/online_status', methods=['GET'])
 def get_online_status():
     """
-    TODO: Haven't used this yet, but it might be useful in the future.
+    TODO Haven't used this yet, but it might be useful in the future.
     Check if the server has internet connectivity.
     Forces a real-time check of the internet connection.
     
     Returns:
         JSON object with boolean internet connection status
-        {
-            "is_online": true/false
-        }
+            {
+                "is_online": true/false
+            }
     """
     is_connected = check_internet_connection()
     return jsonify({"is_online": is_connected}), 200

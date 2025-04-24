@@ -1,8 +1,6 @@
 """
-File: __init__.py
-Authors: Bc. Martin Baláž
-Description: Route registration module for the Flask application.
-             Imports and registers all route blueprints with the main Flask app.
+Route registration module for the Flask application.
+Imports and registers all route blueprints with the main Flask app.
 """
 # Import all route blueprints
 from .base_routes import base_routes

@@ -1,10 +1,7 @@
-"""
-File: game_routes.py
-Authors: Bc. Martin Baláž
-Description: Game management routes for the quiz application.
-             Handles game activation, initialization, question progression,
-             and game state reset functionality. Supports various quiz types
-             including drawing, word chain, ABCD, and specialized formats.
+"""Game management routes for the quiz application.
+Handles game activation, initialization, question progression,
+and game state reset functionality. Supports various quiz types
+including drawing, word chain, ABCD, and specialized formats.
 """
 from flask import Blueprint, jsonify, request
 from time import time
@@ -46,12 +43,14 @@ def start_game():
     Initialize and start a new game session.
     
     Handles various game configurations including:
+    
     - Regular quizzes loaded from database by ID
     - Quick play with combined question types (or single type)
     - Team mode vs individual play mode
     - Remote play mode
     
     Request body parameters:
+    
         isTeamMode (bool): Whether to use team-based gameplay
         isRemote (bool): Whether this is a remote play session
         quick_play_type (str, optional): Type of quick play quiz to generate (used as flag)
@@ -388,7 +387,7 @@ def start_game():
     elif first_question.get('type') == 'WORD_CHAIN':
         # For other types, use regular preview time (around 5 seconds)
         game_start_at = game_start_time + PREVIEW_TIME
-        start_word_chain()  # Direct call - no threading or background task
+        start_word_chain()
     elif first_question.get('type') == 'MATH_QUIZ':
         game_start_at = game_start_time + PREVIEW_TIME
         initialize_math_quiz(True) # isFirstQuestion=True
@@ -470,13 +469,15 @@ def next_question():
     Advance to the next question in the current game.
     
     Handles state transitions between different question types:
+    
     - Preserves specific state for consecutive word chain questions (since they can only be in one group)
     - Initializes specialized state for math quiz and blind map questions
     - Updates team/player turn information
     - Manages drawer assignment for drawing questions
     
     Returns:
-        200 JSON: Next question data with metadata
+        200 JSON:
+
             - question: The full question object
             - is_last_question: Whether this is the final question
             - preview_time: Time to show question title before question actually starts

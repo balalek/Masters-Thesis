@@ -1,22 +1,42 @@
+"""Socket.IO event handlers initialization module.
+
+This module serves as the central registration point for all Socket.IO event handlers:
+
+- Imports and registers all event handler modules
+- Sets up event handling for real-time communication
+- Enables bidirectional server-client communication for interactive game features
+- Provides structure for organizing event handlers by feature
+
+The Socket.IO handlers manage real-time functionality including:
+
+- Player management
+- Game state synchronization
+- Live question handling
+- Drawing game coordination
+- Word chain game coordination
 """
-Socket.IO events - initialization
-Import all event handlers here to register them with the socketio instance
-"""
-from flask import request, session
 from .. import socketio
-from ..game_state import game_state
 
 # Import all event handlers to register them
 from .base_events import *
 from .abcd_events import *
 from .open_answer_events import *
 from .guess_number_events import *
-from .drawing_events import *  # Import the new drawing events
-from .math_quiz_events import * # TODO why did it worked without this?
-from .blind_map_events import *  # Import the new blind map events
+from .drawing_events import *
+from .math_quiz_events import *
+from .blind_map_events import *
 
-# Initialize the module
 def init_socketio(app):
-    """Initialize the socketio events module with the Flask app"""
-    print("Socketio events initialized")
+    """
+    Initialize Socket.IO event handling for the application.
+    
+    Completes the Socket.IO setup by binding it to the Flask application
+    and ensuring all event handlers are properly registered.
+    
+    Args:
+        app: The Flask application instance
+        
+    Returns:
+        SocketIO: The configured socketio instance
+    """
     return socketio

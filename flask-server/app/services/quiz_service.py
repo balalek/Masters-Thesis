@@ -1,9 +1,20 @@
+"""Quiz service module for database operations.
+
+This module provides a service class that handles all quiz-related database operations:
+
+- Quiz and question CRUD operations (create, read, update, delete)
+- Question metadata management and statistics tracking
+- Quiz copying and publishing functionality
+- Random question selection for quick play modes
+- Question handling with appropriate type-specific handlers
+
+The QuizService acts as a central service layer between the routes and the database.
+"""
 from ..db import db
-from ..models import Question, Quiz, QuestionMetadata
+from ..models import Quiz
 from bson import ObjectId
-from typing import List, Dict, Any, Optional, Set
-from ..utils import convert_mongo_doc, get_device_id
-from datetime import datetime
+from typing import List, Set
+from ..utils import convert_mongo_doc
 from ..constants import QUESTION_TYPES, QUIZ_TYPES, QUIZ_VALIDATION
 from .local_storage_service import LocalStorageService
 from .question_handlers.question_handler_factory import QuestionHandlerFactory
@@ -12,7 +23,24 @@ from .cloudinary_service import CloudinaryService
 class QuizService:
     @staticmethod
     def _create_question(question_data: dict, quiz_id: ObjectId, device_id: str, order: int) -> dict:
-        """Create or update a question and return its reference data"""
+        """
+        Create or update a question and return its reference data.
+        
+        Handles validation, type-specific processing, and copy management
+        for new and existing questions.
+        
+        Args:
+            question_data: Question data from frontend
+            quiz_id: ObjectId of the quiz this question belongs to
+            device_id: Device identifier for tracking question ownership
+            order: Position of the question in the quiz
+            
+        Returns:
+            dict: Reference data containing the question ID and order
+            
+        Raises:
+            ValueError: If question type is invalid
+        """
         # Validate question type
         question_type = question_data.get("type")
         if (question_type not in QUESTION_TYPES.values()):
@@ -52,7 +80,21 @@ class QuizService:
 
     @staticmethod
     def _handle_quiz_questions(quiz_id: ObjectId, questions: List[dict], device_id: str, existing_questions: Set[str] = None) -> List[dict]:
-        """Process questions for a quiz and return list of question references"""
+        """
+        Process questions for a quiz and return list of question references.
+        
+        Creates new questions, updates existing ones, and handles removed
+        questions when updating an existing quiz.
+        
+        Args:
+            quiz_id: ObjectId of the parent quiz
+            questions: List of question data from frontend
+            device_id: Device identifier for tracking ownership
+            existing_questions: Set of question IDs from existing quiz (for updates)
+            
+        Returns:
+            list: List of question references in {questionId, order} format
+        """
         question_refs = []
         
         # Create/update all questions
@@ -77,6 +119,24 @@ class QuizService:
 
     @staticmethod
     def create_quiz(name: str, questions: List[dict], quiz_type: str, device_id: str = None) -> ObjectId:
+        """
+        Create a new quiz with its questions.
+        
+        Creates a quiz record and all associated questions, establishing
+        the parent-child relationship between them.
+        
+        Args:
+            name: Title of the quiz
+            questions: List of question data from frontend
+            quiz_type: Type of quiz from QUIZ_TYPES
+            device_id: Device identifier for tracking ownership
+            
+        Returns:
+            ObjectId: ID of the newly created quiz
+            
+        Raises:
+            ValueError: If quiz type is invalid
+        """
         # Validate quiz type
         if (quiz_type not in QUIZ_TYPES.values()):
             raise ValueError(f"Neplatný typ kvízu: {quiz_type}")
@@ -103,7 +163,21 @@ class QuizService:
 
     @staticmethod
     def get_quiz(quiz_id: str) -> dict:
-        """Get a specific quiz by ID with its questions"""
+        """
+        Get a specific quiz by ID with its questions.
+        
+        Retrieves complete quiz data including all question content,
+        sorted by question order.
+        
+        Args:
+            quiz_id: String ID of the quiz to retrieve
+            
+        Returns:
+            dict: Complete quiz data with questions, None if not found
+            
+        Raises:
+            Exception: If error occurs during retrieval
+        """
         try:
             quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
             if not quiz:
@@ -129,11 +203,29 @@ class QuizService:
     @staticmethod
     def get_existing_questions(device_id: str, filter_type: str = 'all', question_type: str = 'all', 
                              search_query: str = '', page: int = 1, per_page: int = 20) -> dict:
-        """Get existing questions based on filters with pagination - used in ABCD quiz creation"""
+        """
+        Get existing questions based on filters with pagination.
+        
+        Used for question browser in quiz creation UI. Supports filtering by:
+        - Owner (mine/others)
+        - Question type
+        - Search query
+        
+        Args:
+            device_id: Device identifier for ownership filtering
+            filter_type: Filter to 'mine', 'others', or 'all' questions
+            question_type: Question type to filter by
+            search_query: Text to search for in question content
+            page: Current page number for pagination
+            per_page: Number of questions per page
+            
+        Returns:
+            dict: {questions: [...], total_count: n} with pagination data
+        """
         # Start with basic query
         query = {}
 
-        # Always exclude Word Chain and Drawing questions
+        # Always exclude Word Chain and Drawing questions - those are dynamic types
         query['type'] = {'$nin': [QUESTION_TYPES["WORD_CHAIN"], QUESTION_TYPES["DRAWING"]]}
 
         # Apply question type filter if not 'all'
@@ -189,7 +281,7 @@ class QuizService:
                     question_data['isMyQuestion'] = False
                     result.append(question_data)
                 else:
-                    # Find a public copy of this question
+                    # Find a public copy of this question instead
                     public_copy = None
                     copies = db.questions.find({'copy_of': question['_id']})
                     
@@ -228,7 +320,26 @@ class QuizService:
     @staticmethod
     def get_quizzes(device_id: str, filter_type: str = 'mine', quiz_type: str = 'all', 
                     search_query: str = '', page: int = 1, per_page: int = 10) -> dict:
-        """Get quizzes with pagination"""
+        """
+        Get quizzes with pagination and filtering.
+        
+        Retrieves quizzes based on ownership, type, and search criteria,
+        with additional metadata like question count and media presence.
+        
+        Args:
+            device_id: Device identifier for ownership filtering
+            filter_type: Filter to 'mine' or 'public' quizzes
+            quiz_type: Quiz type to filter by
+            search_query: Text to search for in quiz names
+            page: Current page number for pagination
+            per_page: Number of quizzes per page
+            
+        Returns:
+            dict: {quizzes: [...], total: n, has_more: bool} with pagination data
+            
+        Raises:
+            Exception: If error occurs during retrieval
+        """
         try:
             query = {}
             
@@ -267,7 +378,7 @@ class QuizService:
                 try:
                     quiz_data = convert_mongo_doc(quiz)
                     
-                    # Add proper error handling for questions array
+                    # Check if quiz has questions
                     questions = quiz.get('questions', [])
                     if not isinstance(questions, list):
                         questions = []
@@ -286,12 +397,14 @@ class QuizService:
                             if question and question.get('media_type') == 'audio':
                                 has_audio = True
                                 break
+
                         except Exception as q_error:
                             print(f"Error processing question reference: {q_error}")
                             continue
                     
                     quiz_data['has_audio'] = has_audio
                     result.append(quiz_data)
+
                 except Exception as quiz_error:
                     print(f"Error processing quiz {quiz.get('_id', 'unknown')}: {quiz_error}")
                     # Skip this quiz instead of failing the entire request
@@ -304,13 +417,29 @@ class QuizService:
                 "total": total,
                 "has_more": has_more
             }
+        
         except Exception as e:
             print(f"Error in get_quizzes: {str(e)}")
             raise e
 
     @staticmethod
     def toggle_quiz_publicity(quiz_id: str, device_id: str) -> dict:
-        """Toggle quiz publicity status"""
+        """
+        Toggle quiz publicity status.
+        
+        Switches a quiz between public and private status,
+        ensuring the requestor has permission to change the quiz.
+        
+        Args:
+            quiz_id: ID of the quiz to update
+            device_id: Device identifier to verify ownership
+            
+        Returns:
+            dict: Result with success status and new publicity state
+            
+        Raises:
+            ValueError: If quiz not found or permission denied
+        """
         quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
         
         if not quiz:
@@ -334,7 +463,26 @@ class QuizService:
 
     @staticmethod
     def update_quiz(quiz_id: str, name: str, questions: List[dict], device_id: str, deleted_questions: List[str] = None, quiz_type: str = None) -> ObjectId:
-        """Update existing quiz and its questions"""
+        """
+        Update existing quiz and its questions.
+        
+        Updates quiz details, processes question changes, and handles 
+        media deletion for removed questions.
+        
+        Args:
+            quiz_id: ID of the quiz to update
+            name: New title for the quiz
+            questions: Updated list of question data
+            device_id: Device identifier to verify ownership
+            deleted_questions: List of question IDs explicitly removed
+            quiz_type: Optional new quiz type
+            
+        Returns:
+            ObjectId: ID of the updated quiz
+            
+        Raises:
+            ValueError: If quiz not found or permission denied
+        """
         quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
         if not quiz:
             raise ValueError("Kvíz nebyl nalezen")
@@ -371,6 +519,7 @@ class QuizService:
                             handler.handle_copy_references(ObjectId(question_id), copies)
                             
                     db.questions.delete_one({"_id": ObjectId(question_id)})
+
                 except Exception as e:
                     print(f"Error deleting question {question_id}: {str(e)}")
 
@@ -399,7 +548,19 @@ class QuizService:
 
     @staticmethod
     def delete_quiz(quiz_id: str, device_id: str) -> None:
-        """Delete quiz and handle its questions' copy references"""
+        """
+        Delete quiz and handle its questions' copy references.
+        
+        Deletes a quiz and all its associated questions, handling
+        media deletion and copy references.
+        
+        Args:
+            quiz_id: ID of the quiz to delete
+            device_id: Device identifier to verify ownership
+            
+        Raises:
+            ValueError: If quiz not found or permission denied
+        """
         quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
         if not quiz:
             raise ValueError("Kvíz nebyl nalezen")
@@ -432,7 +593,22 @@ class QuizService:
 
     @staticmethod
     def copy_quiz(quiz_id: str, device_id: str) -> ObjectId:
-        """Create a copy of an existing quiz with new questions"""
+        """
+        Create a copy of an existing quiz with new questions.
+        
+        Duplicates a quiz and all its questions, preserving type-specific
+        attributes while assigning new ownership.
+        
+        Args:
+            quiz_id: ID of the quiz to copy
+            device_id: Device identifier for new ownership
+            
+        Returns:
+            ObjectId: ID of the newly created quiz copy
+            
+        Raises:
+            ValueError: If original quiz not found
+        """
         # Get original quiz
         quiz = db.quizzes.find_one({"_id": ObjectId(quiz_id)})
         if not quiz:
@@ -470,7 +646,7 @@ class QuizService:
                 "copy_of": original_q.get("copy_of") or original_q["_id"],
             }
             
-            # Add specific fields for Word Chain and Drawing questions
+            # Specific fields based on question type
             if original_q["type"] == QUESTION_TYPES["WORD_CHAIN"]:
                 question_data.update({
                     "rounds": original_q.get("rounds", QUIZ_VALIDATION['WORD_CHAIN_DEFAULT_ROUNDS']),
@@ -481,7 +657,6 @@ class QuizService:
                     "rounds": original_q.get("rounds", QUIZ_VALIDATION['DRAWING_DEFAULT_ROUNDS']),
                     "length": original_q.get("length", QUIZ_VALIDATION['DRAWING_DEFAULT_TIME'])
                 })
-            # Add type-specific fields based on question type
             elif original_q["type"] == QUESTION_TYPES["OPEN_ANSWER"]:
                 question_data.update({
                     "answer": original_q.get("open_answer", ""),
@@ -534,7 +709,17 @@ class QuizService:
 
     @staticmethod
     def update_question_metadata(question_id: str, is_correct: bool, increment_times_played: bool = False) -> None:
-        """Update question metadata after it's been answered"""
+        """
+        Update question metadata after it's been answered.
+        
+        Updates the usage statistics and correct answer rate for a question
+        based on player responses.
+        
+        Args:
+            question_id: ID of the question to update
+            is_correct: Whether the answer was correct
+            increment_times_played: Whether to increment the usage counter
+        """
         question = db.questions.find_one({"_id": ObjectId(question_id)})
         if not question:
             return
@@ -565,15 +750,18 @@ class QuizService:
     @staticmethod
     def get_random_questions(question_type, categories=None, device_id=None, limit=5, exclude_audio=False, map_filter=None):
         """
-        Get random questions from public quizzes that include full document structure with _id
+        Get random questions from public quizzes.
+        
+        Retrieves questions matching specified criteria using MongoDB aggregation.
+        Supports filtering by question type, category, and map type.
         
         Args:
-            question_type (str): Type of question (ABCD or TRUE_FALSE)
-            categories (list): Optional list of categories to filter by
-            device_id (str): Device ID to exclude questions created by this device
-            limit (int): Maximum number of questions to return
-            exclude_audio (bool): Whether to exclude questions with audio media
-            map_type (str): Optional map type for blind map questions (e.g., 'czech', 'europe')
+            question_type: Type of question to retrieve
+            categories: Optional list of categories to filter by
+            device_id: Device ID to exclude questions created by this device
+            limit: Maximum number of questions to return
+            exclude_audio: Whether to exclude questions with audio media
+            map_filter: Optional map type for blind map questions
             
         Returns:
             list: List of randomly selected questions with complete document structure

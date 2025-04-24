@@ -1,5 +1,16 @@
-"""
-Socket.IO events for Math Quiz questions
+"""Socket.IO event handlers for Math Quiz gameplay.
+
+This module provides real-time handling for Math Quiz questions:
+
+- Sequential math problems with elimination mechanics
+- Team vs individual scoring with time-based point calculation
+- Player/team elimination for incorrect answers or timeouts
+- Progressive difficulty with multiple sequences per question
+- Answer validation for both numerical and text responses
+- Game state tracking and synchronization across clients
+
+Math Quiz is an elimination-style game where players must correctly answer
+sequential math problems, with players eliminated for wrong answers or timeouts.
 """
 from flask_socketio import emit
 from .. import socketio
@@ -10,7 +21,24 @@ from time import time
 
 @socketio.on('submit_math_answer')
 def handle_math_answer(data):
-    """Handle submission of a math answer"""
+    """
+    Handle submission of a math answer from a player.
+    
+    Validates the submitted answer against the correct answer for the current sequence.
+    Awards points based on speed for correct answers, eliminates players for incorrect answers.
+    Handles both team mode and individual scoring models.
+    
+    Args:
+        data (dict):
+
+            - player_name: Name of the player submitting the answer
+            - answer: The submitted answer (string, will be normalized)
+            - answer_time: Timestamp when answer was submitted
+    
+    Emits:
+        - 'math_feedback': Feedback to the player about their answer
+        - Updates via broadcast_math_quiz_update() to all clients
+    """
     player_name = data['player_name']
     raw_answer = data.get('answer', '')
     answer_time = data.get('answer_time', int(time()))
@@ -23,10 +51,10 @@ def handle_math_answer(data):
         }, room=player_name)
         return
         
-    # Skip if player already answered this sequence
     current_index = game_state.math_quiz_state['current_sequence']
     sequence = game_state.questions[game_state.current_question]['sequences'][current_index]
-    
+
+    # Skip if player already answered this sequence
     sequence_answers = game_state.math_quiz_state['player_answers'].get(current_index, [])
     if any(ans['player'] == player_name for ans in sequence_answers):
         emit('math_feedback', {
@@ -40,15 +68,16 @@ def handle_math_answer(data):
     submitted_answer = raw_answer.strip().replace(',', '.')
     correct_answer = str(sequence['answer']).strip().replace(',', '.')
     
-    # Check if the answer format matches (handles both numeric and text answers)
+    # Check if the answer format matches (handles numeric value)
     try:
         # Try to convert both to float for numeric comparison
         submitted_float = float(submitted_answer)
         correct_float = float(correct_answer)
         is_correct = abs(submitted_float - correct_float) < 0.001  # Small epsilon for float comparison
+
     except (ValueError, TypeError):
-        # If conversion fails, do string comparison
-        is_correct = submitted_answer.lower() == correct_answer.lower()
+        # False if conversion fails, probably a string was submitted
+        is_correct = False
     
     # Record the answer for this sequence
     if current_index not in game_state.math_quiz_state['player_answers']:
@@ -96,16 +125,10 @@ def handle_math_answer(data):
         time_used = answer_time - start_time
         time_percent = max(0, min(1, time_used / total_time_ms))
         
-        # Add debug output to see what's happening
-        print(f"Points calculation: start_time={start_time}, answer_time={answer_time}")
-        print(f"time_used={time_used}ms, total_time={total_time_ms}ms, time_percent={time_percent}")
-        
-        # Award more points for faster answers - fix potential rounding issues
+        # Award more points for faster answers
         base_points = POINTS_FOR_MATH_CORRECT_ANSWER
-        multiplier = 1 - 0.5 * time_percent  # Should be between 0.5 and 1.0
+        multiplier = 1 - 0.5 * time_percent  # Should be between 0.5 and 1.0, I don't to penalize too much for slow answers
         points = int(base_points * multiplier)
-        
-        print(f"Base points: {base_points}, Multiplier: {multiplier:.2f}, Final points: {points}")
         
         # Award points based on game mode
         if game_state.is_team_mode and team:
@@ -127,7 +150,6 @@ def handle_math_answer(data):
                 game_state.math_quiz_points['team_points'][team] += points
                 # Mark that this team has scored for this sequence
                 game_state.math_quiz_state['teams_scored'][current_index].add(team)
-                print(f"Awarded {points} points to team {team} for player {player_name}'s correct answer")
             else:
                 print(f"Team {team} already scored for sequence {current_index}, no points awarded")
         else:
@@ -137,7 +159,6 @@ def handle_math_answer(data):
             if player_name not in game_state.math_quiz_points['player_points']:
                 game_state.math_quiz_points['player_points'][player_name] = 0
             game_state.math_quiz_points['player_points'][player_name] += points
-            print(f"Awarded {points} points to player {player_name} in free-for-all mode")
         
         # Send feedback to the player
         emit('math_feedback', {
@@ -164,7 +185,29 @@ def handle_math_answer(data):
 
 @socketio.on('math_sequence_completed')
 def handle_sequence_completed(data):
-    """Handle when a math sequence is completed"""
+    """
+    Handle completion of a math sequence when time expires.
+    
+    Processes sequence completion by:
+
+    - Eliminating players/teams that failed to answer correctly
+    - Advancing to the next sequence or ending the quiz
+    - Recording sequence start times for scoring
+    
+    In free-for-all mode, players who didn't answer are eliminated.
+    In team mode, entire teams without correct answers are eliminated.
+    
+    Args:
+        data (dict):
+
+            - current_index: Index of the completed sequence
+            - next_index: Index of the next sequence to start
+    
+    Emits:
+        - 'math_feedback': Elimination notifications to affected players
+        - 'math_sequence_change': Notification of sequence change to all clients
+        - Updates via broadcast_math_quiz_update() to all clients
+    """
     current_index = data.get('current_index', 0)
     next_index = data.get('next_index', current_index + 1)
     
@@ -184,7 +227,6 @@ def handle_sequence_completed(data):
         # In free-for-all mode, players who didn't answer this sequence get eliminated
         for player_name in game_state.players.keys():
             if player_name not in answered_players and player_name not in game_state.math_quiz_state['eliminated_players']:
-                print(f"Player {player_name} eliminated for not answering in time")
                 game_state.math_quiz_state['eliminated_players'].add(player_name)
                 # Send feedback to the player
                 socketio.emit('math_feedback', {
@@ -195,7 +237,6 @@ def handle_sequence_completed(data):
         # In team mode, teams that didn't answer correctly get eliminated
         if 'blue' not in teams_with_correct_answers:
             # Blue team didn't answer correctly - eliminate all blue team members
-            print("Blue team eliminated for not answering correctly in time")
             for player_name in game_state.blue_team:
                 if player_name not in game_state.math_quiz_state['eliminated_players']:
                     game_state.math_quiz_state['eliminated_players'].add(player_name)
@@ -207,7 +248,6 @@ def handle_sequence_completed(data):
         
         if 'red' not in teams_with_correct_answers:
             # Red team didn't answer correctly - eliminate all red team members
-            print("Red team eliminated for not answering correctly in time")
             for player_name in game_state.red_team:
                 if player_name not in game_state.math_quiz_state['eliminated_players']:
                     game_state.math_quiz_state['eliminated_players'].add(player_name)
@@ -237,15 +277,22 @@ def handle_sequence_completed(data):
     # Broadcast updated state
     broadcast_math_quiz_update()
 
-@socketio.on('math_quiz_completed')
 def handle_math_quiz_completed():
-    """Handle when all sequences in a math quiz are completed"""
-    print("Math quiz completed, sending results")
+    """
+    Handle completion of the entire math quiz.
     
+    Aggregates final results and statistics when all sequences are completed
+    or when completion conditions are met (all players/teams eliminated).
+    
+    Collects and formats player answers, sequence details, and elimination data
+    before sending final results to all clients.
+    
+    Emits:
+        - Event via emit_all_answers_received with quiz results and statistics
+    """
     # Get scores data
     scores = get_scores_data()
     
-    # Calculate various statistics
     sequences = game_state.questions[game_state.current_question]['sequences']
     player_answers = game_state.math_quiz_state['player_answers']
     eliminated_players = list(game_state.math_quiz_state['eliminated_players'])
@@ -271,7 +318,26 @@ def handle_math_quiz_completed():
     )
 
 def broadcast_math_quiz_update():
-    """Broadcast current math quiz state to all clients"""
+    """
+    Broadcast current math quiz state to all clients.
+    
+    Compiles and sends the current game state, including:
+
+    - Current sequence information
+    - Player status (answered, eliminated)
+    - Team status in team mode
+    - Current scores and points earned
+    
+    Also handles game flow control by checking for automatic completion conditions:
+
+    - All players eliminated in free-for-all mode
+    - Both teams eliminated in team mode
+    - One team answered correctly while the other is fully eliminated
+    
+    Emits:
+        - 'math_quiz_update': Current game state to all clients
+        - 'fast_forward_timer': Signal to speed up timer when appropriate
+    """
     current_question = game_state.questions[game_state.current_question]
     current_idx = game_state.math_quiz_state['current_sequence']
     eliminated_players = list(game_state.math_quiz_state['eliminated_players'])
@@ -290,7 +356,7 @@ def broadcast_math_quiz_update():
             if answer.get('correct', False) and answer.get('team'):
                 teams_with_correct_answers.add(answer.get('team'))
     
-    # Create player statuses - this is the key part we need to fix
+    # Create player statuses
     player_statuses = {}
     for player_name in game_state.players:
         # Check if player's team already has a correct answer
@@ -361,13 +427,27 @@ def broadcast_math_quiz_update():
         'is_team_mode': game_state.is_team_mode,
         'team_answers': game_state.math_quiz_state['team_answers'],
         'players': current_question.get('players', {}),
-        'math_quiz_points': game_state.math_quiz_points  # Include math quiz points in updates
+        'math_quiz_points': game_state.math_quiz_points
     })
 
 def initialize_math_quiz(isFirstQuestion):
-    """Initialize math quiz state for a new question"""
-    print("Initializing math quiz state")
+    """
+    Initialize math quiz state for a new question.
+    
+    Sets up the initial state for a math quiz, including:
 
+    - Resetting eliminated players set
+    - Clearing player/team answer tracking
+    - Marking all sequences as not completed
+    - Setting up sequence start times with appropriate delays
+    
+    Args:
+        isFirstQuestion (bool): Whether this is the first question of the game,
+                               which requires additional preview time
+    
+    Emits:
+        - Updates via broadcast_math_quiz_update() to all clients
+    """
     # Reset math quiz state
     game_state.math_quiz_state = {
         'current_sequence': 0,

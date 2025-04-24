@@ -1,9 +1,6 @@
-"""
-File: media_routes.py
-Authors: Bc. Martin Baláž
-Description: Media handling routes for the quiz application - for Open Answer question type.
-             Provides endpoints for uploading to and deleting from Cloudinary.
-             Supports different media types with appropriate optimizations.
+"""Media handling routes for the quiz application (for Open Answer question type).
+Provides endpoints for uploading to and deleting from Cloudinary.
+Supports different media types with appropriate optimizations.
 """
 from flask import Blueprint, jsonify, request
 from ..services.cloudinary_service import CloudinaryService
@@ -20,10 +17,12 @@ def upload_media():
     Audio files are stored in a separate folder.
     
     Request body:
+
         file: The media file to upload (multipart/form-data)
     
     Returns:
-        200 JSON: Successful upload with file details
+        200 JSON: 
+        
             - url: URL to access the uploaded file
             - public_id: Cloudinary public ID
             - resource_type: Type of resource (image/video)
@@ -80,6 +79,7 @@ def delete_media():
     Delete a media file from Cloudinary.
     
     Request body (JSON):
+    
         url: The URL of the file to delete
     
     Returns:

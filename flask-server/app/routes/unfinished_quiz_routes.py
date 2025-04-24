@@ -1,9 +1,6 @@
-"""
-File: unfinished_quiz_routes.py
-Authors: Bc. Martin Baláž
-Description: Routes for managing unfinished/autosaved quizzes.
-             Handles CRUD operations for draft quizzes that are saved
-             during creation, but not yet created (in case of disconnection or other issues).
+"""Routes for managing unfinished/autosaved quizzes.
+Handles CRUD operations for draft quizzes that are saved
+during creation, but not yet created (in case of disconnection or other issues).
 """
 from flask import Blueprint, jsonify, request
 from ..services.unfinished_quiz_service import UnfinishedQuizService
@@ -20,9 +17,9 @@ def get_unfinished_quizzes():
     
     Returns:
         200 JSON: Object containing array of unfinished quiz drafts
-        {
-            "unfinished_quizzes": [...]
-        }
+            {
+                "unfinished_quizzes": [...]
+            }
     """
     quizzes = UnfinishedQuizService.get_unfinished_quizzes()
 
@@ -36,6 +33,7 @@ def get_unfinished_quiz(identifier):
     Used when resuming work on a previously saved draft.
     
     Path parameters:
+
         identifier: Unique identifier of the saved draft
     
     Returns:
@@ -58,6 +56,7 @@ def save_unfinished_quiz():
     draft saving by the user.
     
     Request body (JSON):
+
         quiz_data: Quiz data to save
         is_editing: Whether this is an edit of an existing quiz
         quiz_id: ID of the original quiz if editing existing quiz
@@ -65,10 +64,10 @@ def save_unfinished_quiz():
     
     Returns:
         200 JSON: Success confirmation with autosave identifier
-        {
-            "success": true,
-            "autosave_id": "..."
-        }
+            {
+                "success": true,
+                "autosave_id": "..."
+            }
         500 JSON: Error if saving fails
     """
     data = request.json
@@ -103,9 +102,11 @@ def delete_unfinished_quiz(identifier):
     deleting a draft (useful when publishing the quiz).
     
     Path parameters:
+
         identifier: Unique identifier of the draft to delete
     
     Query parameters:
+
         keep_files: Boolean flag ('true'/'false') determining whether 
                    to keep associated media files
     

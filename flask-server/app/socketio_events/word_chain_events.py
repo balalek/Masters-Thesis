@@ -1,24 +1,82 @@
-"""
-Socket.IO events for Word Chain questions
+"""Socket.IO event handlers for Word Chain gameplay.
+
+This module provides real-time event handling for the Word Chain question type:
+
+- Word submission and validation against Czech dictionary
+- Player turn management and team rotation
+- Diacritics handling for letter matching
+- Time tracking and player elimination
+- Points calculation and scoring
+- Game state synchronization across clients
+
+The Word Chain gameplay involves players taking turns to submit words that
+start with the last letter of the previous word, with special handling for
+team-based play and invalid letter sequences.
 """
 from flask_socketio import emit
 from .. import socketio
 from ..game_state import game_state
 from ..constants import POINTS_FOR_WORD_CHAIN, POINTS_FOR_LETTER, POINTS_FOR_SURVIVING_BOMB
-from time import time
 import random
-import requests
 import string
-import re
-from .utils import emit_all_answers_received, get_scores_data
-from .dictionary_checker import DictionaryChecker  # Updated import from local file
 import os
 from pathlib import Path
+from .utils import emit_all_answers_received, get_scores_data
+
+# Dictionary functions for word validation
+def load_dictionary(dic_file_path):
+    """
+    Load words from dictionary file into a set for quick lookup.
+    
+    Loads a Czech language dictionary for validating words during gameplay.
+    Handles encoding issues and filters out non-word content from the dictionary file.
+    
+    Args:
+        dic_file_path: Path to the dictionary file
+        
+    Returns:
+        set: Set of words from the dictionary, or empty set if loading failed
+    """
+    words = set()
+    
+    if not os.path.exists(dic_file_path):
+        print(f"Dictionary file not found: {dic_file_path}")
+        return words
+        
+    try:
+        with open(dic_file_path, 'r', encoding='utf-8') as f:
+            # Process the file
+            for line in f:
+                # Strip and add words (ignoring any flags after '/')
+                word = line.strip().split('/')[0].lower()
+                if word:
+                    words.add(word)
+                    
+        return words
+    
+    except Exception as e:
+        print(f"Error loading dictionary: {str(e)}")
+        return words
+
+def word_exists(word, words_set):
+    """
+    Check if a word exists in the dictionary.
+    
+    Simple lookup in the pre-loaded dictionary set for fast word validation.
+    
+    Args:
+        word: Word to check (case insensitive)
+        words_set: Set of words to check against
+        
+    Returns:
+        bool: True if word exists in the dictionary
+    """
+    return word.lower() in words_set
 
 # Letters that cannot be used to start a word
 INVALID_ENDING_LETTERS = ['q', 'w', 'x', 'y', 'ů']  
 
-# Initialize the dictionary checker with a project-relative path
+# Initialize the dictionary with a project-relative path
 APP_ROOT = Path(__file__).parents[2]  # Go up 2 levels from this file to reach app root
 DICTIONARY_PATH = os.path.join(APP_ROOT, 'app', 'resources', 'czech.dic')
 
@@ -28,22 +86,43 @@ if not os.path.exists(resources_dir):
     os.makedirs(resources_dir)
     print(f"Created resources directory at {resources_dir}")
 
+# Load dictionary words into global set
 try:
-    czech_dict = DictionaryChecker(DICTIONARY_PATH)
-    print(f"Dictionary initialized from {DICTIONARY_PATH}")
+    dictionary_words = load_dictionary(DICTIONARY_PATH)
+
 except Exception as e:
     print(f"Error loading dictionary: {e}")
-    # Create a fallback dictionary that assumes all words exist
-    czech_dict = type('DummyChecker', (), {'word_exists': lambda self, word: True})()
-    print("Using fallback dictionary checker that accepts all words")
+    # Create empty dictionary if loading fails, so that all words are accepted and we can still play without it
+    dictionary_words = set()
 
 # Initialize game-specific points tracker
 game_points = {}
 
 @socketio.on('submit_word_chain_word')
 def submit_word_chain_word(data):
-    """Handle player submitting a word for word chain game"""
-    global game_points  # Add global declaration
+    """
+    Handle player submission of a word in the word chain game.
+    
+    Validates the submitted word against multiple rules:
+
+    - Player must be the current active player
+    - Word must not be previously used
+    - Word must start with the current required letter
+    - Word must be in the dictionary
+    - Word must be at least 3 letters long
+    
+    If valid, awards points, advances to the next player, and broadcasts updates.
+    
+    Args:
+        data (dict): 
+
+            - player_name: Name of the player submitting the word
+            - word: The word being submitted
+    
+    Emits:
+        - 'word_chain_feedback': Success or error feedback to the player
+    """
+    global game_points
     player_name = data['player_name']
     word = data['word'].strip().lower()
     
@@ -65,7 +144,7 @@ def submit_word_chain_word(data):
     
     current_letter = game_state.word_chain_state['current_letter']
     
-    #Check if word have at least 3 letters
+    # Check if word have at least 3 letters
     if len(word) < 3:
         emit('word_chain_feedback', {
             'success': False,
@@ -115,14 +194,9 @@ def submit_word_chain_word(data):
     # Get next player and update game state
     next_player = get_next_player(player_name)
     game_state.word_chain_state['current_player'] = next_player
-    
-    # Free-for-all mode: update player timer for the player who just submitted
-    if not game_state.is_team_mode:
-        # Timer is preserved, as it's paused when not the player's turn
-        pass
         
     # Broadcast updated word chain to all clients
-    broadcast_word_chain_update()
+    send_word_chain_update()
     
     # Emit success feedback to the player
     emit('word_chain_feedback', {
@@ -132,11 +206,22 @@ def submit_word_chain_word(data):
     
 @socketio.on('start_word_chain')
 def start_word_chain():
-    """Initialize and start a word chain game"""
+    """
+    Initialize and start a new word chain game.
+    
+    Sets up the initial game state for word chain:
+
+    - Resets game-specific points
+    - Sets the first word (or random letter if no word provided)
+    - Establishes the current letter for the first player
+    - Prepares player order and team setup
+    
+    This function is called both when the game first starts and 
+    when advancing to a new word chain question.
+    """
     global game_points
     game_points = {}  # Reset game-specific points
-    
-    print("Starting word chain game...")
+
     current_question = game_state.questions[game_state.current_question]
     
     # Set first word and letter
@@ -150,30 +235,23 @@ def start_word_chain():
         })
         game_state.word_chain_state['used_words'].add(first_word)
         game_state.word_chain_state['current_letter'] = get_last_valid_letter(first_word).upper()
-        print(f"Word chain starting with word: {first_word}, next letter: {game_state.word_chain_state['current_letter']}")
     else:
         # If no first word provided, start with a random letter
         valid_letters = list(set(string.ascii_uppercase) - set([l.upper() for l in INVALID_ENDING_LETTERS]))
         game_state.word_chain_state['current_letter'] = random.choice(valid_letters)
-        print(f"Word chain starting with letter: {game_state.word_chain_state['current_letter']}")
-    
-    # Broadcast initial state
-    # broadcast_word_chain_update()
-    
-    # Start timers for players in free-for-all mode
-    if not game_state.is_team_mode:
-        # Timer starts only for the active player
-        # start_player_timer(first_player)
-        pass
-    
-    # Start bomb timer in team mode
-    if game_state.is_team_mode:
-        # Bomb timer logic will be handled by the frontend
-        pass
 
 def award_points_for_word(player_name, word):
-    """Award points for a valid word submission (only in free-for-all mode)"""
-    global game_points  # Add global declaration
+    """
+    Award points for a valid word submission.
+    
+    Points are awarded based on word length in free-for-all mode.
+    In team mode, points are handled by the bomb explosion mechanism.
+    
+    Args:
+        player_name: The player who submitted the word
+        word: The submitted word
+    """
+    global game_points
 
     if not game_state.is_team_mode:        
         total_points = len(word) * POINTS_FOR_LETTER
@@ -189,7 +267,20 @@ def award_points_for_word(player_name, word):
             game_state.players[player_name]['score'] += total_points
 
 def send_word_chain_update():
-    """Send word chain update with scores including player colors"""
+    """
+    Send current word chain state to all clients.
+    
+    Broadcasts the complete game state including:
+
+    - Word chain history
+    - Current player and letter
+    - Player progression (previous and next players)
+    - Eliminated players and timer information
+    - Current scores and game-specific points
+    
+    Emits:
+        - 'word_chain_update': Complete word chain state to all clients
+    """
     scores = {
         'individual': {}
     }
@@ -213,8 +304,17 @@ def send_word_chain_update():
     })
 
 def handle_word_chain_game_end():
-    """Handle the end of a word chain game"""
-    global game_points  # Add global declaration
+    """
+    Handle the end of a word chain game round.
+    
+    Calculates final scores and awards bonuses:
+
+    - In free-for-all mode: Last surviving player gets a bonus
+    - Prepares result statistics for display
+    - Broadcasts results to all clients
+    - Resets game-specific points for next round
+    """
+    global game_points
     scores = get_scores_data()
     
     # For free-for-all, the last player gets a bonus
@@ -241,10 +341,10 @@ def handle_word_chain_game_end():
         'word_chain': game_state.word_chain_state['word_chain'],
         'last_player': game_state.word_chain_state['current_player'],
         'eliminated_players': list(game_state.word_chain_state['eliminated_players']),
-        'game_points': game_points  # Add game-specific points
+        'game_points': game_points
     }
     
-    # Send results
+    # Send results to everyone
     emit_all_answers_received(
         scores=scores,
         correct_answer="", # No correct answer for word chain
@@ -253,58 +353,38 @@ def handle_word_chain_game_end():
 
     game_points = {}
 
-@socketio.on('word_chain_bomb_exploded')
-def word_chain_bomb_exploded(data):
-    """Handle when the bomb explodes in team mode"""
-    global game_points  # Add global declaration
-    exploded_team = data.get('team')
-    player_name = data.get('player_name')
-    
-    if game_state.is_team_mode and exploded_team in ['blue', 'red']:
-        # Award points to the winning team
-        winning_team = 'red' if exploded_team == 'blue' else 'blue'
-        bonus_points = POINTS_FOR_WORD_CHAIN * 5  # Bonus for winning team
-        game_state.team_scores[winning_team] += bonus_points
-        
-        # Add winning team bonus to each player in that team
-        for player in (game_state.red_team if winning_team == 'red' else game_state.blue_team):
-            if player not in game_points:
-                game_points[player] = 0
-            game_points[player] += bonus_points / len(game_state.red_team if winning_team == 'red' else game_state.blue_team)
-        
-        # Get scores
-        scores = get_scores_data()
-        
-        # Get stats for the result screen
-        word_chain_stats = {
-            'word_chain': game_state.word_chain_state['word_chain'],
-            'exploded_team': exploded_team,
-            'winning_team': winning_team,
-            'exploded_player': player_name,
-            'game_points': game_points  # Add game-specific points
-        }
-        
-        # Send results
-        emit_all_answers_received(
-            scores=scores,
-            correct_answer="",  # No correct answer for word chain
-            additional_data=word_chain_stats
-        )
-
 def get_player_team(player_name):
-    """Get the team of a player"""
+    """
+    Get the team of a player.
+    
+    Args:
+        player_name: The name of the player
+        
+    Returns:
+        str: 'blue' or 'red' if player is in a team, None otherwise
+    """
     if player_name in game_state.blue_team:
         return 'blue'
     elif player_name in game_state.red_team:
         return 'red'
+    
     return None
 
-def broadcast_word_chain_update():
-    """Broadcast current word chain state to all clients"""
-    send_word_chain_update()
-
 def get_next_player(current_player):
-    """Get the next player in the game"""
+    """
+    Get the next player in the game rotation.
+    
+    Handles team mode and free-for-all mode differently:
+
+    - In team mode: Alternates between teams and tracks player indexes
+    - In free-for-all: Uses player order and skips eliminated players
+    
+    Args:
+        current_player: The current active player
+        
+    Returns:
+        str: Name of the next player, None if no active players remain
+    """
     if game_state.is_team_mode:
         # Get current teams and indexes
         red_players = game_state.red_team.copy()
@@ -383,7 +463,12 @@ def get_next_player(current_player):
             return active_players[0] if active_players else None
 
 def initialize_team_order():
-    """Initialize the order of players in team mode"""
+    """
+    Initialize the order of players in team mode.
+    
+    Sets up initial team order with randomized starting team.
+    Creates team indexes to track rotation position within each team.
+    """
     red_players = game_state.red_team.copy()
     blue_players = game_state.blue_team.copy()
     
@@ -403,7 +488,14 @@ def initialize_team_order():
         game_state.word_chain_state['team_indexes'] = {'red': -1, 'blue': 0}
 
 def initialize_player_order(round_length):
-    """Initialize the order of players in free-for-all mode"""
+    """
+    Initialize the order of players in free-for-all mode.
+    
+    Randomizes player order and initializes timers for each player.
+    
+    Args:
+        round_length: Time in seconds for each player's turn
+    """
     player_order = list(game_state.players.keys())
     random.shuffle(player_order)  # Randomize player order
     game_state.word_chain_state['player_order'] = player_order
@@ -413,17 +505,42 @@ def initialize_player_order(round_length):
         game_state.word_chain_state['player_timers'][player] = round_length * 1000  # Convert to milliseconds
 
 def check_word_exists(word):
-    """Check if a word exists in the dictionary using the loaded dictionary file"""
+    """
+    Check if a word exists in the dictionary.
+    
+    Uses the loaded dictionary to validate word existence.
+    Falls back to accepting all words if dictionary check fails.
+    
+    Args:
+        word: Word to validate
+        
+    Returns:
+        bool: True if word exists or error occurs, False if word definitely doesn't exist
+    """
     try:
-        # Check word in local dictionary file only
-        return czech_dict.word_exists(word)
+        if dictionary_words:
+            return word_exists(word, dictionary_words)
+        else:
+            # If dictionary is empty, accept all words
+            return True
+        
     except Exception as e:
-        # If any error occurs, log details and assume word exists for simplicity
         print(f"Error checking word existence: {str(e)}")
         return True
 
 def get_last_valid_letter(word):
-    """Get the last valid letter of a word for the next player to use"""
+    """
+    Get the last valid letter of a word for the next player to use.
+    
+    Handles special cases where the last letter can't be used to start words.
+    In such cases, picks a random valid letter instead.
+    
+    Args:
+        word: The word from which to get the last letter
+        
+    Returns:
+        str: Valid letter for the next player to use
+    """
     # Remove diacritics and convert to lowercase
     normalized_word = remove_diacritics(word).lower()
     
@@ -438,8 +555,17 @@ def get_last_valid_letter(word):
     return last_letter
 
 def remove_diacritics(text):
-    """Remove diacritics from Czech text"""
-
+    """
+    Remove diacritics from Czech text.
+    
+    Handles Czech-specific characters by replacing them with their base form.
+    
+    Args:
+        text: Text containing Czech diacritics
+        
+    Returns:
+        str: Text with diacritics removed
+    """
     replacements = {
         'á': 'a',
         'é': 'e',
@@ -460,29 +586,36 @@ def remove_diacritics(text):
     
     return result
 
-@socketio.on('word_chain_timer_update')
-def word_chain_timer_update(data):
-    """Update the remaining time for a player"""
-    player_name = data.get('player_name')
-    remaining_time = data.get('remaining_time', 0)
-    
-    if player_name in game_state.word_chain_state['player_timers']:
-        game_state.word_chain_state['player_timers'][player_name] = remaining_time
-        
-        # If time is up, eliminate player in free-for-all mode
-        if remaining_time <= 0 and not game_state.is_team_mode:
-            eliminate_player(player_name)
-
 @socketio.on('word_chain_timeout')
 def handle_word_chain_timeout(data):
-    """Handle when a player's timer runs out"""
+    """
+    Handle when a player's timer runs out in free-for-all mode.
+    
+    Called when a player's time expires completely.
+    Initiates player elimination from the game.
+    
+    Args:
+        data (dict):
+        
+            - player: The player whose timer ran out
+            
+    Emits:
+        - 'word_chain_update': Updated game state after player elimination
+    """
     player = data.get('player')
     if player:
         eliminate_player(player)
-        print(f"Player {player} eliminated due to timeout")
 
 def eliminate_player(player_name):
-    """Eliminate a player who ran out of time"""
+    """
+    Eliminate a player who ran out of time.
+    
+    Adds the player to the eliminated set and advances the game if needed.
+    Checks if the game should end after elimination.
+    
+    Args:
+        player_name: The player to eliminate
+    """
     if player_name not in game_state.word_chain_state['eliminated_players']:
         game_state.word_chain_state['eliminated_players'].add(player_name)
         
@@ -492,13 +625,18 @@ def eliminate_player(player_name):
             game_state.word_chain_state['current_player'] = next_player
         
         # Broadcast update
-        broadcast_word_chain_update()
+        send_word_chain_update()
         
         # Check if game is over (only one or no players left)
         check_game_end()
 
 def check_game_end():
-    """Check if the game should end"""
+    """
+    Check if the game should end.
+    
+    In free-for-all mode, ends when only 0-1 players remain.
+    Team mode game end is triggered by the bomb explosion event.
+    """
     if not game_state.is_team_mode:
         # Free-for-all: game ends when 0 or 1 players remain
         active_players = [p for p in game_state.word_chain_state['player_order'] 
@@ -511,7 +649,18 @@ def check_game_end():
     # Team mode game end is triggered by the bomb exploding, handled by frontend
 
 def handle_word_chain_time_up(scores):
-    """Handle when time is up for word chain questions"""
+    """
+    Handle when time is up for word chain questions.
+    
+    Processes the end of game timer (as opposed to player timer).
+    In team mode, acts as if the bomb exploded for the active team.
+    
+    Args:
+        scores: Current game scores for inclusion in results
+        
+    Emits:
+        - Event via emit_all_answers_received with game results
+    """
     if game_state.is_team_mode:
         # In team mode, time up means the bomb exploded for the active team
         active_team = get_player_team(game_state.word_chain_state['current_player'])
@@ -523,7 +672,7 @@ def handle_word_chain_time_up(scores):
         # Update scores
         scores = get_scores_data()
         
-        # Send results
+        # Send results to everyone
         emit_all_answers_received(
             scores=scores,
             correct_answer="",
@@ -532,6 +681,6 @@ def handle_word_chain_time_up(scores):
                 'exploded_team': active_team,
                 'winning_team': winning_team,
                 'exploded_player': game_state.word_chain_state['current_player'],
-                'game_points': POINTS_FOR_SURVIVING_BOMB  # Add game-specific points
+                'game_points': POINTS_FOR_SURVIVING_BOMB
             }
         )

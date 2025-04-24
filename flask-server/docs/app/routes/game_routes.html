@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>app.routes.game_routes API documentation</title>
+<meta name="description" content="Game management routes for the quiz application.
+Handles game activation, initialization, question progression,
+and game state reset functionality …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>app.routes.game_routes</code></h1>
+</header>
+<section id="section-intro">
+<p>Game management routes for the quiz application.
+Handles game activation, initialization, question progression,
+and game state reset functionality. Supports various quiz types
+including drawing, word chain, ABCD, and specialized formats.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="app.routes.game_routes.activate_quiz"><code class="name flex">
+<span>def <span class="ident">activate_quiz</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@game_routes.route(&#39;/activate_quiz&#39;, methods=[&#39;POST&#39;])
+def activate_quiz():
+    &#34;&#34;&#34;
+    Activate the quiz mode in the game state.
+    
+    Returns:
+        JSON response indicating quiz activation success
+    &#34;&#34;&#34;
+    game_state.is_quiz_active = True
+    return jsonify({&#34;message&#34;: &#34;Quiz activated&#34;}), 200</code></pre>
+</details>
+<div class="desc"><p>Activate the quiz mode in the game state.</p>
+<h2 id="returns">Returns</h2>
+<p>JSON response indicating quiz activation success</p></div>
+</dd>
+<dt id="app.routes.game_routes.next_question"><code class="name flex">
+<span>def <span class="ident">next_question</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@game_routes.route(&#39;/next_question&#39;, methods=[&#39;POST&#39;])
+def next_question():
+    &#34;&#34;&#34;
+    Advance to the next question in the current game.
+    
+    Handles state transitions between different question types:
+    
+    - Preserves specific state for consecutive word chain questions (since they can only be in one group)
+    - Initializes specialized state for math quiz and blind map questions
+    - Updates team/player turn information
+    - Manages drawer assignment for drawing questions
+    
+    Returns:
+        200 JSON:
+
+            - question: The full question object
+            - is_last_question: Whether this is the final question
+            - preview_time: Time to show question title before question actually starts
+            - active_team: Which team is active in team mode
+            - quizPhase: Current phase of the question (starting at 1)
+            - drawer: Player assigned as drawer (for drawing questions)
+            
+        400 JSON: Error if no more questions are available
+    &#34;&#34;&#34;
+    if game_state.current_question is None or game_state.current_question + 1 &gt;= len(game_state.questions):
+        return jsonify({&#34;error&#34;: &#34;Už nejsou žádné další otázky&#34;}), 400
+    
+    # Get current and next question
+    current_question_index = game_state.current_question
+    next_question_index = current_question_index + 1
+    next_question = game_state.questions[next_question_index]
+    
+    # For Word Chain questions, we need to preserve certain state while resetting others
+    current_question_type = game_state.questions[current_question_index].get(&#39;type&#39;)
+    next_question_type = next_question.get(&#39;type&#39;)
+    
+    # Next question means question that will be played now!
+    if current_question_type == &#39;WORD_CHAIN&#39; and next_question_type == &#39;WORD_CHAIN&#39;:
+        # Reset specific elements of word chain state without losing player order
+        game_state.word_chain_state[&#39;used_words&#39;] = set()
+        game_state.word_chain_state[&#39;word_chain&#39;] = []
+        game_state.word_chain_state[&#39;word_chain&#39;].append({
+            &#39;word&#39;: next_question.get(&#39;first_word&#39;, &#39;&#39;),
+            &#39;player&#39;: &#39;system&#39;,
+            &#39;team&#39;: None
+        })
+        game_state.word_chain_state[&#39;eliminated_players&#39;] = set()
+        
+        # Determine which team the current player belongs to and set indexes accordingly
+        if next_question.get(&#39;current_player&#39;) in game_state.red_team:
+            game_state.word_chain_state[&#39;team_indexes&#39;] = {&#39;red&#39;: 0, &#39;blue&#39;: -1}
+        else:
+            game_state.word_chain_state[&#39;team_indexes&#39;] = {&#39;red&#39;: -1, &#39;blue&#39;: 0}
+        
+        # Set current player from the next question data
+        game_state.word_chain_state[&#39;current_player&#39;] = next_question.get(&#39;current_player&#39;)
+        
+        # Set current letter from the next question&#39;s first_letter
+        if next_question.get(&#39;first_letter&#39;):
+            game_state.word_chain_state[&#39;current_letter&#39;] = next_question.get(&#39;first_letter&#39;)
+
+    elif next_question_type == &#39;WORD_CHAIN&#39;:
+        # Initialize word chain state for the first word chain question
+        start_word_chain()
+
+        game_state.word_chain_state[&#39;word_chain&#39;] = []
+        game_state.word_chain_state[&#39;word_chain&#39;].append({
+            &#39;word&#39;: next_question.get(&#39;first_word&#39;, &#39;&#39;),
+            &#39;player&#39;: &#39;system&#39;,
+            &#39;team&#39;: None
+        })
+
+        if next_question.get(&#39;first_letter&#39;):
+            game_state.word_chain_state[&#39;current_letter&#39;] = next_question.get(&#39;first_letter&#39;)
+    
+    # Reset other question state
+    game_state.reset_question_state()
+
+    # For Math Quiz questions, initialize the state
+    if next_question_type == &#39;MATH_QUIZ&#39;:
+        initialize_math_quiz(False)  # IsFirstQuestion=False
+        next_question[&#39;is_team_mode&#39;] = game_state.is_team_mode
+        next_question[&#39;blue_team&#39;] = game_state.blue_team
+        next_question[&#39;red_team&#39;] = game_state.red_team
+        next_question[&#39;players&#39;] = game_state.players
+        next_question[&#39;question&#39;] = &#34;Matematický kvíz - vyřazovací hra&#34;
+    
+    if next_question_type == &#39;BLIND_MAP&#39;:
+        initialize_blind_map()
+
+    # Store the current question index in the game state
+    game_state.current_question = next_question_index
+    
+    is_last_question = game_state.current_question + 1 == len(game_state.questions)
+
+    # Check if the next question is a drawing question
+    next_drawer = None
+    if next_question.get(&#39;type&#39;) == &#39;DRAWING&#39;:
+        next_drawer = next_question.get(&#39;player&#39;)
+        
+        # For drawing in team mode, set the active team based on the drawer&#39;s team
+        if game_state.is_team_mode and next_drawer:
+            drawer_team = next_question.get(&#39;team&#39;, 
+                           &#39;blue&#39; if next_drawer in game_state.blue_team else &#39;red&#39;)
+            game_state.active_team = drawer_team
+            # Store the team explicitly in the question for easier access
+            next_question[&#39;active_team&#39;] = drawer_team
+
+    # For Guess a Number in team mode, initialize the phase
+    if game_state.is_team_mode and next_question.get(&#39;type&#39;) == &#39;GUESS_A_NUMBER&#39;:
+        game_state.number_guess_phase = 1
+        
+        # Make sure active_team is set before switching
+        if game_state.active_team is None:
+            # Start with blue team if no active team is set
+            game_state.active_team = &#39;blue&#39;
+        else:
+            # Switch active team from the previous question
+            game_state.active_team = &#39;red&#39; if game_state.active_team == &#39;blue&#39; else &#39;blue&#39;
+
+    # Send the next question to all players devices
+    socketio.emit(&#39;next_question&#39;, {
+        &#34;question&#34;: next_question,
+        &#34;is_last_question&#34;: is_last_question,
+        &#34;active_team&#34;: game_state.active_team,
+        &#34;quizPhase&#34;: 1,  # Start with phase 1 for the new question
+        &#34;drawer&#34;: next_drawer  # Include drawer information
+    })
+
+    # Return this for the caller - the main display
+    return jsonify({
+        &#34;question&#34;: next_question,
+        &#34;is_last_question&#34;: is_last_question,
+        &#34;preview_time&#34;: PREVIEW_TIME_DRAWING if next_question.get(&#39;type&#39;) == &#39;DRAWING&#39; else PREVIEW_TIME,
+        &#34;active_team&#34;: game_state.active_team,
+        &#34;quizPhase&#34;: 1,
+        &#34;drawer&#34;: next_drawer
+    }), 200</code></pre>
+</details>
+<div class="desc"><p>Advance to the next question in the current game.</p>
+<p>Handles state transitions between different question types:</p>
+<ul>
+<li>Preserves specific state for consecutive word chain questions (since they can only be in one group)</li>
+<li>Initializes specialized state for math quiz and blind map questions</li>
+<li>Updates team/player turn information</li>
+<li>Manages drawer assignment for drawing questions</li>
+</ul>
+<h2 id="returns">Returns</h2>
+<p>200 JSON:</p>
+<pre><code>- question: The full question object
+- is_last_question: Whether this is the final question
+- preview_time: Time to show question title before question actually starts
+- active_team: Which team is active in team mode
+- quizPhase: Current phase of the question (starting at 1)
+- drawer: Player assigned as drawer (for drawing questions)
+</code></pre>
+<dl>
+<dt><code>400 JSON</code></dt>
+<dd>Error if no more questions are available</dd>
+</dl></div>
+</dd>
+<dt id="app.routes.game_routes.reset_game"><code class="name flex">
+<span>def <span class="ident">reset_game</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@game_routes.route(&#39;/reset_game&#39;, methods=[&#39;POST&#39;])
+def reset_game():
+    &#34;&#34;&#34;
+    Reset the game state completely.
+    
+    Clears all game state including:
+    - Players
+    - Questions
+    - Team assignments
+    - Score tracking
+    - Question progress
+    
+    The system returns to initial state, ready for new players to join.
+    
+    Returns:
+        200 JSON: Confirmation of reset with was_remote flag
+    &#34;&#34;&#34;
+    was_remote = game_state.is_remote  # Store the state before reset
+    game_state.reset()
+    
+    # After reset, emit the full color list since no players exist
+    socketio.emit(&#39;colors_updated&#39;, {&#34;colors&#34;: AVAILABLE_COLORS})
+    socketio.emit(&#39;game_reset&#39;, {&#34;was_remote&#34;: was_remote})
+
+    return jsonify({&#34;message&#34;: &#34;Game state reset&#34;, &#34;was_remote&#34;: was_remote}), 200</code></pre>
+</details>
+<div class="desc"><p>Reset the game state completely.</p>
+<p>Clears all game state including:
+- Players
+- Questions
+- Team assignments
+- Score tracking
+- Question progress</p>
+<p>The system returns to initial state, ready for new players to join.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>200 JSON</code></dt>
+<dd>Confirmation of reset with was_remote flag</dd>
+</dl></div>
+</dd>
+<dt id="app.routes.game_routes.start_game"><code class="name flex">
+<span>def <span class="ident">start_game</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@game_routes.route(&#39;/start_game&#39;, methods=[&#39;POST&#39;])
+def start_game():
+    &#34;&#34;&#34;
+    Initialize and start a new game session.
+    
+    Handles various game configurations including:
+    
+    - Regular quizzes loaded from database by ID
+    - Quick play with combined question types (or single type)
+    - Team mode vs individual play mode
+    - Remote play mode
+    
+    Request body parameters:
+    
+        isTeamMode (bool): Whether to use team-based gameplay
+        isRemote (bool): Whether this is a remote play session
+        quick_play_type (str, optional): Type of quick play quiz to generate (used as flag)
+        quizId (str, optional): ID of the predefined quiz to load
+        teamAssignments (dict, optional): Player assignments to teams
+        captainIndices (dict, optional): Indices of team captains
+        typesConfig (list, optional): Configuration for quick play game
+    
+    Returns:
+        200 JSON: Game started successfully with message
+        400 JSON: Error if requirements not met (e.g., not enough players)
+        404 JSON: Error if quiz ID not found
+        500 JSON: Error if exception during setup
+    &#34;&#34;&#34;
+    if len(game_state.players) &lt; 2:
+        return jsonify({&#34;error&#34;: &#34;Hra nemůže začít, dokud nejsou připojeni alespoň 2 hráči&#34;}), 400
+
+    game_state.reset_word_chain_state()
+
+    # Add team mode handling first
+    game_state.is_team_mode = request.json.get(&#39;isTeamMode&#39;, False)
+    game_state.is_remote = request.json.get(&#39;isRemote&#39;, False)
+    quick_play_type = request.json.get(&#39;quick_play_type&#39;)  # Get the quick play type
+    quiz_id = request.json.get(&#39;quizId&#39;)  # Get quiz ID from request
+    
+    # Set up team assignments early - BEFORE trying to generate drawing questions
+    if game_state.is_team_mode:
+        team_assignments = request.json.get(&#39;teamAssignments&#39;, {})
+        game_state.blue_team = team_assignments.get(&#39;blue&#39;, [])
+        game_state.red_team = team_assignments.get(&#39;red&#39;, [])
+        
+        # Get captain indices from the request
+        captain_indices = request.json.get(&#39;captainIndices&#39;, {})
+        blue_captain_index = captain_indices.get(&#39;blue&#39;, 0)  # Default to 0 if not provided
+        red_captain_index = captain_indices.get(&#39;red&#39;, 0)
+        
+        # Store the captain indices in game state
+        game_state.blue_captain_index = blue_captain_index
+        game_state.red_captain_index = red_captain_index
+        
+        # Get the actual captain names using the indices
+        blue_captain = game_state.blue_team[blue_captain_index] if game_state.blue_team and len(game_state.blue_team) &gt; blue_captain_index else None
+        red_captain = game_state.red_team[red_captain_index] if game_state.red_team and len(game_state.red_team) &gt; red_captain_index else None
+        
+        game_state.team_scores = {&#39;blue&#39;: 0, &#39;red&#39;: 0}
+
+        if len(game_state.blue_team) &lt; 2 or len(game_state.red_team) &lt; 2:
+            return jsonify({&#34;error&#34;: &#34;V každém týmu musí být alespoň dva hráči&#34;}), 400
+    
+    # Handle quick play modes - now we can use team information
+    if quick_play_type:
+        # Works as a flag for quick play mode, so if it&#39;s not COMBINED_QUIZ, then skip
+        if quick_play_type == &#34;COMBINED_QUIZ&#34;:
+            try:
+                # Get the types configuration from the request
+                types_config = request.json.get(&#39;typesConfig&#39;, [])
+                
+                if not types_config:
+                    return jsonify({&#34;error&#34;: &#34;Chybí konfigurace typů kvízů pro rychlou hru&#34;}), 400
+                
+                # Initialize an array to hold all generated questions
+                all_questions = []
+                
+                # Process each quiz type configuration
+                for config in types_config:
+                    quiz_type = config.get(&#39;type&#39;)
+                    
+                    if quiz_type == &#34;DRAWING&#34;:
+                        # Generate drawing questions for both modes
+                        num_rounds = config.get(&#39;numRounds&#39;, 3)
+                        round_length = config.get(&#39;roundLength&#39;, 60)
+                        
+                        if game_state.is_team_mode:
+                            drawing_questions = generate_drawing_questions(
+                                game_state.players,
+                                num_rounds,
+                                round_length,
+                                blue_team=game_state.blue_team,
+                                red_team=game_state.red_team
+                            )
+                        else:
+                            drawing_questions = generate_drawing_questions(
+                                game_state.players,
+                                num_rounds,
+                                round_length
+                            )
+                        
+                        all_questions.extend(drawing_questions)
+                        
+                    elif quiz_type == &#34;WORD_CHAIN&#34;:
+                        # Generate word chain questions
+                        num_rounds = config.get(&#39;numRounds&#39;, 3)
+                        round_length = config.get(&#39;roundLength&#39;, 60)
+                        
+                        word_chain_questions = generate_word_chain_questions(
+                            num_rounds,
+                            round_length,
+                            is_team_mode=game_state.is_team_mode
+                        )
+                        
+                        all_questions.extend(word_chain_questions)
+
+                    elif quiz_type == &#34;ABCD&#34;:
+                        # Generate ABCD questions
+                        num_questions = config.get(&#39;numQuestions&#39;, 5)
+                        categories = config.get(&#39;categories&#39;, None)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+
+                        # TODO: In future, we can also exclude questions, that were already played on this device
+                        #       This stands for every question type except drawing and word chain
+                        
+                        abcd_questions = generate_random_abcd_questions(
+                            num_questions=num_questions,
+                            categories=categories,
+                            device_id=device_id
+                        )
+                        
+                        if not abcd_questions:
+                            # If no questions are found with specified categories, try without category filter
+                            if categories:
+                                abcd_questions = generate_random_abcd_questions(
+                                    num_questions=num_questions,
+                                    device_id=device_id
+                                )
+                        
+                        all_questions.extend(abcd_questions)
+                        
+                    elif quiz_type == &#34;TRUE_FALSE&#34;:
+                        # Generate True/False questions
+                        num_questions = config.get(&#39;numQuestions&#39;, 5)
+                        categories = config.get(&#39;categories&#39;, None)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        true_false_questions = generate_random_true_false_questions(
+                            num_questions=num_questions,
+                            categories=categories,
+                            device_id=device_id
+                        )
+                        
+                        if not true_false_questions:
+                            # If no questions are found with specified categories, try without category filter
+                            if categories:
+                                true_false_questions = generate_random_true_false_questions(
+                                    num_questions=num_questions,
+                                    device_id=device_id
+                                )
+                        
+                        all_questions.extend(true_false_questions)
+
+                    elif quiz_type == &#34;OPEN_ANSWER&#34;:
+                        # Generate Open Answer questions
+                        num_questions = config.get(&#39;numQuestions&#39;, 5)
+                        categories = config.get(&#39;categories&#39;, None)
+                        # Get exclude audio preference
+                        exclude_audio = config.get(&#39;excludeOpenAnswerAudio&#39;, False)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        open_answer_questions = generate_random_open_answer_questions(
+                            num_questions=num_questions,
+                            categories=categories,
+                            device_id=device_id,
+                            exclude_audio=exclude_audio
+                        )
+                        
+                        if not open_answer_questions:
+                            # If no questions are found with specified categories, try without category filter
+                            if categories:
+                                open_answer_questions = generate_random_open_answer_questions(
+                                    num_questions=num_questions,
+                                    device_id=device_id,
+                                    exclude_audio=exclude_audio
+                                )
+                        
+                        all_questions.extend(open_answer_questions)
+
+                    elif quiz_type == &#34;GUESS_A_NUMBER&#34;:
+                        # Generate Guess a Number questions
+                        num_questions = config.get(&#39;numQuestions&#39;, 5)
+                        categories = config.get(&#39;categories&#39;, None)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        guess_number_questions = generate_random_guess_number_questions(
+                            num_questions=num_questions,
+                            categories=categories,
+                            device_id=device_id
+                        )
+                        
+                        if not guess_number_questions:
+                            # If no questions are found with specified categories, try without category filter
+                            if categories:
+                                guess_number_questions = generate_random_guess_number_questions(
+                                    num_questions=num_questions,
+                                    device_id=device_id
+                                )
+                        
+                        all_questions.extend(guess_number_questions)
+                    
+                    elif quiz_type == &#34;MATH_QUIZ&#34;:
+                        # Generate Math Quiz questions
+                        num_questions = config.get(&#39;numQuestions&#39;, 2)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        math_quiz_questions = generate_random_math_quiz_questions(
+                            num_questions=num_questions,
+                            device_id=device_id
+                        )
+                        
+                        all_questions.extend(math_quiz_questions)
+                    
+                    elif quiz_type == &#34;BLIND_MAP&#34;:
+                        # Generate Blind Map questions
+                        num_rounds = config.get(&#39;numRounds&#39;, 3)
+                        preferred_map = config.get(&#39;preferredMap&#39;, None)
+                        
+                        # Get the device ID to exclude questions created by this device
+                        device_id = get_device_id()
+                        
+                        blind_map_questions = generate_random_blind_map_questions(
+                            num_rounds=num_rounds,
+                            preferred_map=preferred_map,
+                            device_id=device_id
+                        )
+                        
+                        all_questions.extend(blind_map_questions)
+                
+                # Set all generated questions in the game state
+                if all_questions:
+                    game_state.questions = all_questions
+                else:
+                    return jsonify({&#34;error&#34;: &#34;Nepodařilo se vygenerovat žádné otázky pro rychlou hru&#34;}), 400
+                
+            except Exception as e:
+                return jsonify({&#34;error&#34;: f&#34;Chyba při přípravě rychlé hry: {str(e)}&#34;}), 500
+
+    elif not quiz_id:
+        # For regular games, make sure quiz_id is provided
+        return jsonify({&#34;error&#34;: &#34;Nebyl vybrán žádný kvíz&#34;}), 400
+    else:
+        # Get the selected quiz from MongoDB (only for non-quick-play mode)
+        quiz = QuizService.get_quiz(quiz_id)
+        if not quiz:
+            return jsonify({&#34;error&#34;: &#34;Kvíz nebyl nalezen&#34;}), 404
+            
+        # Process quiz questions
+        questions = quiz[&#34;questions&#34;]
+        
+        # Look for drawing questions and expand them
+        final_questions = []
+        for question in questions:
+            if question.get(&#39;type&#39;) == &#39;DRAWING&#39;:
+                # Get drawing parameters from the question or use defaults
+                num_rounds = question.get(&#39;rounds&#39;, 3)
+                round_length = question.get(&#39;length&#39;, 60)
+                
+                # Generate drawing questions using our helper function
+                if game_state.is_team_mode:
+                    drawing_questions = generate_drawing_questions(
+                        game_state.players,
+                        num_rounds,
+                        round_length,
+                        blue_team=game_state.blue_team,
+                        red_team=game_state.red_team
+                    )
+                else:
+                    drawing_questions = generate_drawing_questions(
+                        game_state.players,
+                        num_rounds,
+                        round_length
+                    )
+                
+                final_questions.extend(drawing_questions)
+            elif question.get(&#39;type&#39;) == &#39;WORD_CHAIN&#39;:
+                # Get word chain parameters
+                num_rounds = question.get(&#39;rounds&#39;, 3)
+                round_length = question.get(&#39;length&#39;, 60)
+                
+                # Generate word chain questions
+                word_chain_questions = generate_word_chain_questions(
+                    num_rounds,
+                    round_length,
+                    is_team_mode=game_state.is_team_mode
+                )
+                
+                final_questions.extend(word_chain_questions)
+            else:
+                # For other question types, just add them as they are in MongoDB
+                final_questions.append(question)
+                
+        # Update game state with processed questions
+        game_state.questions = final_questions
+
+    # Reset game state for the new game
+    game_state.current_question = 0
+    game_state.reset_question_state()
+    
+    first_question = game_state.questions[game_state.current_question]
+    
+    # Calculate if this is the last question
+    is_last_question = game_state.current_question + 1 &gt;= len(game_state.questions)
+
+    # Team mode setup
+    if game_state.is_team_mode:
+        # Make sure active_team is properly set for team mode
+        game_state.active_team = &#39;blue&#39;
+        
+        # If first question is a drawing question, set its first team to start
+        if first_question.get(&#39;type&#39;) == &#39;DRAWING&#39;:
+            first_drawer = first_question.get(&#39;player&#39;)
+            if first_drawer:
+                drawer_team = first_question.get(&#39;team&#39;, 
+                             &#39;blue&#39; if first_drawer in game_state.blue_team else &#39;red&#39;)
+                game_state.active_team = drawer_team
+                # Store the team explicitly in the question for easier access
+                first_question[&#39;active_team&#39;] = drawer_team
+
+    current_time = int(time() * 1000)
+    game_start_time = current_time + START_GAME_TIME  # A few seconds from now
+    
+    # Set the question start time for the first question depending on type
+    if first_question.get(&#39;type&#39;) == &#39;DRAWING&#39;:
+        # For drawing questions, set the start time to be around 8 seconds from now
+        # So that drawer have time to prepare (pick a word to draw)
+        game_start_at = game_start_time + PREVIEW_TIME_DRAWING
+    elif first_question.get(&#39;type&#39;) == &#39;WORD_CHAIN&#39;:
+        # For other types, use regular preview time (around 5 seconds)
+        game_start_at = game_start_time + PREVIEW_TIME
+        start_word_chain()
+    elif first_question.get(&#39;type&#39;) == &#39;MATH_QUIZ&#39;:
+        game_start_at = game_start_time + PREVIEW_TIME
+        initialize_math_quiz(True) # isFirstQuestion=True
+        first_question[&#39;is_team_mode&#39;] = game_state.is_team_mode
+        first_question[&#39;blue_team&#39;] = game_state.blue_team
+        first_question[&#39;red_team&#39;] = game_state.red_team
+        first_question[&#39;players&#39;] = game_state.players
+        # Set a title for the Math Quiz question, that will be seen during preview
+        first_question[&#39;question&#39;] = &#34;Matematický kvíz - vyřazovací hra&#34;
+    elif first_question.get(&#39;type&#39;) == &#39;BLIND_MAP&#39;:
+        game_start_at = game_start_time + PREVIEW_TIME
+        initialize_blind_map() 
+    else:
+        # Standard preview time for other question types
+        game_start_at = game_start_time + PREVIEW_TIME 
+
+    game_state.question_start_time = game_start_at
+    
+    # Check if first question is a drawing question and identify drawer
+    first_drawer = None
+    if first_question.get(&#39;type&#39;) == &#39;DRAWING&#39;:
+        first_drawer = first_question.get(&#39;player&#39;)
+
+    # Create standard game data for the main display
+    standard_game_data = {
+        &#34;question&#34;: first_question,
+        &#34;show_first_question_preview&#34;: game_start_time,
+        &#34;show_game_at&#34;: game_start_at,
+        &#34;active_team&#34;: game_state.active_team,
+        &#34;is_last_question&#34;: is_last_question
+    }
+
+    # First send the standard event to everyone (especially for the main display)
+    if game_state.is_remote:
+        # Game will start on different main screen
+        socketio.emit(&#39;game_started_remote&#39;, standard_game_data)
+    else:
+        socketio.emit(&#39;game_started&#39;, standard_game_data)
+
+    # Then send personalized game started events to each player
+    for player_name in game_state.players:
+        # Determine the player&#39;s team and role
+        player_team = None
+        player_role = &#39;player&#39;  # Default role
+        
+        if game_state.is_team_mode:
+            if player_name in game_state.blue_team:
+                player_team = &#39;blue&#39;
+                # Player is captain if at the captain index
+                if game_state.blue_team.index(player_name) == game_state.blue_captain_index:
+                    player_role = &#39;captain&#39;
+            elif player_name in game_state.red_team:
+                player_team = &#39;red&#39;
+                # Player is captain if at the captain index
+                if game_state.red_team.index(player_name) == game_state.red_captain_index:
+                    player_role = &#39;captain&#39;
+        
+        # Create player-specific game data
+        player_game_data = {
+            &#34;question&#34;: first_question,
+            &#34;show_first_question_preview&#34;: game_start_time,
+            &#34;show_game_at&#34;: game_start_at,
+            &#34;team&#34;: player_team,
+            &#34;active_team&#34;: game_state.active_team,
+            &#34;role&#34;: player_role,  # Include the player&#39;s own role
+            &#34;quizPhase&#34;: 1,  # Start with phase 1
+            &#34;is_drawer&#34;: first_drawer == player_name,  # Let player know if they&#39;re the drawer
+            &#34;is_last_question&#34;: is_last_question
+        }
+
+        # Send it to the specific player&#39;s room (each player has their own room)
+        socketio.emit(&#39;game_started_mobile&#39;, player_game_data, room=player_name)
+    
+    return jsonify({&#34;message&#34;: &#34;Game started&#34;}), 200</code></pre>
+</details>
+<div class="desc"><p>Initialize and start a new game session.</p>
+<p>Handles various game configurations including:</p>
+<ul>
+<li>Regular quizzes loaded from database by ID</li>
+<li>Quick play with combined question types (or single type)</li>
+<li>Team mode vs individual play mode</li>
+<li>Remote play mode</li>
+</ul>
+<p>Request body parameters:</p>
+<pre><code>isTeamMode (bool): Whether to use team-based gameplay
+isRemote (bool): Whether this is a remote play session
+quick_play_type (str, optional): Type of quick play quiz to generate (used as flag)
+quizId (str, optional): ID of the predefined quiz to load
+teamAssignments (dict, optional): Player assignments to teams
+captainIndices (dict, optional): Indices of team captains
+typesConfig (list, optional): Configuration for quick play game
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>200 JSON</code></dt>
+<dd>Game started successfully with message</dd>
+<dt><code>400 JSON</code></dt>
+<dd>Error if requirements not met (e.g., not enough players)</dd>
+<dt><code>404 JSON</code></dt>
+<dd>Error if quiz ID not found</dd>
+<dt><code>500 JSON</code></dt>
+<dd>Error if exception during setup</dd>
+</dl></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="app.routes" href="index.html">app.routes</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="app.routes.game_routes.activate_quiz" href="#app.routes.game_routes.activate_quiz">activate_quiz</a></code></li>
+<li><code><a title="app.routes.game_routes.next_question" href="#app.routes.game_routes.next_question">next_question</a></code></li>
+<li><code><a title="app.routes.game_routes.reset_game" href="#app.routes.game_routes.reset_game">reset_game</a></code></li>
+<li><code><a title="app.routes.game_routes.start_game" href="#app.routes.game_routes.start_game">start_game</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

@@ -1,4 +1,19 @@
-# Available colors list (tested for black theme)
+"""Application-wide constants for the quiz application.
+             
+This module defines centralized constants used throughout the application:
+
+- UI constants (colors, player limits)
+- Timing constants for game phases 
+- Scoring rules for different question types
+- Validation rules for user input
+- Question and quiz type identifiers
+- Content categories and metadata
+
+Centralizing these values ensures consistency across the application
+and makes configuration changes easier to manage.
+"""
+
+# Available colors list
 AVAILABLE_COLORS = [
     "#f44336",  # Red
     "#e91e63",  # Pink
@@ -17,7 +32,7 @@ AVAILABLE_COLORS = [
     "#616161",  # Grey
 ]
 
-# Maximum number of players
+# Maximum number of players that can join a quiz
 MAX_PLAYERS = 10
 
 # Preview time in milliseconds
@@ -82,8 +97,8 @@ QUIZ_VALIDATION = {
     "ALLOWED_AUDIO_TYPES": ["audio/mpeg", "audio/wav", "audio/ogg"],
     # Blind Map validation constants
     "BLIND_MAP_RADIUS_PRESETS": {
-        "EASY": {"exact": 0.045},  # One extra scoring zone
-        "HARD": {"exact": 0.03}                  # Only exact scoring
+        "EASY": {"exact": 0.045}, # Bigger zone
+        "HARD": {"exact": 0.03}
     },
     "BLIND_MAP_DEFAULT_PRESET": "HARD",
 }

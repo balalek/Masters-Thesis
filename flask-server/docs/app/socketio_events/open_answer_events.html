@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>app.socketio_events.open_answer_events API documentation</title>
+<meta name="description" content="Socket.IO event handlers for Open Answer questions …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>app.socketio_events.open_answer_events</code></h1>
+</header>
+<section id="section-intro">
+<p>Socket.IO event handlers for Open Answer questions.</p>
+<p>This module provides real-time event handling for Open Answer question types:</p>
+<ul>
+<li>Answer submission and validation against correct answers</li>
+<li>Similarity checking and feedback for incorrect answers</li>
+<li>Letter reveal functionality for hints</li>
+<li>Team and individual scoring modes</li>
+<li>Answer tracking and statistics collection</li>
+</ul>
+<p>Open Answer questions allow players to input free-form text answers which are
+compared against expected answers with flexible matching options.</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="app.socketio_events.open_answer_events.analyze_answer"><code class="name flex">
+<span>def <span class="ident">analyze_answer</span></span>(<span>answer, correct_answer)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def analyze_answer(answer, correct_answer):
+    &#34;&#34;&#34;
+    Analyze how close an answer is to the correct one and provide feedback.
+    
+    Compares the submitted answer with the correct one and provides
+    contextual feedback based on length difference and text similarity.
+    
+    Args:
+        answer: The player&#39;s submitted answer
+        correct_answer: The correct answer to compare against
+    
+    Returns:
+        str: Feedback message based on how close the answer is
+    &#34;&#34;&#34;
+    answer = answer.lower().strip()
+    correct_answer = correct_answer.lower().strip()
+    
+    # If length differs significantly, give length hint
+    if len(answer) &lt; len(correct_answer) * 0.7:
+        return &#34;Tvoje odpověď je příliš krátká&#34;
+    
+    if len(answer) &gt; len(correct_answer) * 1.3:
+        return &#34;Tvoje odpověď je příliš dlouhá&#34;
+    
+    # Calculate similarity ratio
+    similarity = SequenceMatcher(None, answer, correct_answer).ratio()
+    
+    if similarity &gt; 0.8:
+        return &#34;Už jsi skoro u cíle! Zkontroluj překlepy&#34;
+    elif similarity &gt; 0.5:
+        return &#34;Blížíš se k správné odpovědi&#34;
+    else:
+        return &#34;To není správná odpověď&#34;</code></pre>
+</details>
+<div class="desc"><p>Analyze how close an answer is to the correct one and provide feedback.</p>
+<p>Compares the submitted answer with the correct one and provides
+contextual feedback based on length difference and text similarity.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>answer</code></strong></dt>
+<dd>The player's submitted answer</dd>
+<dt><strong><code>correct_answer</code></strong></dt>
+<dd>The correct answer to compare against</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>Feedback message based on how close the answer is</dd>
+</dl></div>
+</dd>
+<dt id="app.socketio_events.open_answer_events.check_open_answer_completion"><code class="name flex">
+<span>def <span class="ident">check_open_answer_completion</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_open_answer_completion():
+    &#34;&#34;&#34;
+    Check if all players have answered correctly or if conditions are met to proceed.
+    
+    In team mode, proceeds when at least one player from each team has answered correctly.
+    In individual mode, proceeds when all players have answered correctly.
+    
+    Calls show_open_answer_results() if completion conditions are met.
+    &#34;&#34;&#34;
+    player_count = len(game_state.players)
+    correct_count = game_state.open_answer_stats[&#39;correct_count&#39;]
+    
+    # In team mode, we need one correct answer from each team
+    if game_state.is_team_mode:
+        blue_team_correct = any(p in game_state.correct_players for p in game_state.blue_team)
+        red_team_correct = any(p in game_state.correct_players for p in game_state.red_team)
+        
+        if blue_team_correct and red_team_correct:
+            show_open_answer_results()
+    # In individual mode, proceed when all players answer correctly
+    elif correct_count == player_count:
+        show_open_answer_results()</code></pre>
+</details>
+<div class="desc"><p>Check if all players have answered correctly or if conditions are met to proceed.</p>
+<p>In team mode, proceeds when at least one player from each team has answered correctly.
+In individual mode, proceeds when all players have answered correctly.</p>
+<p>Calls show_open_answer_results() if completion conditions are met.</p></div>
+</dd>
+<dt id="app.socketio_events.open_answer_events.handle_open_answer_time_up"><code class="name flex">
+<span>def <span class="ident">handle_open_answer_time_up</span></span>(<span>scores)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def handle_open_answer_time_up(scores):
+    &#34;&#34;&#34;
+    Handle when time expires for an Open Answer question.
+    
+    Shows the correct answer to all players and displays all submitted answers.
+    Called when the question timer runs out, regardless of how many
+    players have answered correctly.
+    
+    Args:
+        scores: Current game scores for inclusion in results
+    
+    Emits:
+        - Event via emit_all_answers_received with correct answer and player responses
+    &#34;&#34;&#34;
+    current_question = game_state.questions[game_state.current_question]
+    
+    emit_all_answers_received(
+        scores=scores,
+        correct_answer=current_question.get(&#39;open_answer&#39;, current_question.get(&#39;answer&#39;, &#39;&#39;)),
+        additional_data={&#34;player_answers&#34;: game_state.open_answer_stats[&#39;player_answers&#39;]}
+    )</code></pre>
+</details>
+<div class="desc"><p>Handle when time expires for an Open Answer question.</p>
+<p>Shows the correct answer to all players and displays all submitted answers.
+Called when the question timer runs out, regardless of how many
+players have answered correctly.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>scores</code></strong></dt>
+<dd>Current game scores for inclusion in results</dd>
+</dl>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>Event via emit_all_answers_received with correct answer and player responses</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.open_answer_events.reveal_open_answer_letter"><code class="name flex">
+<span>def <span class="ident">reveal_open_answer_letter</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;reveal_open_answer_letter&#39;)
+def reveal_open_answer_letter():
+    &#34;&#34;&#34;
+    Reveal a random letter in the open answer as a hint.
+    
+    Randomly reveals one previously hidden letter in the answer,
+    up to a maximum of 50% of the total letters. Spaces are not
+    counted as revealable letters and are always shown.
+    
+    Emits:
+        - &#39;open_answer_letter_revealed&#39;: Event with masked answer and newly revealed position
+    &#34;&#34;&#34;
+    if game_state.current_question is None:
+        return
+    
+    current_question_data = game_state.questions[game_state.current_question]
+    
+    # Get answer for open answer questions (compatible with both formats)
+    correct_answer = current_question_data.get(&#39;open_answer&#39;, current_question_data.get(&#39;answer&#39;, &#39;&#39;))
+
+    # Count actual letters (excluding spaces)
+    actual_letters = sum(1 for char in correct_answer if char != &#39; &#39;)
+    
+    # Calculate maximum number of letters to reveal (50% rounded down)
+    max_reveals = actual_letters // 2
+    
+    # Check if we&#39;ve already reached the maximum number of reveals
+    if len(game_state.revealed_positions) &gt;= max_reveals:
+        return
+    
+    # Find valid positions (not spaces, not already revealed)
+    valid_positions = [i for i in range(len(correct_answer)) 
+                      if correct_answer[i] != &#39; &#39; and i not in game_state.revealed_positions]
+    
+    # If no valid positions, do nothing
+    if not valid_positions:
+        return
+    
+    # Choose a random position
+    position = random.choice(valid_positions)
+    game_state.revealed_positions.add(position)
+    
+    # Create mask with revealed letters
+    mask = [&#39;_&#39; if i not in game_state.revealed_positions and char != &#39; &#39; else char 
+            for i, char in enumerate(correct_answer)]
+    
+    # Send the updated mask to main screen
+    socketio.emit(&#39;open_answer_letter_revealed&#39;, {
+        &#39;mask&#39;: &#39;&#39;.join(mask),
+        &#39;position&#39;: position
+    })</code></pre>
+</details>
+<div class="desc"><p>Reveal a random letter in the open answer as a hint.</p>
+<p>Randomly reveals one previously hidden letter in the answer,
+up to a maximum of 50% of the total letters. Spaces are not
+counted as revealable letters and are always shown.</p>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'open_answer_letter_revealed': Event with masked answer and newly revealed position</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.open_answer_events.show_open_answer_results"><code class="name flex">
+<span>def <span class="ident">show_open_answer_results</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show_open_answer_results():
+    &#34;&#34;&#34;
+    Show results for open answer questions.
+    
+    Gathers the current scores and correct answer, then broadcasts
+    results to all players, including all submitted answers.
+    
+    Emits:
+        - Event via emit_all_answers_received with correct answer and player responses
+    &#34;&#34;&#34;
+    current_question_data = game_state.questions[game_state.current_question]
+    scores = get_scores_data()
+    
+    emit_all_answers_received(
+        scores=scores,
+        correct_answer=current_question_data.get(&#39;open_answer&#39;, current_question_data.get(&#39;answer&#39;, &#39;&#39;)),
+        additional_data={&#34;player_answers&#34;: game_state.open_answer_stats[&#39;player_answers&#39;]}
+    )</code></pre>
+</details>
+<div class="desc"><p>Show results for open answer questions.</p>
+<p>Gathers the current scores and correct answer, then broadcasts
+results to all players, including all submitted answers.</p>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>Event via emit_all_answers_received with correct answer and player responses</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.open_answer_events.submit_open_answer"><code class="name flex">
+<span>def <span class="ident">submit_open_answer</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;submit_open_answer&#39;)
+def submit_open_answer(data):
+    &#34;&#34;&#34;
+    Handle submission of an open answer from a player.
+    
+    Validates the player&#39;s answer against the correct answer and awards points
+    for correct answers based on speed. Handles different scoring for team mode
+    and individual mode. Provides feedback for incorrect answers.
+    
+    Args:
+        data (dict):
+
+            - player_name: Name of the player submitting the answer
+            - answer: The text answer submitted by the player
+            - answer_time: Timestamp when the answer was submitted
+    
+    Emits:
+        - &#39;error&#39;: If game is not started
+        - &#39;open_answer_feedback&#39;: Feedback for incorrect answers
+        - &#39;answer_correctness&#39;: Result notification with points for correct answers
+        - &#39;open_answer_submitted&#39;: Updates for the main screen on player progress
+    &#34;&#34;&#34;
+    player_name = data[&#39;player_name&#39;]
+    answer = data[&#39;answer&#39;].strip()
+    answer_time = data[&#39;answer_time&#39;]
+    current_question = game_state.current_question
+    
+    if current_question is None:
+        emit(&#39;error&#39;, {&#34;error&#34;: &#34;Game not started&#34;})
+        return
+    
+    # Skip processing if player already answered correctly
+    if player_name in game_state.correct_players:
+        emit(&#39;open_answer_feedback&#39;, {&#34;message&#34;: &#34;Už jsi odpověděl/a správně&#34;}, room=player_name)
+        return
+    
+    current_question_data = game_state.questions[current_question]
+    
+    # Change &#39;answer&#39; to &#39;open_answer&#39; for open answer questions
+    correct_answer = str(current_question_data.get(&#39;open_answer&#39;, current_question_data.get(&#39;answer&#39;, &#39;&#39;))).strip()
+    
+    # Normalize both answers for comparison
+    normalized_answer = answer.lower()
+    normalized_correct = correct_answer.lower()
+    
+    # Check if answer is correct
+    is_correct = normalized_answer == normalized_correct
+    
+    # If answer is correct
+    if is_correct:
+        # Calculate speed points
+        question_start_time = game_state.question_start_time
+        question_length = current_question_data[&#39;length&#39;] * 1000
+        time_taken = answer_time - question_start_time
+        speed_points = max(0, POINTS_FOR_CORRECT_ANSWER - int((time_taken / question_length) * POINTS_FOR_CORRECT_ANSWER))
+        total_points_earned = POINTS_FOR_CORRECT_ANSWER + speed_points
+        
+        # Add player to correct players set
+        game_state.correct_players.add(player_name)
+        
+        # Update question metadata (only for correct answers)
+        QuizService.update_question_metadata(
+            str(current_question_data[&#39;_id&#39;]), 
+            is_correct=True,
+            increment_times_played=False
+        )
+        game_state.current_question_metadata_updated = True
+        
+        # Handle scoring based on game mode
+        if game_state.is_team_mode:
+            team = &#39;blue&#39; if player_name in game_state.blue_team else &#39;red&#39;
+            game_state.team_scores[team] += total_points_earned
+            
+            # Notify all team members with the correct answer screen
+            team_players = game_state.blue_team if team == &#39;blue&#39; else game_state.red_team
+            for team_player in team_players:
+                emit(&#39;answer_correctness&#39;, {
+                    &#34;correct&#34;: True,
+                    &#34;points_earned&#34;: total_points_earned,
+                    &#34;total_points&#34;: game_state.team_scores[team],
+                    &#34;is_team_score&#34;: True
+                }, room=team_player)
+            
+        else:
+            # Free-for-all mode
+            game_state.players[player_name][&#39;score&#39;] += total_points_earned
+            
+            emit(&#39;answer_correctness&#39;, {
+                &#34;correct&#34;: True,
+                &#34;points_earned&#34;: total_points_earned,
+                &#34;total_points&#34;: game_state.players[player_name][&#39;score&#39;],
+                &#34;is_team_score&#34;: False
+            }, room=player_name)
+        
+        # Update tracking for correct answers
+        game_state.open_answer_stats[&#39;correct_count&#39;] += 1
+        game_state.open_answer_stats[&#39;player_answers&#39;].append({
+            &#39;player_name&#39;: player_name,
+            &#39;answer&#39;: answer,
+            &#39;is_correct&#39;: True,
+            &#39;player_color&#39;: game_state.players[player_name][&#39;color&#39;]
+        })
+        
+        # Broadcast to update main screen
+        socketio.emit(&#39;open_answer_submitted&#39;, {
+            &#39;player_count&#39;: len(game_state.players),
+            &#39;correct_count&#39;: game_state.open_answer_stats[&#39;correct_count&#39;]
+        })
+        
+        # Check if everyone has answered correctly depending on game mode
+        check_open_answer_completion()
+    else:
+        # Wrong answer - provide feedback
+        feedback = analyze_answer(answer, correct_answer)
+        
+        # Log the attempt for future reference as funny answers
+        game_state.open_answer_stats[&#39;player_answers&#39;].append({
+            &#39;player_name&#39;: player_name,
+            &#39;answer&#39;: answer,
+            &#39;is_correct&#39;: False,
+            &#39;player_color&#39;: game_state.players[player_name][&#39;color&#39;]
+        })
+        
+        # Send feedback to the player
+        emit(&#39;open_answer_feedback&#39;, {&#34;message&#34;: feedback}, room=player_name)</code></pre>
+</details>
+<div class="desc"><p>Handle submission of an open answer from a player.</p>
+<p>Validates the player's answer against the correct answer and awards points
+for correct answers based on speed. Handles different scoring for team mode
+and individual mode. Provides feedback for incorrect answers.</p>
+<h2 id="args">Args</h2>
+<p>data (dict):</p>
+<pre><code>- player_name: Name of the player submitting the answer
+- answer: The text answer submitted by the player
+- answer_time: Timestamp when the answer was submitted
+</code></pre>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'error': If game is not started</li>
+<li>'open_answer_feedback': Feedback for incorrect answers</li>
+<li>'answer_correctness': Result notification with points for correct answers</li>
+<li>'open_answer_submitted': Updates for the main screen on player progress</li>
+</ul></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="app.socketio_events" href="index.html">app.socketio_events</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="app.socketio_events.open_answer_events.analyze_answer" href="#app.socketio_events.open_answer_events.analyze_answer">analyze_answer</a></code></li>
+<li><code><a title="app.socketio_events.open_answer_events.check_open_answer_completion" href="#app.socketio_events.open_answer_events.check_open_answer_completion">check_open_answer_completion</a></code></li>
+<li><code><a title="app.socketio_events.open_answer_events.handle_open_answer_time_up" href="#app.socketio_events.open_answer_events.handle_open_answer_time_up">handle_open_answer_time_up</a></code></li>
+<li><code><a title="app.socketio_events.open_answer_events.reveal_open_answer_letter" href="#app.socketio_events.open_answer_events.reveal_open_answer_letter">reveal_open_answer_letter</a></code></li>
+<li><code><a title="app.socketio_events.open_answer_events.show_open_answer_results" href="#app.socketio_events.open_answer_events.show_open_answer_results">show_open_answer_results</a></code></li>
+<li><code><a title="app.socketio_events.open_answer_events.submit_open_answer" href="#app.socketio_events.open_answer_events.submit_open_answer">submit_open_answer</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

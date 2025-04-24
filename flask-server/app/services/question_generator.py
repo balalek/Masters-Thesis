@@ -1,10 +1,35 @@
+"""Question generators for the quiz application.
+
+This module provides functions that generate various types of questions:
+
+- Random questions from the existing database for ABCD, True/False, etc.
+- Dynamic questions for interactive game types like Drawing and Word Chain
+- Specialized question fetching with filtering capabilities
+
+Each generator handles a specific question type with appropriate parameters
+and error handling for consistent question production.
+"""
 import requests
-import random
 from ..constants import QUESTION_TYPES
 from ..services.quiz_service import QuizService
+from ..game_state import game_state
+from ..socketio_events.word_chain_events import initialize_team_order, remove_diacritics, initialize_player_order
 
 def generate_random_guess_number_questions(num_questions=5, categories=None, device_id=None):
-    """Generate random GUESS_A_NUMBER questions from public quizzes"""
+    """
+    Generate random Guess a Number questions from public quizzes.
+    
+    Fetches existing Guess a Number questions from the database,
+    applying filters for categories and excluding questions from the current device.
+    
+    Args:
+        num_questions (int): Number of questions to retrieve
+        categories (list): List of category names to filter by
+        device_id (str): Device ID to exclude questions created by this device
+        
+    Returns:
+        list: List of Guess a Number questions, empty if none found
+    """
     try:
         # Get questions from public quizzes
         questions = QuizService.get_random_questions(
@@ -18,12 +43,25 @@ def generate_random_guess_number_questions(num_questions=5, categories=None, dev
             print("Warning: No Guess a Number questions found")
             
         return questions
+    
     except Exception as e:
         print(f"Error generating GUESS_A_NUMBER questions: {str(e)}")
         return []
 
 def generate_random_math_quiz_questions(num_questions=2, device_id=None):
-    """Generate random MATH_QUIZ questions from public quizzes"""
+    """
+    Generate random Math Quiz questions from public quizzes.
+    
+    Fetches existing Math Quiz questions from the database,
+    excluding questions from the current device.
+    
+    Args:
+        num_questions (int): Number of questions to retrieve
+        device_id (str): Device ID to exclude questions created by this device
+        
+    Returns:
+        list: List of Math Quiz questions, empty if none found
+    """
     try:
         # Get questions from public quizzes
         questions = QuizService.get_random_questions(
@@ -36,12 +74,14 @@ def generate_random_math_quiz_questions(num_questions=2, device_id=None):
             print("Warning: No Math Quiz questions found")
             
         return questions
+    
     except Exception as e:
         print(f"Error generating Math Quiz questions: {str(e)}")
         return []
 
 def generate_random_blind_map_questions(num_rounds=3, preferred_map=None, device_id=None):
-    """Generate random BLIND_MAP questions from public quizzes with map preference filtering
+    """
+    Generate random Blind Map questions from public quizzes with map preference filtering.
     
     Args:
         num_rounds (int): Number of rounds/questions to generate
@@ -49,7 +89,7 @@ def generate_random_blind_map_questions(num_rounds=3, preferred_map=None, device
         device_id (str): Device ID to exclude questions from this device
     
     Returns:
-        list: List of Blind Map questions
+        list: List of Blind Map questions, empty if none found
     """
     try:
         # Set map filter based on preference
@@ -69,10 +109,8 @@ def generate_random_blind_map_questions(num_rounds=3, preferred_map=None, device
         )
         
         if not questions:
-            print(f"Warning: No Blind Map questions found with map filter: {preferred_map}")
             # If no questions found with the specified map filter, try without filter
             if map_filter:
-                print("Trying to fetch Blind Map questions without map filter")
                 questions = QuizService.get_random_questions(
                     question_type=QUESTION_TYPES["BLIND_MAP"],
                     device_id=device_id,
@@ -88,6 +126,10 @@ def generate_drawing_questions(players, num_rounds, round_length, blue_team=None
     """
     Generate drawing questions with random words for the specified teams or players.
     
+    Creates dynamic drawing questions for each round, fetching random words 
+    from an external API. Handles both team mode and individual play mode.
+    Each player gets three word choices per drawing turn.
+    
     Args:
         players (dict): Dictionary of players when not in team mode
         num_rounds (int): Number of rounds to play
@@ -96,7 +138,10 @@ def generate_drawing_questions(players, num_rounds, round_length, blue_team=None
         red_team (list, optional): List of players in red team
     
     Returns:
-        list: List of drawing questions
+        list: List of drawing questions with words to draw
+        
+    Raises:
+        Exception: If unable to fetch words from the external API
     """
     is_team_mode = blue_team is not None and red_team is not None
     
@@ -182,7 +227,7 @@ def generate_drawing_questions(players, num_rounds, round_length, blue_team=None
                         "type": "DRAWING",
                         "question": f"{round_num + 1}. kolo: Kreslí {player_name} ({team_display})",
                         "player": player_name,
-                        "team": team,  # Keep original English team name for logic
+                        "team": team,
                         "words": player_words,
                         "selected_word": None,
                         "length": round_length,
@@ -190,7 +235,7 @@ def generate_drawing_questions(players, num_rounds, round_length, blue_team=None
                     }
                     drawing_questions.append(question)
         else:
-            # Non-team mode
+            # Free-for-all mode
             for round_num in range(num_rounds):
                 for player_name in players:
                     # Get 3 words for this player to choose from
@@ -217,18 +262,22 @@ def generate_drawing_questions(players, num_rounds, round_length, blue_team=None
 
 def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
     """
-    Generate word chain questions for the specified number of rounds
-        
+    Generate word chain questions for the specified number of rounds.
+    
+    Creates dynamic word chain questions with starting word fetched from an external API.
+    Sets up the player order and initializes the word chain state for gameplay.
+    
     Args:
         num_rounds (int): Number of rounds to play
         round_length (int): Length in seconds for each player's turn
         is_team_mode (bool): Whether we're in team mode
     
     Returns:
-        list: List of word chain questions
+        list: List of word chain questions with starting words and player information
+        
+    Raises:
+        Exception: If unable to fetch words from the external API
     """
-    from ..game_state import game_state
-
     try:
         # Get enough words for all rounds
         # We're requesting more than needed to ensure we have enough valid words
@@ -242,7 +291,7 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
         # Split by pipe character
         words = response_text.split(" | ")
         
-        # Define default words once
+        # Define default words in case of failure to fetch
         default_words = ["kočka", "pes", "slovo", "strom", "hrad", "auto", "míč", "voda", "dům", "kniha"]
 
         # Filter out words that end with q, w, x, y or ů
@@ -259,11 +308,9 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
         
         # Initialize player order based on game mode
         if game_state.is_team_mode:
-            from ..socketio_events.word_chain_events import initialize_team_order
             initialize_team_order()
             # Team mode: start with first player in team order
             first_player = game_state.word_chain_state['team_order'][0][0]
-            # Calculate the immediate next player first
             blue_players = game_state.blue_team
             red_players = game_state.red_team
             next_team = 'red' if first_player in blue_players else 'blue'
@@ -276,13 +323,13 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
             immediate_next_player = next_team_players[next_idx]
             
             # Calculate future players for display - start with the immediate next player
-            next_players = [immediate_next_player]  # Include the immediate next player
+            next_players = [immediate_next_player]
             temp_team = next_team
             temp_indexes = team_indexes.copy()
             temp_indexes[next_team] = next_idx  # Start after the current player
             
             # Get one more player after the immediate next (for a total of 2 next players)
-            for i in range(1):  # Changed from 2 to 1 since we already added the immediate next
+            for i in range(1):  # 1 since we already added the immediate next
                 temp_team = 'blue' if temp_team == 'red' else 'red'
                 players = blue_players if temp_team == 'blue' else red_players
                 temp_idx = (temp_indexes[temp_team] + 1) % len(players)
@@ -295,7 +342,6 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
             if 'player_order' not in game_state.word_chain_state:
                 game_state.word_chain_state['player_order'] = []
         else:
-            from ..socketio_events.word_chain_events import initialize_player_order
             initialize_player_order(round_length)
             # Free-for-all: start with first player in player order
             first_player = game_state.word_chain_state['player_order'][0]
@@ -310,8 +356,7 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
             first_word = valid_words[round_num]
             
             # Extract the last letter of the first word
-            # repair last letter using remove_diacritics
-            from ..socketio_events.word_chain_events import remove_diacritics
+            # fix last letter using remove_diacritics
             last_letter = remove_diacritics(first_word[-1].upper())
             
             question = {
@@ -325,7 +370,7 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
                 "current_player": first_player,
                 "players": game_state.players,
                 "player_order": game_state.word_chain_state['player_order'],
-                "next_players": game_state.word_chain_state.get('next_players', [])  # Include next players in question
+                "next_players": game_state.word_chain_state.get('next_players', [])
             }
             word_chain_questions.append(question)
         
@@ -336,9 +381,20 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
         raise e
 
 def generate_random_abcd_questions(num_questions=5, categories=None, device_id=None):
-    """Generate random ABCD questions from public quizzes"""
-    from ..services.quiz_service import QuizService
+    """
+    Generate random ABCD questions from public quizzes.
     
+    Fetches existing ABCD questions from the database,
+    applying filters for categories and excluding questions from the current device.
+    
+    Args:
+        num_questions (int): Number of questions to retrieve
+        categories (list): List of category names to filter by
+        device_id (str): Device ID to exclude questions created by this device
+        
+    Returns:
+        list: List of ABCD questions, empty if none found
+    """
     try:
         # Get questions from public quizzes
         questions = QuizService.get_random_questions(
@@ -352,14 +408,26 @@ def generate_random_abcd_questions(num_questions=5, categories=None, device_id=N
             print("Warning: No ABCD questions found")
             
         return questions
+    
     except Exception as e:
         print(f"Error generating ABCD questions: {str(e)}")
         return []
 
 def generate_random_true_false_questions(num_questions=5, categories=None, device_id=None):
-    """Generate random TRUE_FALSE questions from public quizzes"""
-    from ..services.quiz_service import QuizService
+    """
+    Generate random True/False questions from public quizzes.
     
+    Fetches existing True/False questions from the database,
+    applying filters for categories and excluding questions from the current device.
+    
+    Args:
+        num_questions (int): Number of questions to retrieve
+        categories (list): List of category names to filter by
+        device_id (str): Device ID to exclude questions created by this device
+        
+    Returns:
+        list: List of True/False questions, empty if none found
+    """
     try:
         # Get questions from public quizzes
         questions = QuizService.get_random_questions(
@@ -373,14 +441,28 @@ def generate_random_true_false_questions(num_questions=5, categories=None, devic
             print("Warning: No True/False questions found")
             
         return questions
+    
     except Exception as e:
         print(f"Error generating TRUE_FALSE questions: {str(e)}")
         return []
 
 def generate_random_open_answer_questions(num_questions=5, categories=None, device_id=None, exclude_audio=False):
-    """Generate random OPEN_ANSWER questions from public quizzes"""
-    from ..services.quiz_service import QuizService
+    """
+    Generate random Open Answer questions from public quizzes.
     
+    Fetches existing Open Answer questions from the database,
+    applying filters for categories and excluding questions from the current device.
+    Can optionally exclude questions with audio content.
+    
+    Args:
+        num_questions (int): Number of questions to retrieve
+        categories (list): List of category names to filter by
+        device_id (str): Device ID to exclude questions created by this device
+        exclude_audio (bool): Whether to exclude questions with audio content
+        
+    Returns:
+        list: List of Open Answer questions, empty if none found
+    """
     try:
         # Get questions from public quizzes
         questions = QuizService.get_random_questions(

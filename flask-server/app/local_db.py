@@ -1,7 +1,24 @@
+"""Local database initialization for the quiz application.
+             
+This module sets up a lightweight TinyDB database for storing persistent
+local data without requiring a full database server. It creates:
+
+- A hidden directory in the user's home folder (.homequiz/data)
+- A JSON-based TinyDB database for local storage needs
+- Separate tables (collections) for different types of local data
+
+The local database is used for:
+
+- Tracking questions created on this device
+- Saving unfinished/draft quizzes
+
+If initialization fails (e.g., due to permissions or disk issues), 
+local_db is set to None and the app will function without local storage.
+"""
+
 from tinydb import TinyDB
 import os
 from pathlib import Path
-import datetime
 
 # Create directory for TinyDB data if it doesn't exist
 data_dir = Path(os.path.expanduser("~")) / ".homequiz" / "data"
@@ -14,18 +31,13 @@ try:
     
     # Create tables (equivalent to collections in MongoDB)
     created_questions = db.table('created_questions')
-    favorite_quizzes = db.table('favorite_quizzes')
-    created_quizzes = db.table('created_quizzes')
-    unfinished_quizzes = db.table('unfinished_quizzes')  # Add this new table
+    unfinished_quizzes = db.table('unfinished_quizzes')
     
     local_db = {
         'created_questions': created_questions,
-        'favorite_quizzes': favorite_quizzes,
-        'created_quizzes': created_quizzes,
-        'unfinished_quizzes': unfinished_quizzes  # Add to the dict
+        'unfinished_quizzes': unfinished_quizzes
     }
-    
-    print(f"TinyDB initialized successfully at {db_path}")
+
 except Exception as e:
-    print(f"Error initializing TinyDB: {e}")
+    print(e)
     local_db = None

@@ -1,8 +1,5 @@
-"""
-File: player_routes.py
-Authors: Bc. Martin Baláž
-Description: Player management routes for the quiz application.
-             Handles player joining and color selection functionality.
+"""Player management routes for the quiz application.
+Handles player joining and color selection functionality.
 """
 from flask import Blueprint, jsonify, request
 from .. import socketio
@@ -18,9 +15,9 @@ def get_available_colors():
     
     Returns:
         JSON object with array of available color codes
-        {
-            "colors": ["#FF5733", "#33FF57", ...]
-        }
+            {
+                "colors": ["#FF5733", "#33FF57", ...]
+            }
     """
     used_colors = [player['color'] for player in game_state.players.values()]
     available_colors = [color for color in AVAILABLE_COLORS if color not in used_colors]
@@ -33,12 +30,14 @@ def join():
     Handle a player joining the quiz.
     
     Validates that:
+
     - A quiz is currently active
     - Maximum player limit hasn't been reached
     - The player name is unique
     - The requested color is available
     
     Request body (JSON):
+
         player_name: The name/nickname of the player
         color: The color code chosen by the player
     

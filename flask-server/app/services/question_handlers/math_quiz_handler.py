@@ -1,4 +1,8 @@
-from typing import Dict, Any, List
+"""Handler for Math Quiz type questions in the quiz application.
+Manages sequences of mathematical equations and their answers,
+with specialized validation and formatting for math content.
+"""
+from typing import Dict, Any
 from ...constants import QUESTION_TYPES, QUIZ_VALIDATION
 from .base_handler import BaseQuestionHandler
 from ...models import QuestionMetadata
@@ -6,13 +10,35 @@ from bson import ObjectId
 from typing import Optional
 
 class MathQuizQuestionHandler(BaseQuestionHandler):
-    """Handler for Math Quiz type questions (sequences of equations)."""
+    """
+    Handler for Math Quiz type questions (sequences of equations).
+    
+    Processes questions containing multiple mathematical equations that
+    players must solve in sequence. Each equation has its own answer and
+    time limit. Includes specialized validation for numeric answers and
+    handling for different formats of numeric input.
+    """
     
     def __init__(self):
+        """Initialize the handler with the MATH_QUIZ question type."""
         super().__init__(QUESTION_TYPES["MATH_QUIZ"])
     
     def validate(self, question_data: Dict[str, Any]) -> bool:
-        """Validate that the math quiz question data is valid."""
+        """
+        Validate that the math quiz question data is valid.
+        
+        Checks that:
+
+        - The question contains sequences of equations
+        - Each sequence has both an equation and a numeric answer
+        - All answers are valid numbers
+        
+        Args:
+            question_data: Raw question data to validate
+            
+        Returns:
+            bool: True if the math quiz data is valid
+        """
         # Override base validation to skip question validation
         # Only verify type is correct
         if not question_data or question_data.get('type') != self.question_type:
@@ -46,7 +72,21 @@ class MathQuizQuestionHandler(BaseQuestionHandler):
         return True
     
     def add_type_specific_fields(self, question_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Add fields specific to math quiz questions."""
+        """
+        Process and normalize the math equations and answers.
+        
+        Processes each sequence to ensure:
+
+        - All answers are properly formatted numbers
+        - Each sequence has a time limit
+        - Equations are properly formatted
+        
+        Args:
+            question_data: Raw question data from frontend
+            
+        Returns:
+            Dict: Dictionary with normalized math sequences
+        """
         # Process sequences with normalized answers and ensure each has a length
         sequences = []
         if question_data and isinstance(question_data.get('sequences'), list):
@@ -70,7 +110,22 @@ class MathQuizQuestionHandler(BaseQuestionHandler):
         }
     
     def format_for_frontend(self, question: Dict[str, Any], quiz_name: str = "Unknown Quiz") -> Dict[str, Any]:
-        """Format math quiz question for frontend display."""
+        """
+        Format math quiz question for frontend display.
+        
+        Creates a display-friendly version of the math quiz with:
+
+        - Default title for math questions
+        - Formatted sequence data
+        - Human-readable answer display
+        
+        Args:
+            question: Database question document
+            quiz_name: Name of the parent quiz
+            
+        Returns:
+            Dict: Formatted math quiz question for frontend display
+        """
         # Safety check to avoid NoneType errors
         if not question:
             return {
@@ -130,8 +185,24 @@ class MathQuizQuestionHandler(BaseQuestionHandler):
     
     def create_question_dict(self, question_data: Dict[str, Any], quiz_id: ObjectId, 
                            device_id: str, original: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Create question dict without the question field and category fields."""
-        # Add additional safety check for question_data
+        """
+        Create a database document for a math quiz question.
+        
+        Adapts the base question structure for math quiz specifics:
+        
+        - Doesn't require standard question text
+        - Stores sequences of equations
+        - Handles metadata appropriately
+        
+        Args:
+            question_data: Raw question data from frontend
+            quiz_id: MongoDB ObjectId of the parent quiz
+            device_id: Device identifier of the creator/editor
+            original: Original question document if this is an update
+            
+        Returns:
+            Dict: Processed math quiz question ready for database storage
+        """
         if not question_data:
             question_data = {'sequences': []}
         
@@ -152,7 +223,18 @@ class MathQuizQuestionHandler(BaseQuestionHandler):
         return question_dict
 
     def _is_valid_number(self, value: str) -> bool:
-        """Check if a string represents a valid number (supports both '.' and ',' as decimal separator)."""
+        """
+        Check if a string represents a valid number.
+        
+        Supports both period (.) and comma (,) as decimal separators
+        for international number formats.
+        
+        Args:
+            value: String to check for numeric validity
+            
+        Returns:
+            bool: True if the string represents a valid number
+        """
         # Safety check
         if not value or not isinstance(value, str):
             return False
@@ -162,11 +244,24 @@ class MathQuizQuestionHandler(BaseQuestionHandler):
         try:
             float(value)
             return True
+        
         except (ValueError, TypeError):
             return False
     
     def _normalize_number(self, value: str) -> float:
-        """Convert string to number, supporting both '.' and ',' as decimal separator."""
+        """
+        Convert string to a numeric value.
+        
+        Handles international number formats by supporting both
+        period (.) and comma (,) as decimal separators. Attempts
+        to convert to integer when possible, otherwise to float.
+        
+        Args:
+            value: String representing a number
+            
+        Returns:
+            int/float: The numeric value of the string, or 0.0 if invalid
+        """
         # Safety check
         if not value or not isinstance(value, str):
             return 0.0
@@ -175,5 +270,6 @@ class MathQuizQuestionHandler(BaseQuestionHandler):
         try:
             # Convert to int if it's a whole number, otherwise float
             return int(value) if value.isdigit() else float(value)
+        
         except (ValueError, TypeError):
             return 0.0

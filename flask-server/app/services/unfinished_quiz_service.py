@@ -1,22 +1,55 @@
+"""Unfinished quiz management service.
+
+This module provides functionality for handling quizzes that are being created or edited (the drafts):
+
+- Saving quiz drafts to local storage during creation/editing drafts
+- Retrieving saved drafts for resuming work
+- Managing autosave functionality
+- Validating and cleaning up media files for incomplete quizzes
+- Deleting drafts and associated resources
+
+The service uses TinyDB for local storage to persist quiz data between sessions.
+"""
 from ..local_db import local_db
-from typing import List, Dict, Optional, Any, Tuple, Set
+from typing import List, Dict, Optional, Any, Tuple
 from datetime import datetime
 import json
 from tinydb import Query
 from ..utils import get_device_id
 from .cloudinary_service import CloudinaryService
 from ..db import db
-from bson import ObjectId  # Add this import
+from bson import ObjectId
 
 class UnfinishedQuizService:
+    """
+    Service for managing unfinished (draft) quizzes in local storage.
+    
+    Provides methods for saving, retrieving, and deleting quiz drafts,
+    with support for autosave functionality and media validation.
+    All operations are tied to the current device ID to ensure privacy.
+    """
+    
     @staticmethod
     def save_unfinished_quiz(quiz_data: Dict[str, Any], is_editing: bool = False, 
                            quiz_id: Optional[str] = None, autosave_id: Optional[str] = None) -> Tuple[bool, str]:
         """
-        Save or update unfinished quiz in the local database
-        Returns: Tuple containing (success_bool, autosave_identifier)
+        Save or update an unfinished quiz in the local database.
+        
+        Handles both new quiz drafts and updates to existing drafts.
+        Generates a unique identifier for new drafts or uses the provided autosave_id.
+        
+        Args:
+            quiz_data: Dictionary containing the quiz data to save
+            is_editing: Whether this is an edit of an existing quiz
+            quiz_id: ID of the original quiz being edited (if applicable)
+            autosave_id: Existing autosave identifier for updates
+            
+        Returns:
+            tuple: (success_boolean, autosave_identifier)
+                   
+                   (False, None) if saving fails
         """
-        # Don't save if we're editing an existing quiz
+        # Don't save if we're editing an existing quiz, since it's not implemented
         if is_editing:
             return False, None
             
@@ -53,7 +86,7 @@ class UnfinishedQuizService:
                 "device_id": device_id,
                 "last_updated": datetime.now().isoformat(),
                 "question_count": len(quiz_data.get('questions', [])),
-                "creation_time": datetime.now().isoformat() # Add creation time to track when it was first created
+                "creation_time": datetime.now().isoformat() # Track when it was first created
             }
             
             # Check if this quiz already exists by identifier
@@ -63,11 +96,9 @@ class UnfinishedQuizService:
             if existing:
                 # Update existing record
                 local_db['unfinished_quizzes'].update(save_data, Quiz.identifier == identifier)
-                print(f"Updated existing autosave with ID: {identifier}")
             else:
                 # Create new record
                 local_db['unfinished_quizzes'].insert(save_data)
-                print(f"Created new autosave with ID: {identifier}")
             
             return True, identifier
         
@@ -78,10 +109,22 @@ class UnfinishedQuizService:
     @staticmethod
     def get_unfinished_quizzes() -> List[Dict[str, Any]]:
         """
-        Get all unfinished quizzes for the current device
+        Get all unfinished quizzes for the current device.
+        
+        Retrieves all saved drafts associated with the current device ID,
+        sorted by last update time (newest first).
+        
+        Returns:
+            list: List of quiz draft metadata dictionaries with:
+
+                 - identifier: Unique ID for the draft
+                 - name: Quiz title
+                 - is_editing: Whether this is an edit of an existing quiz
+                 - original_quiz_id: ID of the original quiz being edited
+                 - last_updated: Timestamp of last save
+                 - question_count: Number of questions in the draft
         """
         if not local_db:
-            print("Local database not available")
             return []
         
         try:
@@ -106,6 +149,7 @@ class UnfinishedQuizService:
             formatted_quizzes.sort(key=lambda x: x.get("last_updated", ""), reverse=True)
             
             return formatted_quizzes
+        
         except Exception as e:
             print(f"Error retrieving unfinished quizzes: {e}")
             return []
@@ -113,10 +157,28 @@ class UnfinishedQuizService:
     @staticmethod
     def get_unfinished_quiz(identifier: str) -> Optional[Dict[str, Any]]:
         """
-        Get a specific unfinished quiz by identifier
+        Get a specific unfinished quiz by identifier.
+        
+        Retrieves a complete quiz draft including all questions.
+        Performs validation on media URLs and question references to ensure
+        all referenced resources still exist.
+        
+        Args:
+            identifier: The unique identifier of the quiz draft
+            
+        Returns:
+            dict: Complete quiz draft with validated questions, or None if not found. 
+                  The returned quiz includes:
+
+                  - identifier: Unique ID
+                  - name: Quiz title
+                  - questions: List of question objects
+                  - quiz_type: Type of quiz
+                  - is_editing: Whether this is an edit of an existing quiz
+                  - original_quiz_id: ID of the original quiz being edited
+                  - last_updated: Timestamp of last save
         """
         if not local_db:
-            print("Local database not available")
             return None
         
         try:
@@ -163,6 +225,7 @@ class UnfinishedQuizService:
                                 # Original question doesn't exist anymore, remove the reference
                                 print(f"Original question not found for copy_of: {question['copy_of']}")
                                 question['copy_of'] = None
+
                         except Exception as e:
                             # If there's any error (invalid ObjectId, etc.), remove the reference
                             print(f"Error checking copy_of reference: {e}")
@@ -187,6 +250,7 @@ class UnfinishedQuizService:
                 "last_updated": quiz_data.get("last_updated"),
                 "media_validation_performed": True  # Flag to indicate media was checked
             }
+        
         except Exception as e:
             print(f"Error retrieving unfinished quiz: {e}")
             return None
@@ -194,14 +258,19 @@ class UnfinishedQuizService:
     @staticmethod
     def delete_unfinished_quiz(identifier: str, keep_files: bool = False) -> bool:
         """
-        Delete an unfinished quiz by identifier and optionally clean up associated media files
+        Delete an unfinished quiz and optionally its associated media files.
+        
+        Removes the quiz draft from local storage and optionally cleans up
+        any media files that were uploaded specifically for this draft.
         
         Args:
-            identifier: The identifier of the unfinished quiz
-            keep_files: If True, don't delete media files (used when quiz was successfully created)
+            identifier: The unique identifier of the quiz draft
+            keep_files: If True, don't delete media files (used when quiz was completed)
+            
+        Returns:
+            bool: True if deletion was successful, False otherwise
         """
         if not local_db:
-            print("Local database not available")
             return False
         
         try:
@@ -242,6 +311,7 @@ class UnfinishedQuizService:
                                 if question.get('mediaUrl') and question.get('mediaUrl') not in original_media_urls:
                                     # This is a newly added media file
                                     media_urls_to_delete.add(question.get('mediaUrl'))
+
                     except Exception as e:
                         print(f"Error getting original quiz: {e}")
                         # If we can't get original quiz, assume all media is new
@@ -255,7 +325,7 @@ class UnfinishedQuizService:
                     if url:
                         try:
                             CloudinaryService.delete_file(url)
-                            print(f"Deleted media file: {url}")
+
                         except Exception as e:
                             print(f"Error deleting media file {url}: {e}")
             
@@ -266,6 +336,7 @@ class UnfinishedQuizService:
             )
             
             return True
+        
         except Exception as e:
             print(f"Error deleting unfinished quiz: {e}")
             return False

@@ -1,9 +1,6 @@
-"""
-File: quiz_management_routes.py
-Authors: Bc. Martin Baláž
-Description: Quiz management routes for the quiz application.
-             Handles CRUD operations for quizzes and questions, including
-             creation, retrieval, updating, deletion, and validation.
+"""Quiz management routes for the quiz application.
+Handles CRUD operations for quizzes and questions, including
+creation, retrieval, updating, deletion, and validation.
 """
 from flask import Blueprint, jsonify, request
 from ..services.quiz_service import QuizService
@@ -20,12 +17,14 @@ def check_question():
           Now it's being validated only in the frontend, which is good for now.
     
     Validates:
+
     - Question text length
     - Answer text lengths
     - Time limit range
     - Category validity
     
     Request body (JSON):
+
         questions: Array containing a single question object to validate
     
     Returns:
@@ -70,6 +69,7 @@ def create_quiz():
     The new quiz is associated with the device ID of the creator.
     
     Request body (JSON):
+
         name: Quiz name
         questions: Array of question objects
         type: Quiz type identifier
@@ -115,6 +115,7 @@ def get_quiz(quiz_id):
     Used to get full quiz details including all questions.
     
     Path parameters:
+
         quiz_id: MongoDB ObjectId of the quiz to retrieve
     
     Returns:
@@ -141,6 +142,7 @@ def toggle_share_quiz(quiz_id):
     Only the creator of a quiz (identified by device ID) can toggle its status.
     
     Path parameters:
+
         quiz_id: MongoDB ObjectId of the quiz to modify
     
     Returns:
@@ -169,9 +171,11 @@ def update_quiz(quiz_id):
     Handles tracking of deleted questions to clean up associated media.
     
     Path parameters:
+
         quiz_id: MongoDB ObjectId of the quiz to update
     
     Request body (JSON):
+
         name: Updated quiz name
         questions: Updated array of question objects
         deletedQuestions: Array of question IDs that were removed
@@ -227,6 +231,7 @@ def delete_quiz(quiz_id):
     Only the creator of a quiz (identified by device ID) can delete it.
     
     Path parameters:
+
         quiz_id: MongoDB ObjectId of the quiz to delete
     
     Returns:
@@ -255,6 +260,7 @@ def copy_quiz(quiz_id):
     Used to duplicate public quizzes or to create variants of existing quizzes.
     
     Path parameters:
+
         quiz_id: MongoDB ObjectId of the quiz to copy
     
     Returns:
@@ -286,6 +292,7 @@ def get_existing_questions():
     Used for question reuse across quizzes and searching the question library.
     
     Query parameters:
+
         type: Filter by source ('mine' or 'others')
         questionType: Filter by question type 
         search: Text search query
@@ -329,6 +336,7 @@ def get_quizzes():
     Lists quizzes created by the user or public quizzes from other users.
     
     Query parameters:
+    
         page: Page number for pagination (starting from 1)
         per_page: Number of items per page
         filter: Filter by ownership ('mine' or 'public')

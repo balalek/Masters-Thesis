@@ -1,12 +1,30 @@
+"""Cloudinary integration service for the quiz application.
+Provides methods for managing media assets (images and audio)
+through Cloudinary's cloud storage. Handles uploads, optimizations,
+transformations, deletion, and existence checks.
+"""
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
-from typing import Optional, Dict, Any
-import os
-import mimetypes
+from typing import  Dict, Any
 from flask import current_app
 
 class CloudinaryService:
+    """
+    Service for managing media assets through Cloudinary.
+    
+    This class provides a collection of static methods for interacting
+    with the Cloudinary API to handle media operations including:
+    
+    - File uploads with configurable parameters
+    - URL transformations for image/audio optimization
+    - Asset deletion with usage checks
+    - Asset existence verification
+    
+    All methods are stateless and use the Cloudinary API directly,
+    requiring proper environment configuration via CLOUDINARY_URL.
+    """
+    
     @staticmethod
     def initialize():
         """
@@ -39,7 +57,7 @@ class CloudinaryService:
         upload_params = {
             "folder": folder,
             "resource_type": resource_type,
-            "type": "upload",  # Use 'upload' instead of 'public'
+            "type": "upload",
             "access_mode": "authenticated",  # Makes files unlisted
             "unique_filename": True,  # Ensures unique filenames
             "overwrite": False  # Prevents overwriting existing files
@@ -53,63 +71,10 @@ class CloudinaryService:
         try:
             result = cloudinary.uploader.upload(file_data, **upload_params)
             return result
+        
         except Exception as e:
             current_app.logger.error(f"Cloudinary upload error: {str(e)}")
             raise
-    
-    @staticmethod
-    def optimize_image_url(url: str, width: int = 800, quality: int = 'auto') -> str:
-        """
-        Get an optimized image URL with Cloudinary transformations
-        
-        Args:
-            url: Original Cloudinary URL
-            width: Desired width in pixels
-            quality: Quality setting (auto for automatic optimization)
-            
-        Returns:
-            Optimized image URL with transformations
-        """
-        if not url or not url.startswith('http'):
-            return url
-            
-        # Check if this is a Cloudinary URL
-        if 'res.cloudinary.com' not in url:
-            return url
-            
-        # Apply transformations to the URL
-        # Format: .../image/upload/c_scale,w_800,q_auto/v123/folder/image.jpg
-        parts = url.split('/upload/')
-        if len(parts) != 2:
-            return url
-            
-        return f"{parts[0]}/upload/c_scale,w_{width},q_{quality}/{parts[1]}"
-    
-    @staticmethod
-    def optimize_audio_url(url: str, format: str = 'mp3') -> str:
-        """
-        Get an optimized audio URL with Cloudinary transformations
-        
-        Args:
-            url: Original Cloudinary URL
-            format: Desired audio format
-            
-        Returns:
-            Optimized audio URL
-        """
-        if not url or not url.startswith('http'):
-            return url
-            
-        # Check if this is a Cloudinary URL
-        if 'res.cloudinary.com' not in url:
-            return url
-            
-        # Apply transformations to the URL
-        parts = url.split('/upload/')
-        if len(parts) != 2:
-            return url
-            
-        return f"{parts[0]}/upload/q_auto/{parts[1]}"
 
     @staticmethod
     def delete_file(url: str, db=None) -> bool:
@@ -117,9 +82,12 @@ class CloudinaryService:
         Delete a file from Cloudinary
         
         Args:
-            url: The Cloudinary URL of the file
-            db: Optional MongoDB database instance to check file usage
-            check_usage: Whether to check if file is used by other questions
+            url: The Cloudinary URL of the file to delete
+            db: Optional MongoDB database instance to check if the file is used by other questions
+        
+        Returns:
+            bool: True if deletion was successful or file is still in use by other questions,
+                  False if deletion failed or URL was invalid
         """
         if not url or 'res.cloudinary.com' not in url:
             current_app.logger.error(f"Invalid URL for deletion: {url}")
@@ -157,6 +125,7 @@ class CloudinaryService:
             
             success = result.get('result') == 'ok'
             current_app.logger.info(f"Deletion result for {url}: {result}")
+
             return success
             
         except Exception as e:
@@ -199,9 +168,12 @@ class CloudinaryService:
             # Check if asset exists
             CloudinaryService.initialize()
             result = cloudinary.api.resource(public_id, resource_type=resource_type)
+
             return bool(result and result.get('public_id'))
+        
         except cloudinary.exceptions.NotFound:
             return False
+        
         except Exception as e:
-            print(f"Error checking if file exists in Cloudinary: {str(e)}")
+            current_app.logger.error(f"Error checking if file exists in Cloudinary: {str(e)}")
             return False

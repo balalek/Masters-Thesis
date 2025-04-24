@@ -1,12 +1,24 @@
 """
 Socket.IO events for Drawing questions
+
+This module provides real-time event handling for Drawing questions:
+
+- Real-time drawing coordination between drawer and guessers
+- Word selection and announcement to players
+- Drawing transmission and broadcasting
+- Answer submission and validation
+- Points calculation for both drawer and successful guessers
+- Letter reveal functionality for hints
+- Team and individual play modes
+
+Drawing is an interactive game where one player draws a word and others
+try to guess it, with points awarded for both successful drawing and guessing.
 """
 from flask_socketio import emit
 from flask import request
 from .. import socketio
 from ..game_state import game_state
 from ..constants import POINTS_FOR_CORRECT_ANSWER
-from time import time
 from difflib import SequenceMatcher
 import random
 from ..services.quiz_service import QuizService
@@ -14,7 +26,26 @@ from .utils import emit_all_answers_received, get_scores_data
 
 @socketio.on('submit_drawing_answer')
 def submit_drawing_answer(data):
-    """Handle submissions for drawing quiz answers"""
+    """
+    Handle submission of a guess for the drawn word.
+    
+    Validates the submitted answer against the word being drawn, awards points 
+    for correct answers based on speed, and manages team vs individual scoring.
+    Provides feedback for incorrect guesses based on similarity.
+    
+    Args:
+        data (dict):
+
+            - player_name: Name of the player submitting the guess
+            - answer: The word guess submitted
+            - answer_time: Timestamp when answer was submitted
+            
+    Emits:
+        - 'error': If game is not started
+        - 'drawing_answer_feedback': Feedback for invalid or incorrect answers
+        - 'answer_correctness': Result notification with points for correct answers
+        - 'drawing_answer_submitted': Updates for the main screen on player progress
+    """
     player_name = data['player_name']
     answer = data['answer'].strip()
     answer_time = data['answer_time']
@@ -63,9 +94,6 @@ def submit_drawing_answer(data):
     
     # Check if answer is correct
     is_correct = normalized_answer == normalized_correct
-    
-    # Debug log
-    print(f"Drawing Quiz - Player: {player_name}, Answer: {answer}, Correct: {is_correct}, Expected: {correct_answer}")
     
     # If answer is correct
     if is_correct:
@@ -121,7 +149,7 @@ def submit_drawing_answer(data):
                 # Calculate number of potential guessers (everyone except drawer)
                 total_guessers = len(game_state.players) - 1
                 
-                # Calculate points per correct guess using the new formula
+                # Calculate points per correct guess
                 points_per_guess = POINTS_FOR_CORRECT_ANSWER / total_guessers if total_guessers > 0 else 0
                 
                 # Apply late selection penalty if applicable
@@ -170,10 +198,23 @@ def submit_drawing_answer(data):
             'player_color': game_state.players[player_name]['color']
         })
         
+        # Broadcast feedback to the player
         emit('drawing_answer_feedback', {"message": feedback}, room=player_name)
 
 def analyze_drawing_answer(answer, correct_answer):
-    """Analyze how close an answer is to the correct one and provide feedback."""
+    """
+    Analyze how close a guess is to the correct drawing word.
+    
+    Provides contextual feedback based on length difference and text similarity,
+    helping players adjust their guesses toward the correct answer.
+    
+    Args:
+        answer (str): The player's submitted guess
+        correct_answer (str): The actual word being drawn
+        
+    Returns:
+        str: Feedback message based on how close the guess is
+    """
     answer = answer.lower().strip()
     correct_answer = correct_answer.lower().strip()
     
@@ -195,7 +236,16 @@ def analyze_drawing_answer(answer, correct_answer):
         return "To není správná odpověď"
 
 def check_drawing_completion():
-    """Check if conditions are met to proceed to the next stage."""
+    """
+    Check if drawing round completion criteria have been met.
+    
+    In team mode: At least one player from the drawer's team must answer correctly
+
+    In free-for-all mode: All players except the drawer must answer correctly
+    
+    If completion criteria are met, awards bonus points to the drawer (in free-for-all)
+    and triggers the results display.
+    """
     # Get the current drawer's name
     current_question_data = game_state.questions[game_state.current_question]
     drawer_name = current_question_data.get('player')
@@ -227,7 +277,25 @@ def check_drawing_completion():
         show_drawing_results()
 
 def calculate_drawer_stats(drawer_name):
-    """Calculate stats for the drawer including points and correct guesses."""
+    """
+    Calculate points and statistics for the drawer.
+    
+    Computes points earned by the drawer based on how many players guessed correctly.
+    Handles different scoring calculations for team mode vs individual mode,
+    and applies late word selection penalties when applicable.
+    
+    Args:
+        drawer_name (str): Name of the player who was drawing
+        
+    Returns:
+        dict:
+
+            - pointsEarned: Points earned in this drawing round
+            - totalPoints: Drawer's current total score
+            - correct_count: Number of players who guessed correctly
+            - total_guessers: Total number of potential guessers
+            - is_late_selection: Whether word was selected late
+    """
     # Calculate how many players guessed correctly
     correct_count = game_state.drawing_stats['correct_count']
     total_guessers = len(game_state.players) - 1  # Everyone except drawer
@@ -278,11 +346,19 @@ def calculate_drawer_stats(drawer_name):
         'totalPoints': drawer_total_points,
         'correct_count': correct_count,
         'total_guessers': total_guessers,
-        'is_late_selection': is_late_selection  # Include this in the response
+        'is_late_selection': is_late_selection
     }
 
 def show_drawing_results():
-    """Show results for drawing questions."""
+    """
+    Show results for the drawing round to all players.
+    
+    Gathers the current scores, correct answer, player answers, and drawer
+    statistics, then broadcasts results to all players.
+    
+    Emits:
+        - Event via emit_all_answers_received with drawing results
+    """
     current_question_data = game_state.questions[game_state.current_question]
     scores = get_scores_data()
     drawer_name = current_question_data.get('player', '')
@@ -302,7 +378,19 @@ def show_drawing_results():
     )
 
 def handle_drawing_time_up(scores):
-    """Handle time up for drawing questions"""
+    """
+    Handle time expiration for drawing questions.
+    
+    Processes the end of a drawing round when time runs out,
+    regardless of how many players have guessed correctly.
+    Calculates final drawer statistics and broadcasts results.
+    
+    Args:
+        scores: Current game scores for inclusion in results
+    
+    Emits:
+        - Event via emit_all_answers_received with drawing results
+    """
     current_question = game_state.questions[game_state.current_question]
     drawer_name = current_question.get('player', '')
     
@@ -319,16 +407,25 @@ def handle_drawing_time_up(scores):
             "drawer_stats": drawer_stats
         }
     )
-    print("Drawing time up, results have been send")
 
 @socketio.on('drawing_update')
 def drawing_update(data):
-    """Broadcast drawing updates to all clients.
+    """
+    Broadcast drawing updates from the drawer to all clients (but only main screen listens).
     
-    Note: While this event broadcasts to all connected clients,
-    only the main screen (game view) will be listening to the 
-    'drawing_update_broadcast' event and rendering the drawing data.
-    Mobile clients won't be processing this data even if they receive it.
+    Receives drawing data from the current drawer and broadcasts it to all
+    clients to display the drawing in real-time. Validates that updates
+    only come from the designated drawer for the current question.
+    
+    Args:
+        data (dict):
+
+            - player_name: Name of the player sending drawing data
+            - drawingData: Drawing data to broadcast (lines, colors, etc.)
+            - action: Type of drawing action ('draw', 'clear', etc.)
+    
+    Emits:
+        - 'drawing_update_broadcast': Drawing data to all clients
     """
     # Get the current drawer
     if game_state.current_question is None:
@@ -339,18 +436,12 @@ def drawing_update(data):
     drawer_name = current_question_data.get('player')
     player_name = data.get('player_name')
     
-    # Debug logging
-    #print(f"Received drawing_update from {player_name}, drawer is {drawer_name}")
-    
     if player_name != drawer_name:
         # Prevent non-drawers from sending drawing updates
         print(f"drawing_update: Player {player_name} is not the drawer")
         return
     
-    # Debug log the data size
     drawing_data = data.get('drawingData')
-    data_length = len(drawing_data) if drawing_data else 0
-    #print(f"Broadcasting drawing update, data length: {data_length}")
     
     # Broadcast drawing update to all clients
     socketio.emit('drawing_update_broadcast', {
@@ -361,7 +452,16 @@ def drawing_update(data):
 
 @socketio.on('reveal_drawing_letter')
 def reveal_drawing_letter():
-    """Reveal a random letter in the drawing answer, similar to open answer questions."""
+    """
+    Reveal a random letter in the drawing answer as a hint.
+    
+    Randomly reveals one previously hidden letter in the answer,
+    up to a maximum of 50% of the total letters. Spaces are always
+    shown and not counted toward the reveal limit.
+    
+    Emits:
+        - 'drawing_letter_revealed': Updated mask with newly revealed letter
+    """
     if game_state.current_question is None:
         return
     
@@ -406,16 +506,33 @@ def reveal_drawing_letter():
 
 @socketio.on('select_drawing_word')
 def select_drawing_word(data):
-    """Handler when drawer selects a word to draw."""
+    """
+    Handle word selection by the drawer for the current drawing round.
+    
+    Validates the selection, updates the game state with the chosen word,
+    and notifies players - showing the full word to the drawer and a
+    masked version to guessers (main screen).
+    
+    Args:
+        data (dict):
+        
+            - player_name: Name of the player selecting the word
+            - selected_word: The word chosen to be drawn
+            - is_late_selection: Whether selection was made after time started
+    
+    Emits:
+        - 'error': If selection is invalid
+        - 'word_selected': Word info to drawer (full word) and guessers (masked)
+    """
     player_name = data.get('player_name')
     selected_word = data.get('selected_word')
-    is_late_selection = data.get('is_late_selection', False)  # Default to False if not provided
+    is_late_selection = data.get('is_late_selection', False)
     
     if not all([player_name, selected_word]):
         emit('error', {"error": "Missing required data"})
         return
     
-    # Use the server's current question index instead of client-provided one
+    # Use the server's current question index
     question_index = game_state.current_question
     
     if question_index is None:
@@ -467,7 +584,16 @@ def select_drawing_word(data):
 
 @socketio.on('get_current_drawing_word')
 def get_current_drawing_word():
-    """Return the currently selected word for drawing questions when requested."""
+    """
+    Return the currently selected drawing word in masked format.
+    
+    Responds to client requests for the current drawing word,
+    returning a masked version with only revealed letters shown.
+    Used when players join mid-game or need to refresh their display.
+    
+    Emits:
+        - 'drawing_word_response': Contains the masked word and availability flag
+    """
     if game_state.current_question is None:
         return
     

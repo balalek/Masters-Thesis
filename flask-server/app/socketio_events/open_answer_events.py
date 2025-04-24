@@ -1,11 +1,21 @@
 """
-Socket.IO events for Open Answer questions
+Socket.IO event handlers for Open Answer questions.
+
+This module provides real-time event handling for Open Answer question types:
+
+- Answer submission and validation against correct answers
+- Similarity checking and feedback for incorrect answers
+- Letter reveal functionality for hints
+- Team and individual scoring modes
+- Answer tracking and statistics collection
+
+Open Answer questions allow players to input free-form text answers which are
+compared against expected answers with flexible matching options.
 """
 from flask_socketio import emit
 from .. import socketio
 from ..game_state import game_state
 from ..constants import POINTS_FOR_CORRECT_ANSWER
-from time import time
 from difflib import SequenceMatcher
 import random
 from ..services.quiz_service import QuizService
@@ -13,6 +23,26 @@ from .utils import emit_all_answers_received, get_scores_data
 
 @socketio.on('submit_open_answer')
 def submit_open_answer(data):
+    """
+    Handle submission of an open answer from a player.
+    
+    Validates the player's answer against the correct answer and awards points
+    for correct answers based on speed. Handles different scoring for team mode
+    and individual mode. Provides feedback for incorrect answers.
+    
+    Args:
+        data (dict):
+
+            - player_name: Name of the player submitting the answer
+            - answer: The text answer submitted by the player
+            - answer_time: Timestamp when the answer was submitted
+    
+    Emits:
+        - 'error': If game is not started
+        - 'open_answer_feedback': Feedback for incorrect answers
+        - 'answer_correctness': Result notification with points for correct answers
+        - 'open_answer_submitted': Updates for the main screen on player progress
+    """
     player_name = data['player_name']
     answer = data['answer'].strip()
     answer_time = data['answer_time']
@@ -39,16 +69,13 @@ def submit_open_answer(data):
     # Check if answer is correct
     is_correct = normalized_answer == normalized_correct
     
-    # Debug log to verify correctness
-    print(f"Player: {player_name}, Answer: {answer}, Correct: {is_correct}")
-    
     # If answer is correct
     if is_correct:
         # Calculate speed points
         question_start_time = game_state.question_start_time
         question_length = current_question_data['length'] * 1000
         time_taken = answer_time - question_start_time
-        speed_points = max(0, 100 - int((time_taken / question_length) * 100))
+        speed_points = max(0, POINTS_FOR_CORRECT_ANSWER - int((time_taken / question_length) * POINTS_FOR_CORRECT_ANSWER))
         total_points_earned = POINTS_FOR_CORRECT_ANSWER + speed_points
         
         # Add player to correct players set
@@ -78,7 +105,7 @@ def submit_open_answer(data):
                 }, room=team_player)
             
         else:
-            # Individual mode
+            # Free-for-all mode
             game_state.players[player_name]['score'] += total_points_earned
             
             emit('answer_correctness', {
@@ -103,13 +130,13 @@ def submit_open_answer(data):
             'correct_count': game_state.open_answer_stats['correct_count']
         })
         
-        # Check if everyone has answered correctly or time is up
+        # Check if everyone has answered correctly depending on game mode
         check_open_answer_completion()
     else:
         # Wrong answer - provide feedback
         feedback = analyze_answer(answer, correct_answer)
         
-        # Log the attempt
+        # Log the attempt for future reference as funny answers
         game_state.open_answer_stats['player_answers'].append({
             'player_name': player_name,
             'answer': answer,
@@ -117,10 +144,23 @@ def submit_open_answer(data):
             'player_color': game_state.players[player_name]['color']
         })
         
+        # Send feedback to the player
         emit('open_answer_feedback', {"message": feedback}, room=player_name)
 
 def analyze_answer(answer, correct_answer):
-    """Analyze how close an answer is to the correct one and provide feedback."""
+    """
+    Analyze how close an answer is to the correct one and provide feedback.
+    
+    Compares the submitted answer with the correct one and provides
+    contextual feedback based on length difference and text similarity.
+    
+    Args:
+        answer: The player's submitted answer
+        correct_answer: The correct answer to compare against
+    
+    Returns:
+        str: Feedback message based on how close the answer is
+    """
     answer = answer.lower().strip()
     correct_answer = correct_answer.lower().strip()
     
@@ -142,7 +182,14 @@ def analyze_answer(answer, correct_answer):
         return "To není správná odpověď"
 
 def check_open_answer_completion():
-    """Check if all players have answered correctly or if conditions are met to proceed."""
+    """
+    Check if all players have answered correctly or if conditions are met to proceed.
+    
+    In team mode, proceeds when at least one player from each team has answered correctly.
+    In individual mode, proceeds when all players have answered correctly.
+    
+    Calls show_open_answer_results() if completion conditions are met.
+    """
     player_count = len(game_state.players)
     correct_count = game_state.open_answer_stats['correct_count']
     
@@ -158,7 +205,15 @@ def check_open_answer_completion():
         show_open_answer_results()
 
 def show_open_answer_results():
-    """Show results for open answer questions."""
+    """
+    Show results for open answer questions.
+    
+    Gathers the current scores and correct answer, then broadcasts
+    results to all players, including all submitted answers.
+    
+    Emits:
+        - Event via emit_all_answers_received with correct answer and player responses
+    """
     current_question_data = game_state.questions[game_state.current_question]
     scores = get_scores_data()
     
@@ -170,13 +225,22 @@ def show_open_answer_results():
 
 @socketio.on('reveal_open_answer_letter')
 def reveal_open_answer_letter():
-    """Reveal a random letter in the open answer, up to maximum 50% of letters."""
+    """
+    Reveal a random letter in the open answer as a hint.
+    
+    Randomly reveals one previously hidden letter in the answer,
+    up to a maximum of 50% of the total letters. Spaces are not
+    counted as revealable letters and are always shown.
+    
+    Emits:
+        - 'open_answer_letter_revealed': Event with masked answer and newly revealed position
+    """
     if game_state.current_question is None:
         return
     
     current_question_data = game_state.questions[game_state.current_question]
     
-    # Change 'answer' to 'open_answer' for open answer questions
+    # Get answer for open answer questions (compatible with both formats)
     correct_answer = current_question_data.get('open_answer', current_question_data.get('answer', ''))
 
     # Count actual letters (excluding spaces)
@@ -205,14 +269,26 @@ def reveal_open_answer_letter():
     mask = ['_' if i not in game_state.revealed_positions and char != ' ' else char 
             for i, char in enumerate(correct_answer)]
     
-    # Send the updated mask
+    # Send the updated mask to main screen
     socketio.emit('open_answer_letter_revealed', {
         'mask': ''.join(mask),
         'position': position
     })
 
 def handle_open_answer_time_up(scores):
-    """Handle time up for open answer questions"""
+    """
+    Handle when time expires for an Open Answer question.
+    
+    Shows the correct answer to all players and displays all submitted answers.
+    Called when the question timer runs out, regardless of how many
+    players have answered correctly.
+    
+    Args:
+        scores: Current game scores for inclusion in results
+    
+    Emits:
+        - Event via emit_all_answers_received with correct answer and player responses
+    """
     current_question = game_state.questions[game_state.current_question]
     
     emit_all_answers_received(

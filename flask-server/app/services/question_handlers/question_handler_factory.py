@@ -1,3 +1,8 @@
+"""Factory implementation for creating question handlers.
+Implements the Factory Method design pattern to instantiate
+the appropriate handler based on question type without exposing
+creation logic to client code.
+"""
 from typing import Dict
 from ...constants import QUESTION_TYPES
 from .base_handler import BaseQuestionHandler
@@ -11,7 +16,17 @@ from .drawing_handler import DrawingQuestionHandler
 from .blind_map_handler import BlindMapQuestionHandler
 
 class QuestionHandlerFactory:
-    """Factory for creating the appropriate question handler based on question type."""
+    """
+    Factory for creating the appropriate question handler based on question type.
+    
+    This class implements the Factory Method design pattern to provide the correct
+    handler subclass for each question type. It maintains a registry of handlers
+    and lazily initializes them on first use.
+    
+    Usage:
+        - handler = QuestionHandlerFactory.get_handler(question["type"])
+        - result = handler.validate(question_data)
+    """
     
     _handlers: Dict[str, BaseQuestionHandler] = {}
     
@@ -20,14 +35,14 @@ class QuestionHandlerFactory:
         """
         Get the appropriate handler for the question type.
         
+        Uses lazy initialization to create handlers only when needed
+        and caches them for future use.
+        
         Args:
-            question_type: The type of question to handle
+            question_type: The type identifier of the question
             
         Returns:
             BaseQuestionHandler: The handler for the specified question type
-            
-        Raises:
-            ValueError: If the question type is not supported
         """
         if not cls._handlers:
             # Initialize handlers if not already done
@@ -41,7 +56,12 @@ class QuestionHandlerFactory:
     
     @classmethod
     def _initialize_handlers(cls) -> None:
-        """Initialize all question type handlers."""
+        """
+        Initialize all question type handlers.
+        
+        Creates one instance of each handler type and stores them
+        in the handler registry for future reuse.
+        """
         cls._handlers = {
             QUESTION_TYPES["ABCD"]: AbcdQuestionHandler(),
             QUESTION_TYPES["TRUE_FALSE"]: TrueFalseQuestionHandler(),
