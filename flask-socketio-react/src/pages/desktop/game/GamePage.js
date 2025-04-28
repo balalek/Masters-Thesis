@@ -21,7 +21,7 @@ function GamePage() {
   const { showGameAt } = location.state || {};
   const activeTeam = location.state?.activeTeam;
   const isTeamModeBlindMap = location.state?.blind_map_is_team_play || false;
-
+    
   useEffect(() => {
     const socket = getSocket();
 
@@ -38,11 +38,10 @@ function GamePage() {
         isRemote: data.is_remote
       };
       
-      // Add the appropriate data based on question type
+      // Add the appropriate data based on question type in navigationState
       if (question?.type === 'OPEN_ANSWER') {
         navigationState.question.playerAnswers = data.player_answers || [];
       } else if (question?.type === 'DRAWING') {
-        // Add drawing-specific data to the navigation state
         navigationState.question.playerAnswers = data.player_answers || [];
         navigationState.question.drawer = data.drawer || question.player;
       } else if (question?.type === 'GUESS_A_NUMBER') {

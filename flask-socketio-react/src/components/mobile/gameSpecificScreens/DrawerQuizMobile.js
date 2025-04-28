@@ -577,7 +577,8 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
           left: 0,
           right: 0,
           bottom: '70px',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          px: 1
         }}
       >
         <Box

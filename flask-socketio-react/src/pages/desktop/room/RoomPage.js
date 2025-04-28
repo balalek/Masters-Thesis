@@ -148,9 +148,8 @@ const RoomPage = () => {
       headers: { 'Content-Type': 'application/json' },
     });
   }, []);
-
-  /* TODO Uncomment this code after the app is done
-  // Enter fullscreen mode on component mount
+  
+  /*// Enter fullscreen mode on component mount
   useEffect(() => {
     const enterFullscreen = async () => {
       try {
@@ -169,8 +168,7 @@ const RoomPage = () => {
     };
 
     enterFullscreen();
-  }, []);
-  */
+  }, []);*/
 
   const handleStartGame = () => {
     setStartGameError('');

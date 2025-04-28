@@ -77,6 +77,13 @@ const SortableSequence = ({
     setEquationError(error);
   };
 
+  // Helper function to ensure time values are rounded to nearest 5 seconds
+  const handleTimeChange = (newValue) => {
+    // Round to the nearest 5
+    const roundedValue = Math.round(newValue / 5) * 5;
+    onChange(index, 'length', roundedValue);
+  };
+
   return (
     <Paper 
       ref={setNodeRef}
@@ -118,17 +125,19 @@ const SortableSequence = ({
             error={!!errors}
           />
           
-          {/* Time limit slider next to answer field */}
+          {/* Time limit slider next to answer field - updated with 5s steps */}
           <Box sx={{ width: '40%' }}>
             <Typography variant="body2" id={`time-slider-${sequence.id}`} sx={{ mb: 0.5 }}>
               Časový limit: {sequence.length}s
             </Typography>
             <Slider
               value={sequence.length}
-              onChange={(_, newValue) => onChange(index, 'length', newValue)}
+              onChange={(_, newValue) => handleTimeChange(newValue)}
               aria-labelledby={`time-slider-${sequence.id}`}
               min={QUIZ_VALIDATION.TIME_LIMIT.MIN}
               max={60}
+              step={5}  // Set step to 5 seconds
+              marks  // Show marks at each step
               valueLabelDisplay="auto"
               size="small"
               sx={{

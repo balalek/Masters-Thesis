@@ -823,7 +823,6 @@ const CreateQuizPage = () => {
             <MenuItem value={QUIZ_TYPES.WORD_CHAIN}>Slovní řetěz</MenuItem>
             <MenuItem value={QUIZ_TYPES.DRAWING}>Kreslení</MenuItem>
             <MenuItem value={QUIZ_TYPES.BLIND_MAP}>Slepá mapa</MenuItem>
-            <MenuItem value="other" disabled>Další typy (Připravujeme)</MenuItem>
           </Select>
           <TextField
             fullWidth

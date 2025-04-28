@@ -94,7 +94,7 @@ const FinalScorePage = () => {
           }}>
             Finální výsledky
           </Typography>
-          {!isRemote && (
+          {!isRemote ? (
             <Button 
               variant="contained"
               onClick={handleCloseQuiz}
@@ -102,6 +102,8 @@ const FinalScorePage = () => {
             >
               Ukončit kvíz
             </Button>
+          ) : (
+            <Box sx={{ height: '40px' }} />
           )}
         </Box>
 
@@ -244,12 +246,12 @@ const FinalScorePage = () => {
         alignItems: 'center',
         position: 'relative',
         width: '100%',
-        mb: 3 
+        mb: 3
       }}>
         <Typography variant="h3" component="h1" sx={{ textAlign: 'center' }}>
           Finální žebříček
         </Typography>
-        {!isRemote && (
+        {!isRemote ? (
           <Button 
             variant="contained"
             onClick={handleCloseQuiz}
@@ -257,6 +259,8 @@ const FinalScorePage = () => {
           >
             Ukončit kvíz
           </Button>
+        ) : (
+          <Box sx={{ height: '40px' }} />
         )}
       </Box>
 

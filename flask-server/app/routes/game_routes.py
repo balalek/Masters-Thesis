@@ -10,6 +10,8 @@ from ..game_state import game_state
 from ..constants import PREVIEW_TIME, PREVIEW_TIME_DRAWING, START_GAME_TIME, AVAILABLE_COLORS
 from ..services.quiz_service import QuizService
 from ..utils import get_device_id
+from ..db import db
+from bson import ObjectId
 from ..services.question_generator import (
     generate_drawing_questions, 
     generate_word_chain_questions,
@@ -90,11 +92,6 @@ def start_game():
         # Store the captain indices in game state
         game_state.blue_captain_index = blue_captain_index
         game_state.red_captain_index = red_captain_index
-        
-        # Get the actual captain names using the indices
-        blue_captain = game_state.blue_team[blue_captain_index] if game_state.blue_team and len(game_state.blue_team) > blue_captain_index else None
-        red_captain = game_state.red_team[red_captain_index] if game_state.red_team and len(game_state.red_team) > red_captain_index else None
-        
         game_state.team_scores = {'blue': 0, 'red': 0}
 
         if len(game_state.blue_team) < 2 or len(game_state.red_team) < 2:
@@ -209,7 +206,8 @@ def start_game():
                         num_questions = config.get('numQuestions', 5)
                         categories = config.get('categories', None)
                         # Get exclude audio preference
-                        exclude_audio = config.get('excludeOpenAnswerAudio', False)
+                        exclude_audio = config.get('excludeAudio', False)
+                        print(f"Exclude audio: {exclude_audio}")
                         
                         # Get the device ID to exclude questions created by this device
                         device_id = get_device_id()
@@ -352,6 +350,25 @@ def start_game():
         # Update game state with processed questions
         game_state.questions = final_questions
 
+        # Increment times_used for all questions in the selected quiz
+        # Skip this step for quick play mode - those questions are randomly selected, so it makes no sense for them
+        try:
+            # Get all question IDs from the quiz
+            question_ids = [ObjectId(q["_id"]) for q in questions if "_id" in q]
+            
+            if question_ids:
+                # Batch update all questions to increment timesUsed counter
+                db.questions.update_many(
+                    {"_id": {"$in": question_ids}},
+                    {"$inc": {"metadata.timesUsed": 1}}
+                )
+                print(f"Updated timesUsed count for {len(question_ids)} questions")
+
+        except Exception as e:
+            print(f"Error updating question times_used metadata: {str(e)}")
+            # Continue with the game even if metadata update fails
+            pass
+
     # Reset game state for the new game
     game_state.current_question = 0
     game_state.reset_question_state()
@@ -417,7 +434,8 @@ def start_game():
         "show_first_question_preview": game_start_time,
         "show_game_at": game_start_at,
         "active_team": game_state.active_team,
-        "is_last_question": is_last_question
+        "is_last_question": is_last_question,
+        "blind_map_is_team_play": game_state.is_team_mode
     }
 
     # First send the standard event to everyone (especially for the main display)

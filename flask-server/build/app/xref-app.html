@@ -3016,6 +3016,7 @@ imported by:
  &#8226;   <a href="#app.services.question_handlers.word_chain_handler">app.services.question_handlers.word_chain_handler</a>
  &#8226;   <a href="#app.services.quiz_service">app.services.quiz_service</a>
  &#8226;   <a href="#app.socketio_events.abcd_events">app.socketio_events.abcd_events</a>
+ &#8226;   <a href="#app.socketio_events.base_events">app.socketio_events.base_events</a>
  &#8226;   <a href="#app.socketio_events.blind_map_events">app.socketio_events.blind_map_events</a>
  &#8226;   <a href="#app.socketio_events.drawing_events">app.socketio_events.drawing_events</a>
  &#8226;   <a href="#app.socketio_events.guess_number_events">app.socketio_events.guess_number_events</a>
@@ -3042,7 +3043,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#app.services.question_handlers.base_handler">app.services.question_handlers.base_handler</a>
+    <a href="#app.routes.game_routes">app.routes.game_routes</a>
+ &#8226;   <a href="#app.services.question_handlers.base_handler">app.services.question_handlers.base_handler</a>
  &#8226;   <a href="#app.services.quiz_service">app.services.quiz_service</a>
  &#8226;   <a href="#app.services.unfinished_quiz_service">app.services.unfinished_quiz_service</a>
  &#8226;   <a href="#app.socketio_events.blind_map_events">app.socketio_events.blind_map_events</a>
@@ -3064,7 +3066,6 @@ imported by:
     <a href="#app.routes.game_routes">app.routes.game_routes</a>
  &#8226;   <a href="#app.routes.player_routes">app.routes.player_routes</a>
  &#8226;   <a href="#app.services.question_generator">app.services.question_generator</a>
- &#8226;   <a href="#app.socketio_events">app.socketio_events</a>
  &#8226;   <a href="#app.socketio_events.abcd_events">app.socketio_events.abcd_events</a>
  &#8226;   <a href="#app.socketio_events.base_events">app.socketio_events.base_events</a>
  &#8226;   <a href="#app.socketio_events.blind_map_events">app.socketio_events.blind_map_events</a>
@@ -3180,6 +3181,7 @@ imported by:
 imports:
     <a href="#app">app</a>
  &#8226;   <a href="#app.constants">app.constants</a>
+ &#8226;   <a href="#app.db">app.db</a>
  &#8226;   <a href="#app.game_state">app.game_state</a>
  &#8226;   <a href="#app.routes">app.routes</a>
  &#8226;   <a href="#app.services.question_generator">app.services.question_generator</a>
@@ -3188,6 +3190,7 @@ imports:
  &#8226;   <a href="#app.socketio_events.math_quiz_events">app.socketio_events.math_quiz_events</a>
  &#8226;   <a href="#app.socketio_events.word_chain_events">app.socketio_events.word_chain_events</a>
  &#8226;   <a href="#app.utils">app.utils</a>
+ &#8226;   <a href="#bson">bson</a>
  &#8226;   <a href="#flask">flask</a>
  &#8226;   <a href="#time">time</a>
 
@@ -3663,7 +3666,6 @@ imported by:
 <span class="moduletype">Package</span>  <div class="import">
 imports:
     <a href="#app">app</a>
- &#8226;   <a href="#app.game_state">app.game_state</a>
  &#8226;   <a href="#app.socketio_events.abcd_events">app.socketio_events.abcd_events</a>
  &#8226;   <a href="#app.socketio_events.base_events">app.socketio_events.base_events</a>
  &#8226;   <a href="#app.socketio_events.blind_map_events">app.socketio_events.blind_map_events</a>
@@ -3671,7 +3673,6 @@ imports:
  &#8226;   <a href="#app.socketio_events.guess_number_events">app.socketio_events.guess_number_events</a>
  &#8226;   <a href="#app.socketio_events.math_quiz_events">app.socketio_events.math_quiz_events</a>
  &#8226;   <a href="#app.socketio_events.open_answer_events">app.socketio_events.open_answer_events</a>
- &#8226;   <a href="#flask">flask</a>
 
   </div>
   <div class="import">
@@ -3680,7 +3681,6 @@ imported by:
  &#8226;   <a href="#app.socketio_events.abcd_events">app.socketio_events.abcd_events</a>
  &#8226;   <a href="#app.socketio_events.base_events">app.socketio_events.base_events</a>
  &#8226;   <a href="#app.socketio_events.blind_map_events">app.socketio_events.blind_map_events</a>
- &#8226;   <a href="#app.socketio_events.dictionary_checker">app.socketio_events.dictionary_checker</a>
  &#8226;   <a href="#app.socketio_events.drawing_events">app.socketio_events.drawing_events</a>
  &#8226;   <a href="#app.socketio_events.guess_number_events">app.socketio_events.guess_number_events</a>
  &#8226;   <a href="#app.socketio_events.math_quiz_events">app.socketio_events.math_quiz_events</a>
@@ -3704,7 +3704,6 @@ imports:
  &#8226;   <a href="#app.socketio_events">app.socketio_events</a>
  &#8226;   <a href="#app.socketio_events.utils">app.socketio_events.utils</a>
  &#8226;   <a href="#flask_socketio">flask_socketio</a>
- &#8226;   <a href="#time">time</a>
 
   </div>
   <div class="import">
@@ -3722,13 +3721,13 @@ imported by:
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#app">app</a>
+ &#8226;   <a href="#app.constants">app.constants</a>
  &#8226;   <a href="#app.game_state">app.game_state</a>
  &#8226;   <a href="#app.socketio_events">app.socketio_events</a>
  &#8226;   <a href="#app.socketio_events.abcd_events">app.socketio_events.abcd_events</a>
  &#8226;   <a href="#app.socketio_events.blind_map_events">app.socketio_events.blind_map_events</a>
  &#8226;   <a href="#app.socketio_events.drawing_events">app.socketio_events.drawing_events</a>
  &#8226;   <a href="#app.socketio_events.guess_number_events">app.socketio_events.guess_number_events</a>
- &#8226;   <a href="#app.socketio_events.math_quiz_events">app.socketio_events.math_quiz_events</a>
  &#8226;   <a href="#app.socketio_events.open_answer_events">app.socketio_events.open_answer_events</a>
  &#8226;   <a href="#app.socketio_events.utils">app.socketio_events.utils</a>
  &#8226;   <a href="#app.socketio_events.word_chain_events">app.socketio_events.word_chain_events</a>
@@ -3772,23 +3771,6 @@ imported by:
 </div>
 
 <div class="node">
-  <a name="app.socketio_events.dictionary_checker"></a>
-  <a target="code" href="///C:/Users/balal/Desktop/Masters-Thesis/Masters-Thesis/flask-server/app/socketio_events/dictionary_checker.py" type="text/plain"><tt>app.socketio_events.dictionary_checker</tt></a>
-<span class="moduletype">SourceModule</span>  <div class="import">
-imports:
-    <a href="#app.socketio_events">app.socketio_events</a>
- &#8226;   <a href="#os">os</a>
-
-  </div>
-  <div class="import">
-imported by:
-    <a href="#app.socketio_events.word_chain_events">app.socketio_events.word_chain_events</a>
-
-  </div>
-
-</div>
-
-<div class="node">
   <a name="app.socketio_events.drawing_events"></a>
   <a target="code" href="///C:/Users/balal/Desktop/Masters-Thesis/Masters-Thesis/flask-server/app/socketio_events/drawing_events.py" type="text/plain"><tt>app.socketio_events.drawing_events</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -3803,7 +3785,6 @@ imports:
  &#8226;   <a href="#flask">flask</a>
  &#8226;   <a href="#flask_socketio">flask_socketio</a>
  &#8226;   <a href="#random">random</a>
- &#8226;   <a href="#time">time</a>
 
   </div>
   <div class="import">
@@ -3856,7 +3837,6 @@ imports:
 imported by:
     <a href="#app.routes.game_routes">app.routes.game_routes</a>
  &#8226;   <a href="#app.socketio_events">app.socketio_events</a>
- &#8226;   <a href="#app.socketio_events.base_events">app.socketio_events.base_events</a>
 
   </div>
 
@@ -3876,7 +3856,6 @@ imports:
  &#8226;   <a href="#difflib">difflib</a>
  &#8226;   <a href="#flask_socketio">flask_socketio</a>
  &#8226;   <a href="#random">random</a>
- &#8226;   <a href="#time">time</a>
 
   </div>
   <div class="import">
@@ -3924,16 +3903,12 @@ imports:
  &#8226;   <a href="#app.constants">app.constants</a>
  &#8226;   <a href="#app.game_state">app.game_state</a>
  &#8226;   <a href="#app.socketio_events">app.socketio_events</a>
- &#8226;   <a href="#app.socketio_events.dictionary_checker">app.socketio_events.dictionary_checker</a>
  &#8226;   <a href="#app.socketio_events.utils">app.socketio_events.utils</a>
  &#8226;   <a href="#flask_socketio">flask_socketio</a>
  &#8226;   <a href="#os">os</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#random">random</a>
- &#8226;   <a href="#re">re</a>
- &#8226;   <a href="#requests">requests</a>
  &#8226;   <a href="#string">string</a>
- &#8226;   <a href="#time">time</a>
 
   </div>
   <div class="import">
@@ -5645,6 +5620,7 @@ imports:
 imported by:
     <a href="#app.models">app.models</a>
  &#8226;   <a href="#app.py">app.py</a>
+ &#8226;   <a href="#app.routes.game_routes">app.routes.game_routes</a>
  &#8226;   <a href="#app.services.question_handlers.base_handler">app.services.question_handlers.base_handler</a>
  &#8226;   <a href="#app.services.question_handlers.blind_map_handler">app.services.question_handlers.blind_map_handler</a>
  &#8226;   <a href="#app.services.question_handlers.drawing_handler">app.services.question_handlers.drawing_handler</a>
@@ -17559,7 +17535,6 @@ imported by:
  &#8226;   <a href="#app.routes.quiz_management_routes">app.routes.quiz_management_routes</a>
  &#8226;   <a href="#app.routes.unfinished_quiz_routes">app.routes.unfinished_quiz_routes</a>
  &#8226;   <a href="#app.services.cloudinary_service">app.services.cloudinary_service</a>
- &#8226;   <a href="#app.socketio_events">app.socketio_events</a>
  &#8226;   <a href="#app.socketio_events.base_events">app.socketio_events.base_events</a>
  &#8226;   <a href="#app.socketio_events.drawing_events">app.socketio_events.drawing_events</a>
  &#8226;   <a href="#flask">flask</a>
@@ -23133,7 +23108,6 @@ imported by:
  &#8226;   <a href="#app.db">app.db</a>
  &#8226;   <a href="#app.local_db">app.local_db</a>
  &#8226;   <a href="#app.py">app.py</a>
- &#8226;   <a href="#app.socketio_events.dictionary_checker">app.socketio_events.dictionary_checker</a>
  &#8226;   <a href="#app.socketio_events.word_chain_events">app.socketio_events.word_chain_events</a>
  &#8226;   <a href="#app.utils">app.utils</a>
  &#8226;   <a href="#argparse">argparse</a>
@@ -28479,7 +28453,6 @@ imported by:
  &#8226;   <a href="#_sre">_sre</a>
  &#8226;   <a href="#_strptime">_strptime</a>
  &#8226;   <a href="#app.py">app.py</a>
- &#8226;   <a href="#app.socketio_events.word_chain_events">app.socketio_events.word_chain_events</a>
  &#8226;   <a href="#argparse">argparse</a>
  &#8226;   <a href="#ast">ast</a>
  &#8226;   <a href="#base64">base64</a>
@@ -28843,7 +28816,6 @@ imports:
 imported by:
     <a href="#app.py">app.py</a>
  &#8226;   <a href="#app.services.question_generator">app.services.question_generator</a>
- &#8226;   <a href="#app.socketio_events.word_chain_events">app.socketio_events.word_chain_events</a>
  &#8226;   <a href="#engineio.client">engineio.client</a>
  &#8226;   <a href="#pymongo.ocsp_support">pymongo.ocsp_support</a>
  &#8226;   <a href="#requests">requests</a>
@@ -35811,14 +35783,10 @@ imported by:
  &#8226;   <a href="#_strptime">_strptime</a>
  &#8226;   <a href="#app.routes.base_routes">app.routes.base_routes</a>
  &#8226;   <a href="#app.routes.game_routes">app.routes.game_routes</a>
- &#8226;   <a href="#app.socketio_events.abcd_events">app.socketio_events.abcd_events</a>
  &#8226;   <a href="#app.socketio_events.blind_map_events">app.socketio_events.blind_map_events</a>
- &#8226;   <a href="#app.socketio_events.drawing_events">app.socketio_events.drawing_events</a>
  &#8226;   <a href="#app.socketio_events.guess_number_events">app.socketio_events.guess_number_events</a>
  &#8226;   <a href="#app.socketio_events.math_quiz_events">app.socketio_events.math_quiz_events</a>
- &#8226;   <a href="#app.socketio_events.open_answer_events">app.socketio_events.open_answer_events</a>
  &#8226;   <a href="#app.socketio_events.utils">app.socketio_events.utils</a>
- &#8226;   <a href="#app.socketio_events.word_chain_events">app.socketio_events.word_chain_events</a>
  &#8226;   <a href="#asyncio.base_events">asyncio.base_events</a>
  &#8226;   <a href="#asyncio.windows_events">asyncio.windows_events</a>
  &#8226;   <a href="#bson.objectid">bson.objectid</a>

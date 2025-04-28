@@ -48,7 +48,6 @@ class GameState:
         self.team_scores = {'blue': 0, 'red': 0}
         self.question_start_time = None
         self.is_remote = False  # Playing on a remote device (e.g., TV)
-        self.current_question_metadata_updated = False  # Track if we've already incremented times played
         
         # Open answer specific state
         self.correct_players = set()  # Set of players who answered correctly
@@ -142,7 +141,6 @@ class GameState:
         """
         self.answers_received = 0
         self.answer_counts = [0, 0, 0, 0]  # We'll use indices 0 and 1 for more/less votes
-        self.current_question_metadata_updated = False
         
         # Reset open answer specific state
         self.correct_players = set()

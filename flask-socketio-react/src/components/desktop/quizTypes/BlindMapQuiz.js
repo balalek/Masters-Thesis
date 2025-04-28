@@ -134,11 +134,13 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
       console.log('Received blind_map_location_submitted:', data);
       if (data.team) {
         // Team mode
-        setTeamGuesses(prev => {
-          // Create a new object to avoid direct mutation
-          const updatedTeam = [...(prev[data.team] || []), data.guess];
-          return { ...prev, [data.team]: updatedTeam };
-        });
+        if (!data.isCaptain) {
+          setTeamGuesses(prev => {
+            // Create a new object to avoid direct mutation
+            const updatedTeam = [...(prev[data.team] || []), data.guess];
+            return { ...prev, [data.team]: updatedTeam };
+          });
+        } 
         
         if (data.isCaptain) {
           setCaptainGuesses(prev => ({
@@ -242,7 +244,7 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
   // Render the map location phase for team mode
   const renderTeamMapPhase = () => (
     <Box sx={{ textAlign: 'center', width: '100%' }}>
-      <Typography variant="h3" sx={{ mb: 2, fontWeight: 'bold' }}>
+      <Typography variant="h3" sx={{ mb: 4, fontWeight: 'bold' }}>
         {cityName}
       </Typography>
       <Typography variant="h5" sx={{ mb: 4 }}>
@@ -268,7 +270,7 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
   // Render the map location phase for free-for-all mode
   const renderFreeForAllMapPhase = () => (
     <Box sx={{ textAlign: 'center', width: '100%' }}>
-      <Typography variant="h3" sx={{ mb: 2, fontWeight: 'bold' }}>
+      <Typography variant="h3" sx={{ mb: 4, fontWeight: 'bold' }}>
         {cityName}
       </Typography>
       <Typography variant="h5" sx={{ mb: 4 }}>
@@ -300,27 +302,6 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
       justifyContent: 'space-between', 
       p: 2 
     }}>
-      {/* Phase header for team mode */}
-      {isTeamMode && activeTeam && (
-        <Box sx={{ pt: 1 }}>
-          <Typography 
-            variant="h4" 
-            sx={{ 
-              textAlign: 'center', 
-              fontWeight: 'bold',
-              width: '100%'
-            }}
-          >
-            {phase === 1 ? (
-              <>Anagram - všichni hráči hádají město</>
-            ) : (
-              <>Mapa - hádá tým <span style={{ color: activeTeam === 'blue' ? '#186CF6' : '#EF4444' }}>
-                {activeTeam === 'blue' ? 'modrých' : 'červených'}
-              </span></>
-            )}
-          </Typography>
-        </Box>
-      )}
 
       {/* Center content grid */}
       <Box sx={{ 

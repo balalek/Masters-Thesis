@@ -14,6 +14,7 @@ from ..constants import QUESTION_TYPES
 from ..services.quiz_service import QuizService
 from ..game_state import game_state
 from ..socketio_events.word_chain_events import initialize_team_order, remove_diacritics, initialize_player_order
+from random import randint
 
 def generate_random_guess_number_questions(num_questions=5, categories=None, device_id=None):
     """
@@ -341,6 +342,9 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
             # In team mode, we don't need player_order
             if 'player_order' not in game_state.word_chain_state:
                 game_state.word_chain_state['player_order'] = []
+
+            # Initialize bomb timer (random between 2-4 mins)
+            round_length = randint(120, 240)
         else:
             initialize_player_order(round_length)
             # Free-for-all: start with first player in player order

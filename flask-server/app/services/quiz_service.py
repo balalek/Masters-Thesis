@@ -708,46 +708,6 @@ class QuizService:
         return new_quiz_id
 
     @staticmethod
-    def update_question_metadata(question_id: str, is_correct: bool, increment_times_played: bool = False) -> None:
-        """
-        Update question metadata after it's been answered.
-        
-        Updates the usage statistics and correct answer rate for a question
-        based on player responses.
-        
-        Args:
-            question_id: ID of the question to update
-            is_correct: Whether the answer was correct
-            increment_times_played: Whether to increment the usage counter
-        """
-        question = db.questions.find_one({"_id": ObjectId(question_id)})
-        if not question:
-            return
-
-        current_metadata = question.get('metadata', {})
-        times_used = current_metadata.get('timesUsed', 0)
-        current_rate = current_metadata.get('averageCorrectRate', 0.0)
-
-        # Calculate new correct rate using weighted average
-        if increment_times_played:
-            new_times_used = times_used + 1
-            new_rate = ((current_rate * times_used) + (1 if is_correct else 0)) / new_times_used
-        else:
-            new_times_used = times_used
-            # Update rate without incrementing times_used
-            new_rate = ((current_rate * times_used) + (1 if is_correct else 0)) / (times_used or 1)
-
-        # Update metadata
-        update_dict = {"metadata.averageCorrectRate": round(new_rate, 4)}
-        if increment_times_played:
-            update_dict["metadata.timesUsed"] = new_times_used
-
-        db.questions.update_one(
-            {"_id": ObjectId(question_id)},
-            {"$set": update_dict}
-        )
-
-    @staticmethod
     def get_random_questions(question_type, categories=None, device_id=None, limit=5, exclude_audio=False, map_filter=None):
         """
         Get random questions from public quizzes.

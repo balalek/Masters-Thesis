@@ -21,6 +21,23 @@ def index():
     """
     return send_from_directory(app.static_folder, 'index.html')
 
+@base_routes.route('/play')
+@base_routes.route('/mobile-game')
+@base_routes.route('/room')
+@base_routes.route('/game')
+@base_routes.route('/scores')
+@base_routes.route('/final-score')
+@base_routes.route('/remote')
+@base_routes.route('/create-quiz')
+def serve_react_routes():
+    """
+    Explicit routes for all React client-side paths to support page refreshing in packaged app.
+    
+    Returns:
+        HTML content of the main index page (React handles the routing)
+    """
+    return send_from_directory(app.static_folder, 'index.html')
+
 @base_routes.route('/<path:path>')
 def serve_static(path):
     """
@@ -39,26 +56,6 @@ def serve_static(path):
     else:
         # Fallback to index.html for client-side routing
         return send_from_directory(app.static_folder, 'index.html')
-    
-@base_routes.route('/play')
-def play():
-    """
-    Explicit route for the 'play' page to support page refreshing in packaged app.
-    
-    Returns:
-        HTML content of the main index page (React handles the routing)
-    """
-    return send_from_directory(app.static_folder, 'index.html')
-
-@base_routes.route('/remote')
-def remote():
-    """
-    Explicit route for the 'remote' page to support page refreshing in packaged app.
-    
-    Returns:
-        HTML content of the main index page (React handles the routing)
-    """
-    return send_from_directory(app.static_folder, 'index.html')
 
 @base_routes.route('/server_time', methods=['GET'])
 def get_server_time():

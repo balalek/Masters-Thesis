@@ -41,9 +41,9 @@ const RemoteGamePage = () => {
           question: gameData.question,
           showGameAt: gameData.show_game_at,
           question_end_time: question_end_time,
-          isLastQuestion: false,
-          quizPhase: gameData.quiz_phase,
-          activeTeam: gameData.active_team
+          is_last_question: gameData.is_last_question,
+          activeTeam: gameData.active_team,
+          blind_map_is_team_play: gameData.blind_map_is_team_play
         } 
       });
     };

@@ -15,13 +15,11 @@ Drawing is an interactive game where one player draws a word and others
 try to guess it, with points awarded for both successful drawing and guessing.
 """
 from flask_socketio import emit
-from flask import request
 from .. import socketio
 from ..game_state import game_state
 from ..constants import POINTS_FOR_CORRECT_ANSWER
 from difflib import SequenceMatcher
 import random
-from ..services.quiz_service import QuizService
 from .utils import emit_all_answers_received, get_scores_data
 
 @socketio.on('submit_drawing_answer')
@@ -106,15 +104,6 @@ def submit_drawing_answer(data):
         
         # Add player to correct players set
         game_state.correct_players.add(player_name)
-        
-        # Update question metadata if this is from a saved quiz (not quick play)
-        if '_id' in current_question_data:
-            QuizService.update_question_metadata(
-                str(current_question_data['_id']), 
-                is_correct=True,
-                increment_times_played=False
-            )
-            game_state.current_question_metadata_updated = True
         
         # Handle scoring based on game mode
         if game_state.is_team_mode:
@@ -349,6 +338,40 @@ def calculate_drawer_stats(drawer_name):
         'is_late_selection': is_late_selection
     }
 
+def sort_player_answers_by_dissimilarity(player_answers, correct_answer):
+    """
+    Sort player answers by their dissimilarity to the correct answer.
+    
+    This puts the least similar (most interesting) answers first.
+    Frontend will then use the top 3 answers for the "most interesting attempts" section.
+    
+    Args:
+        player_answers: List of player answer objects
+        correct_answer: The correct answer to compare against
+        
+    Returns:
+        list: Sorted list with correct answers first, then sorted incorrect answers
+    """
+    # Create a copy of the answers list to avoid modifying the original
+    player_answers = list(player_answers)
+    
+    # Separate correct and incorrect answers
+    correct_answers = [answer for answer in player_answers if answer['is_correct']]
+    incorrect_answers = [answer for answer in player_answers if not answer['is_correct']]
+    
+    # Calculate similarity for each incorrect answer
+    for answer in incorrect_answers:
+        answer_text = answer['answer'].lower().strip()
+        correct_text = correct_answer.lower().strip()
+        similarity = SequenceMatcher(None, answer_text, correct_text).ratio()
+        answer['similarity'] = similarity
+    
+    # Sort incorrect answers by similarity (lowest first)
+    sorted_incorrect = sorted(incorrect_answers, key=lambda x: x['similarity'])
+    
+    # Recombine the answers with correct answers first, then sorted incorrect answers
+    return correct_answers + sorted_incorrect
+
 def show_drawing_results():
     """
     Show results for the drawing round to all players.
@@ -362,16 +385,23 @@ def show_drawing_results():
     current_question_data = game_state.questions[game_state.current_question]
     scores = get_scores_data()
     drawer_name = current_question_data.get('player', '')
+    correct_answer = current_question_data.get('selected_word', '')
     
     # Get drawer stats using the helper function
     drawer_stats = calculate_drawer_stats(drawer_name) if drawer_name else None
     
+    # Sort player answers by dissimilarity for "most interesting attempts"
+    sorted_player_answers = sort_player_answers_by_dissimilarity(
+        game_state.drawing_stats['player_answers'],
+        correct_answer
+    )
+    
     # Send standard results to everyone with drawer stats included
     emit_all_answers_received(
         scores=scores,
-        correct_answer=current_question_data.get('selected_word', ''),
+        correct_answer=correct_answer,
         additional_data={
-            "player_answers": game_state.drawing_stats['player_answers'],
+            "player_answers": sorted_player_answers,
             "drawer": drawer_name,
             "drawer_stats": drawer_stats
         }
@@ -393,16 +423,23 @@ def handle_drawing_time_up(scores):
     """
     current_question = game_state.questions[game_state.current_question]
     drawer_name = current_question.get('player', '')
+    correct_answer = current_question.get('selected_word', '')
     
     # Get drawer stats using the helper function
     drawer_stats = calculate_drawer_stats(drawer_name) if drawer_name else None
     
+    # Sort player answers by dissimilarity for "most interesting attempts"
+    sorted_player_answers = sort_player_answers_by_dissimilarity(
+        game_state.drawing_stats['player_answers'],
+        correct_answer
+    )
+    
     # Send standard results to everyone with drawer stats included
     emit_all_answers_received(
         scores=scores,
-        correct_answer=current_question.get('selected_word', ''),
+        correct_answer=correct_answer,
         additional_data={
-            "player_answers": game_state.drawing_stats['player_answers'],
+            "player_answers": sorted_player_answers,
             "drawer": drawer_name,
             "drawer_stats": drawer_stats
         }

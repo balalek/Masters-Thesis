@@ -3,7 +3,7 @@ import { Box, Typography } from '@mui/material';
 import { getServerTime } from '../../../utils/socket';
 
 const GameCountdown = ({ onCountdownComplete, showAt }) => {
-  const [count, setCount] = useState(5);
+  const [count, setCount] = useState(2);
 
   useEffect(() => {
     const timer = setInterval(() => {

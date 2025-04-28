@@ -21,7 +21,7 @@ const ScorePage = () => {
   const isLastQuestion = location.state?.isLastQuestion || false;
   const question = location.state?.question || { options: ["Option 1", "Option 2", "Option 3", "Option 4"] };
   const showQuestionPreviewAt = location.state?.showQuestionPreviewAt;
-  const [countdown, setCountdown] = useState(null);
+  const [countdown, setCountdown] = useState(8);
   const socket = getSocket();
   const [timeRemaining, setTimeRemaining] = useState(5);
 
@@ -77,7 +77,7 @@ const ScorePage = () => {
     }
   }, [navigate, isLastQuestion, showQuestionPreviewAt]);
 
-  // Modify the countdown effect
+  // Modify the useEffect for countdown
   useEffect(() => {
     if (isLastQuestion) {
       setCountdown(5);
@@ -85,17 +85,15 @@ const ScorePage = () => {
         setCountdown(prev => {
           if (prev <= 1) {
             clearInterval(timer);
-            // Wrap both actions in a single requestAnimationFrame to batch them
-            requestAnimationFrame(() => {
-              socket.emit('show_final_score');
-              navigate('/final-score', { 
-                state: { 
-                  scores: scores,
-                  correctAnswer: correctAnswer,
-                  question: question,
-                  isRemote: location.state?.isRemote  // Add this line
-                } 
-              });
+            // Navigate immediately to prevent any content from being displayed
+            socket.emit('show_final_score');
+            navigate('/final-score', { 
+              state: { 
+                scores: scores,
+                correctAnswer: correctAnswer,
+                question: question,
+                isRemote: location.state?.isRemote
+              } 
             });
             return 0;
           }
@@ -244,24 +242,36 @@ const ScorePage = () => {
         )}
 
         {/* Center - Title */}
-        <Typography variant="h4" component="h1" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+        <Typography variant="h4" component="h1" sx={{ 
+          position: 'absolute', 
+          left: '50%', 
+          transform: 'translateX(-50%)',
+          visibility: isLastQuestion && countdown === 0 ? 'hidden' : 'visible'
+        }}>
           {isLastQuestion ? '' : 'Výsledky kola'}
         </Typography>
 
         {/* Remove Next button since navigation is automatic */}
-        {isLastQuestion && !countdown && !location.state?.isRemote && (
+        {isLastQuestion && countdown === 0 && !location.state?.isRemote && (
           <Button
             variant="contained"
             onClick={handleCloseQuiz}
+            sx={{ visibility: 'hidden' }}
           >
             Ukončit kvíz
           </Button>
         )}
       </Box>
 
-      {/* Main content area */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {isLastQuestion && countdown ? (
+      {/* Main content area - Hide everything when countdown is 0 */}
+      <Box sx={{ 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        minHeight: 0,
+        visibility: countdown === 0 ? 'hidden' : 'visible'
+      }}>
+        {isLastQuestion ? (
           <Box sx={{
             flex: 1,
             display: 'flex',
@@ -289,8 +299,10 @@ const ScorePage = () => {
         )}
       </Box>
 
-      {/* Answer buttons - now rendered based on question type */}
-      {renderAnswers()}
+      {/* Answer buttons - now rendered based on question type - Hide when countdown is 0 */}
+      <Box sx={{ visibility: countdown === 0 ? 'hidden' : 'visible' }}>
+        {renderAnswers()}
+      </Box>
     </Box>
   );
 };

@@ -36,12 +36,12 @@ AVAILABLE_COLORS = [
 MAX_PLAYERS = 10
 
 # Preview time in milliseconds
-PREVIEW_TIME = 5000  # TODO 5 seconds in milliseconds
-PREVIEW_TIME_DRAWING = 8000  # TODO 8 seconds in milliseconds
-START_GAME_TIME = 2000  # TODO 5 seconds in milliseconds
-PHASE_TRANSITION_TIME = 5000  # TODO 5 seconds in milliseconds
-WAITING_TIME = 13 # 10 TODO 13s
-WAITING_TIME_DRAWING = 16 # 13 TODO 16s
+PREVIEW_TIME = 5000
+PREVIEW_TIME_DRAWING = 8000
+START_GAME_TIME = 2000
+PHASE_TRANSITION_TIME = 5000
+WAITING_TIME = 13 # 8 score page + 5 question preview
+WAITING_TIME_DRAWING = 16 # 8 score page + 8 word selection
 
 # Points for ABCD, True/False, Open Answer questions
 POINTS_FOR_CORRECT_ANSWER = 100

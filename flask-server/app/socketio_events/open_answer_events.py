@@ -18,7 +18,6 @@ from ..game_state import game_state
 from ..constants import POINTS_FOR_CORRECT_ANSWER
 from difflib import SequenceMatcher
 import random
-from ..services.quiz_service import QuizService
 from .utils import emit_all_answers_received, get_scores_data
 
 @socketio.on('submit_open_answer')
@@ -80,14 +79,6 @@ def submit_open_answer(data):
         
         # Add player to correct players set
         game_state.correct_players.add(player_name)
-        
-        # Update question metadata (only for correct answers)
-        QuizService.update_question_metadata(
-            str(current_question_data['_id']), 
-            is_correct=True,
-            increment_times_played=False
-        )
-        game_state.current_question_metadata_updated = True
         
         # Handle scoring based on game mode
         if game_state.is_team_mode:
@@ -204,6 +195,40 @@ def check_open_answer_completion():
     elif correct_count == player_count:
         show_open_answer_results()
 
+def sort_player_answers_by_dissimilarity(player_answers, correct_answer):
+    """
+    Sort player answers by their dissimilarity to the correct answer.
+    
+    This puts the least similar (most interesting) answers first.
+    Frontend will then use the top 3 answers for the "most interesting attempts" section.
+    
+    Args:
+        player_answers: List of player answer objects
+        correct_answer: The correct answer to compare against
+        
+    Returns:
+        list: Sorted list with correct answers first, then sorted incorrect answers
+    """
+    # Create a copy of the answers list to avoid modifying the original
+    player_answers = list(player_answers)
+    
+    # Separate correct and incorrect answers
+    correct_answers = [answer for answer in player_answers if answer['is_correct']]
+    incorrect_answers = [answer for answer in player_answers if not answer['is_correct']]
+    
+    # Calculate similarity for each incorrect answer
+    for answer in incorrect_answers:
+        answer_text = answer['answer'].lower().strip()
+        correct_text = correct_answer.lower().strip()
+        similarity = SequenceMatcher(None, answer_text, correct_text).ratio()
+        answer['similarity'] = similarity
+    
+    # Sort incorrect answers by similarity (lowest first)
+    sorted_incorrect = sorted(incorrect_answers, key=lambda x: x['similarity'])
+    
+    # Recombine the answers with correct answers first, then sorted incorrect answers
+    return correct_answers + sorted_incorrect
+
 def show_open_answer_results():
     """
     Show results for open answer questions.
@@ -216,11 +241,18 @@ def show_open_answer_results():
     """
     current_question_data = game_state.questions[game_state.current_question]
     scores = get_scores_data()
+    correct_answer = current_question_data.get('open_answer', current_question_data.get('answer', ''))
+    
+    # Sort player answers by dissimilarity for "most interesting attempts"
+    sorted_player_answers = sort_player_answers_by_dissimilarity(
+        game_state.open_answer_stats['player_answers'],
+        correct_answer
+    )
     
     emit_all_answers_received(
         scores=scores,
-        correct_answer=current_question_data.get('open_answer', current_question_data.get('answer', '')),
-        additional_data={"player_answers": game_state.open_answer_stats['player_answers']}
+        correct_answer=correct_answer,
+        additional_data={"player_answers": sorted_player_answers}
     )
 
 @socketio.on('reveal_open_answer_letter')
@@ -290,9 +322,16 @@ def handle_open_answer_time_up(scores):
         - Event via emit_all_answers_received with correct answer and player responses
     """
     current_question = game_state.questions[game_state.current_question]
+    correct_answer = current_question.get('open_answer', current_question.get('answer', ''))
+    
+    # Sort player answers by dissimilarity for "most interesting attempts"
+    sorted_player_answers = sort_player_answers_by_dissimilarity(
+        game_state.open_answer_stats['player_answers'],
+        correct_answer
+    )
     
     emit_all_answers_received(
         scores=scores,
-        correct_answer=current_question.get('open_answer', current_question.get('answer', '')),
-        additional_data={"player_answers": game_state.open_answer_stats['player_answers']}
+        correct_answer=correct_answer,
+        additional_data={"player_answers": sorted_player_answers}
     )

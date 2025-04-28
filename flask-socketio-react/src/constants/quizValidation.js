@@ -15,11 +15,11 @@ export const QUIZ_VALIDATION = {
   },
   WORD_CHAIN: {
     MIN_ROUNDS: 1,
-    MAX_ROUNDS: 1,     // Changed max to 1
+    MAX_ROUNDS: 1,
     MAX_ROUNDS_QUICK_PLAY: 10,
     DEFAULT_ROUNDS: 1,
     MIN_TIME: 20,
-    MAX_TIME: 60,      // Changed max to 60
+    MAX_TIME: 60,
     DEFAULT_TIME: 40
   },
   DRAWING: {
@@ -27,8 +27,8 @@ export const QUIZ_VALIDATION = {
     MAX_ROUNDS: 3,
     MAX_ROUNDS_QUICK_PLAY: 10,
     DEFAULT_ROUNDS: 1,
-    MIN_TIME: 10,
-    MAX_TIME: 120, //120
+    MIN_TIME: 30,
+    MAX_TIME: 120,
     DEFAULT_TIME: 60
   },
   QUIZ_NAME_MAX_LENGTH: 200,
@@ -40,7 +40,7 @@ export const QUIZ_VALIDATION = {
   BLIND_MAP: {
     RADIUS_PRESETS: {
       EASY: { exact: 0.045 },    // One extra scoring zone
-      HARD: { exact: 0.03 }                  // Only exact scoring
+      HARD: { exact: 0.03 }      // Only exact scoring
     },
     DEFAULT_PRESET: 'HARD'
   },

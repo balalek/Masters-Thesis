@@ -15,7 +15,6 @@ from flask_socketio import emit
 from .. import socketio
 from ..game_state import game_state
 from ..constants import POINTS_FOR_CORRECT_ANSWER
-from ..services.quiz_service import QuizService
 from .utils import emit_all_answers_received, get_scores_data
 
 @socketio.on('submit_answer')
@@ -51,13 +50,6 @@ def submit_answer(data):
     current_question_data = game_state.questions[current_question]
     correct_answer = current_question_data['answer']
     points_earned = POINTS_FOR_CORRECT_ANSWER if answer == correct_answer else 0
-    
-    QuizService.update_question_metadata(
-        str(current_question_data['_id']), 
-        is_correct=(answer == correct_answer),
-        increment_times_played=not game_state.current_question_metadata_updated
-    )
-    game_state.current_question_metadata_updated = True
     
     # Calculate speed points
     question_start_time = game_state.question_start_time
