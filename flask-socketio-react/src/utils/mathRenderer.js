@@ -1,15 +1,28 @@
 /**
- * Utility functions for rendering mathematical equations
+ * @fileoverview Utility functions for rendering mathematical equations in React components
+ * 
+ * This module provides:
+ * - Formatting of mathematical expressions for display
+ * - Conversion of standard math notation to JSX elements
+ * - Special handling for operations like square roots and exponents
+ * - Proper spacing and layout of complex equations
+ * 
+ * @module Utils/MathRenderer
  */
 
 /**
- * Formats a mathematical equation for display
+ * Formats a mathematical equation for display in React components
+ * 
+ * Transforms standard text equation notation into JSX with proper 
+ * mathematical symbols and formatting:
  * - Converts sqrt(x) to √x
  * - Converts x^y to x^y formatted as superscript
- * - Converts factorial (x!) to proper display
+ * - Adds proper spacing around operators
+ * - Preserves parentheses and complex expressions
  * 
+ * @function renderMathEquation
  * @param {string} equation - The equation to format
- * @returns {JSX.Element} - The formatted equation
+ * @returns {JSX.Element|string} - The formatted equation as JSX or string
  */
 export const renderMathEquation = (equation) => {
   if (!equation) return '';

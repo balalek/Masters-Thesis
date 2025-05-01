@@ -1,7 +1,30 @@
+/**
+ * @fileoverview Game Countdown component for displaying a synchronized pre-game timer
+ * 
+ * This component provides:
+ * - Server-synchronized countdown timer for game start coordination
+ * - Visual display of remaining seconds
+ * - Automatic completion callback when countdown reaches zero
+ * - Smooth timer updates with sub-second precision
+ * 
+ * @module Components/Desktop/Miscellaneous/GameCountdown
+ */
 import React, { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { getServerTime } from '../../../utils/socket';
 
+/**
+ * Game Countdown component for pre-game timing display
+ * 
+ * Displays a large countdown timer synchronized with the server time,
+ * automatically triggering the provided callback when complete.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onCountdownComplete - Callback triggered when countdown reaches zero
+ * @param {number} props.showAt - Server timestamp (ms) when countdown should complete
+ * @returns {JSX.Element} The rendered countdown component
+ */
 const GameCountdown = ({ onCountdownComplete, showAt }) => {
   const [count, setCount] = useState(2);
 

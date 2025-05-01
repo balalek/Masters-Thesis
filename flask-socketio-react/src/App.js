@@ -1,5 +1,11 @@
+/**
+ * @fileoverview Main App component that sets up routing and theme handling.
+ * @author Bc. Martin Baláž
+ * @module App
+ */
+
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, useMediaQuery } from '@mui/material';
 import { lightTheme, darkTheme } from './themes';
 import DesktopHomePage from './pages/desktop/homePage/DesktopHomePage';
@@ -13,6 +19,15 @@ import RemoteGamePage from './pages/desktop/game/RemoteGamePage';
 import CreateQuizPage from './pages/desktop/createQuiz/CreateQuizPage';
 import './App.css';
 
+/**
+ * Main application component that handles routing and theme management
+ * 
+ * Sets up the application's route structure and provides theme context to all components.
+ * Automatically detects user's preferred color scheme and applies appropriate theme.
+ * 
+ * @function App
+ * @returns {React.ReactElement} The rendered application with router and theme provider
+ */
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
   const theme = prefersDarkMode ? darkTheme : lightTheme;
@@ -44,27 +59,3 @@ function App() {
 }
 
 export default App;
-
-
-/*function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
-
-export default App;*/

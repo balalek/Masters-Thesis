@@ -6,6 +6,7 @@ transformations, deletion, and existence checks.
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+import os # Keep
 from typing import  Dict, Any
 from flask import current_app
 

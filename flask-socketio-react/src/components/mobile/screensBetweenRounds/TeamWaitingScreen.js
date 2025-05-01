@@ -16,7 +16,7 @@ const TeamWaitingScreen = ({ message, phase, teamName }) => {
         textAlign: 'center'
       }}
     >
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" sx={{color: 'text.primary'}} gutterBottom>
         {message || (phase === 1 
           ? "Čekej, až bude tvůj tým na řadě" 
           : "Čekej, nyní hraje druhý tým")}
@@ -26,7 +26,7 @@ const TeamWaitingScreen = ({ message, phase, teamName }) => {
         size={60} 
         thickness={4} 
         sx={{ 
-          color: 'white', 
+          color: 'text.primary',
           mt: 4
         }} 
       />

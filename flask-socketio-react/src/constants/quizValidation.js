@@ -1,4 +1,29 @@
-// Quiz validation constants
+/**
+ * @fileoverview Validation constants for quiz forms and game configuration
+ * 
+ * This module provides:
+ * - Validation rules for quiz creation (length limits, time bounds)
+ * - Game type-specific configuration parameters
+ * - Media file validation constraints
+ * - Quiz type definitions and translations
+ * - Categories for quiz classification
+ * 
+ * @module Constants/QuizValidation
+ */
+
+/**
+ * Validation rules for quiz forms and content
+ * 
+ * Contains nested objects with constraints for:
+ * - Text field lengths
+ * - Time limits for questions and sequences
+ * - Game mode configuration (rounds, timing)
+ * - Media size and format restrictions
+ * - Map precision settings
+ * 
+ * @constant
+ * @type {Object}
+ */
 export const QUIZ_VALIDATION = {
   QUESTION_MAX_LENGTH: 100,
   ANSWER_MAX_LENGTH: 50,
@@ -35,8 +60,7 @@ export const QUIZ_VALIDATION = {
   MEDIA_FILE_SIZE_LIMIT: 5 * 1024 * 1024, // 5MB
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif'],
   ALLOWED_AUDIO_TYPES: ['audio/mpeg', 'audio/wav', 'audio/ogg'],
-  
-  // Add Blind Map validation constants
+
   BLIND_MAP: {
     RADIUS_PRESETS: {
       EASY: { exact: 0.045 },    // One extra scoring zone
@@ -46,12 +70,35 @@ export const QUIZ_VALIDATION = {
   },
 };
 
+/**
+ * Maximum number of players allowed in a game
+ * 
+ * @constant
+ * @type {number}
+ */
 export const MAX_PLAYERS = 10;
 
-// Extra time for the drawer in seconds - must be consistent with the server PREVIEW_TIME_DRAWING
+/**
+ * Extra time given to drawing players for word selection
+ * Must be consistent with server-side PREVIEW_TIME_DRAWING value
+ * 
+ * @constant
+ * @type {number}
+ */
 export const DRAWER_EXTRA_TIME = 8000; 
 
-// Categories for questions with types ABCD, True/False, Open Answer, Guess a Number
+/**
+ * Available categories for question classification
+ * 
+ * Used for categorizing questions of types:
+ * - ABCD
+ * - True/False
+ * - Open Answer
+ * - Guess a Number
+ * 
+ * @constant
+ * @type {string[]}
+ */
 export const QUIZ_CATEGORIES = [
   'Historie',
   'Zeměpis',
@@ -70,7 +117,15 @@ export const QUIZ_CATEGORIES = [
   'Různé'
 ];
 
-// Quiz types constants
+/**
+ * Quiz type identifiers used throughout the application
+ * 
+ * Defines the supported quiz types with string constants
+ * that match the backend question type identifiers.
+ * 
+ * @constant
+ * @type {Object}
+ */
 export const QUIZ_TYPES = {
   ABCD: 'ABCD',
   TRUE_FALSE: 'TRUE_FALSE',
@@ -83,7 +138,15 @@ export const QUIZ_TYPES = {
   COMBINED_QUIZ: 'COMBINED_QUIZ'
 };
 
-// Question types constants
+/**
+ * Question type identifiers for API interactions
+ * 
+ * Maps to the backend question type identifiers for
+ * consistent type handling between frontend and backend.
+ * 
+ * @constant
+ * @type {Object}
+ */
 export const QUESTION_TYPES = {
   ABCD: 'ABCD',
   TRUE_FALSE: 'TRUE_FALSE',
@@ -95,7 +158,15 @@ export const QUESTION_TYPES = {
   GUESS_A_NUMBER: 'GUESS_A_NUMBER'
 };
 
-// Translated quiz types to Czech
+/**
+ * Czech translations of quiz type names for display
+ * 
+ * Maps quiz type identifiers to human-readable Czech names
+ * for UI presentation.
+ * 
+ * @constant
+ * @type {Object}
+ */
 export const QUIZ_TYPE_TRANSLATIONS = {
   [QUIZ_TYPES.ABCD]: 'ABCD kvíz',
   [QUIZ_TYPES.TRUE_FALSE]: 'Pravda/lež',

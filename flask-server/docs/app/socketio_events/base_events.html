@@ -92,14 +92,19 @@ def handle_disconnect():
     &#34;&#34;&#34;
     Handle client disconnection. Automatically triggers when a client disconnects.
     
-    Cleans up session data when clients disconnect.
+    Logs disconnection but does not try to map the socket to a player name 
+    since we&#39;re not storing socket IDs with players. The player_leaving event
+    should be used instead for explicit player departures.
     &#34;&#34;&#34;
-    print(&#39;Client disconnected&#39;)
+    print(f&#39;Client disconnected from {request.remote_addr}&#39;)
+    
     if &#39;server&#39; in session:
         del session[&#39;server&#39;]</code></pre>
 </details>
 <div class="desc"><p>Handle client disconnection. Automatically triggers when a client disconnects.</p>
-<p>Cleans up session data when clients disconnect.</p></div>
+<p>Logs disconnection but does not try to map the socket to a player name
+since we're not storing socket IDs with players. The player_leaving event
+should be used instead for explicit player departures.</p></div>
 </dd>
 <dt id="app.socketio_events.base_events.handle_is_remote_connected"><code class="name flex">
 <span>def <span class="ident">handle_is_remote_connected</span></span>(<span>)</span>
@@ -158,6 +163,102 @@ with individual players' devices.</p>
 <dl>
 <dt><strong><code>data</code></strong></dt>
 <dd>Dictionary containing player information with 'player_name' key</dd>
+</dl></div>
+</dd>
+<dt id="app.socketio_events.base_events.handle_player_leaving"><code class="name flex">
+<span>def <span class="ident">handle_player_leaving</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;player_leaving&#39;)
+def handle_player_leaving(data):
+    &#34;&#34;&#34;
+    Handle a player explicitly notifying the server that they are leaving.
+    
+    This is triggered by the beforeunload event in the browser when a player
+    refreshes or closes the page.
+    
+    Args:
+        data: Dictionary containing player_name
+    &#34;&#34;&#34;
+    player_name = data.get(&#39;player_name&#39;)
+    
+    if player_name and player_name in game_state.players:
+        print(f&#39;Player {player_name} explicitly left the game&#39;)
+        
+        # Store player color before removing
+        player_color = game_state.players[player_name][&#39;color&#39;]
+        
+        # Remove player from game state
+        del game_state.players[player_name]
+        
+        # Remove from teams if in team mode
+        if player_name in game_state.blue_team:
+            game_state.blue_team.remove(player_name)
+        if player_name in game_state.red_team:
+            game_state.red_team.remove(player_name)
+        
+        # Notify clients about the player leaving
+        socketio.emit(&#39;player_left&#39;, {
+            &#39;player_name&#39;: player_name,
+            &#39;color&#39;: player_color
+        })
+        
+        # Make the color available again
+        used_colors = [player[&#39;color&#39;] for player in game_state.players.values()]
+        available_colors = [color for color in AVAILABLE_COLORS if color not in used_colors]
+        
+        socketio.emit(&#39;colors_updated&#39;, {&#34;colors&#34;: available_colors})</code></pre>
+</details>
+<div class="desc"><p>Handle a player explicitly notifying the server that they are leaving.</p>
+<p>This is triggered by the beforeunload event in the browser when a player
+refreshes or closes the page.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong></dt>
+<dd>Dictionary containing player_name</dd>
+</dl></div>
+</dd>
+<dt id="app.socketio_events.base_events.handle_player_name_change"><code class="name flex">
+<span>def <span class="ident">handle_player_name_change</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;player_name_changed&#39;)
+def handle_player_name_change(data):
+    &#34;&#34;&#34;
+    Handle player changing their name and room association.
+    
+    Updates the player&#39;s socket.io room to match their new name for 
+    continued direct communication.
+    
+    Args:
+        data: Dictionary containing old_name and new_name keys
+    &#34;&#34;&#34;
+    old_name = data[&#39;old_name&#39;]
+    new_name = data[&#39;new_name&#39;]
+    
+    # Leave the old room first
+    leave_room(old_name)
+    
+    # Join the new room with the new name
+    join_room(new_name)
+    
+    print(f&#39;Player changed name from {old_name} to {new_name}, left room {old_name}, joined room {new_name}&#39;)</code></pre>
+</details>
+<div class="desc"><p>Handle player changing their name and room association.</p>
+<p>Updates the player's socket.io room to match their new name for
+continued direct communication.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong></dt>
+<dd>Dictionary containing old_name and new_name keys</dd>
 </dl></div>
 </dd>
 <dt id="app.socketio_events.base_events.handle_remote_display_connected"><code class="name flex">
@@ -346,6 +447,8 @@ Each question type has specialized time-up logic:</p>
 <li><code><a title="app.socketio_events.base_events.handle_disconnect" href="#app.socketio_events.base_events.handle_disconnect">handle_disconnect</a></code></li>
 <li><code><a title="app.socketio_events.base_events.handle_is_remote_connected" href="#app.socketio_events.base_events.handle_is_remote_connected">handle_is_remote_connected</a></code></li>
 <li><code><a title="app.socketio_events.base_events.handle_join_room" href="#app.socketio_events.base_events.handle_join_room">handle_join_room</a></code></li>
+<li><code><a title="app.socketio_events.base_events.handle_player_leaving" href="#app.socketio_events.base_events.handle_player_leaving">handle_player_leaving</a></code></li>
+<li><code><a title="app.socketio_events.base_events.handle_player_name_change" href="#app.socketio_events.base_events.handle_player_name_change">handle_player_name_change</a></code></li>
 <li><code><a title="app.socketio_events.base_events.handle_remote_display_connected" href="#app.socketio_events.base_events.handle_remote_display_connected">handle_remote_display_connected</a></code></li>
 <li><code><a title="app.socketio_events.base_events.handle_show_final_score" href="#app.socketio_events.base_events.handle_show_final_score">handle_show_final_score</a></code></li>
 <li><code><a title="app.socketio_events.base_events.handle_time_up" href="#app.socketio_events.base_events.handle_time_up">handle_time_up</a></code></li>

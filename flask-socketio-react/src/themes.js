@@ -1,5 +1,18 @@
+/**
+ * @fileoverview Application theme definitions for light and dark modes
+ * @module Themes
+ */
 import { createTheme } from '@mui/material/styles';
 
+/**
+ * Light theme configuration for the application
+ * 
+ * Defines color palette for light mode with blue primary color
+ * and green secondary color on light backgrounds.
+ * 
+ * @constant
+ * @type {Object}
+ */
 export const lightTheme = createTheme({
   palette: {
     mode: 'light',
@@ -15,9 +28,21 @@ export const lightTheme = createTheme({
     text: {
       primary: '#333',
     },
-  },
+    bar: {
+      main: '#8e8e8e',
+    }
+  }
 });
 
+/**
+ * Dark theme configuration for the application
+ * 
+ * Defines color palette for dark mode with teal primary color
+ * and red secondary color on dark backgrounds.
+ * 
+ * @constant
+ * @type {Object}
+ */
 export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
@@ -33,5 +58,8 @@ export const darkTheme = createTheme({
     text: {
       primary: '#f0f0f0',
     },
-  },
+    bar: {
+      main: '#212121',
+    }
+  }
 });

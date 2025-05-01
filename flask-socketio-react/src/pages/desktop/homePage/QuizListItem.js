@@ -1,10 +1,13 @@
+/**
+ * @fileoverview QuizListItem component - displays a quiz card in the quiz library (desktop home page).
+ * @module Pages/Desktop/HomePage/QuizListItem
+ */
 import React from 'react';
 import { Box, Typography, IconButton, Paper, Divider, Tooltip } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ShareIcon from '@mui/icons-material/Share';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-// Import quiz type icons
 import QuizIcon from '@mui/icons-material/Abc';
 import MapIcon from '@mui/icons-material/Map';
 import DrawIcon from '@mui/icons-material/Draw';
@@ -16,7 +19,10 @@ import QuestionAnswerIcon from '@mui/icons-material/EditNote';
 import { useNavigate } from 'react-router-dom';
 import { QUIZ_TYPE_TRANSLATIONS, QUIZ_TYPES } from '../../../constants/quizValidation';
 
-// Quiz type icons mapping
+/**
+ * Mapping of quiz types to their respective icon components
+ * @type {Object.<string, React.ComponentType>}
+ */
 const quizTypeIcons = {
   [QUIZ_TYPES.ABCD]: QuizIcon,
   [QUIZ_TYPES.OPEN_ANSWER]: QuestionAnswerIcon,
@@ -28,6 +34,32 @@ const quizTypeIcons = {
   [QUIZ_TYPES.COMBINED_QUIZ]: ShuffleIcon,
 };
 
+/**
+ * Quiz list item component that displays a quiz as a card
+ * 
+ * Renders a Material UI card with quiz details including:
+ * - Quiz name and type
+ * - Number of questions
+ * - Action buttons for playing, editing, sharing, and deleting
+ * - Different display modes for regular, public, and unfinished quizzes
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.quiz - Quiz data object with quiz details
+ * @param {string} props.quiz.name - Name of the quiz
+ * @param {string} props.quiz.type - Type of the quiz from QUIZ_TYPES
+ * @param {number} props.quiz.questionCount - Number of questions in the quiz
+ * @param {boolean} props.quiz.is_public - Whether the quiz is publicly shared
+ * @param {string} props.quiz._id - MongoDB ID of the quiz
+ * @param {boolean} [props.isPublic=false] - Whether this quiz is publicly shared
+ * @param {boolean} [props.isUnfinished=false] - Whether this quiz is an unfinished draft
+ * @param {Function} [props.onEditPublic] - Handler for editing public quizzes
+ * @param {Function} [props.onToggleShare] - Handler for toggling public/private status
+ * @param {Function} [props.onEdit] - Handler for editing the quiz
+ * @param {Function} [props.onDelete] - Handler for deleting the quiz
+ * @param {Function} [props.onContinue] - Handler for continuing unfinished quizzes
+ * @returns {React.ReactElement} Rendered quiz card
+ */
 const QuizListItem = ({ 
   quiz, 
   isPublic = false, 
@@ -40,12 +72,22 @@ const QuizListItem = ({
 }) => {
   const navigate = useNavigate();
 
+  /**
+   * Navigate to the quiz room page to start playing the quiz
+   * 
+   * @function handleStartQuiz
+   */
   const handleStartQuiz = () => {
     if (!isUnfinished) {
       navigate('/room', { state: { quizId: quiz._id } });
     }
   };
 
+  /**
+   * Handle edit button click based on quiz type
+   * 
+   * @function handleEdit
+   */
   const handleEdit = () => {
     if (!quiz) return;
     onEdit && onEdit(quiz);
@@ -131,7 +173,7 @@ const QuizListItem = ({
       {/* Card Actions */}
       <Box sx={{ 
         display: 'flex', 
-        justifyContent: 'space-between', // Changed to always use space-between
+        justifyContent: 'space-between',
         px: 1,
         py: 0.5,
         borderTop: '1px solid',
@@ -229,7 +271,7 @@ const QuizListItem = ({
               <Tooltip title="Smazat kvíz">
                 <IconButton 
                   color="error" 
-                size="medium"
+                  size="medium"
                   onClick={() => onDelete && onDelete(quiz)}
                 >
                   <DeleteIcon />

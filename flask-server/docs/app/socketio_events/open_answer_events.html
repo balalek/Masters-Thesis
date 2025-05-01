@@ -172,11 +172,18 @@ In individual mode, proceeds when all players have answered correctly.</p>
         - Event via emit_all_answers_received with correct answer and player responses
     &#34;&#34;&#34;
     current_question = game_state.questions[game_state.current_question]
+    correct_answer = current_question.get(&#39;open_answer&#39;, current_question.get(&#39;answer&#39;, &#39;&#39;))
+    
+    # Sort player answers by dissimilarity for &#34;most interesting attempts&#34;
+    sorted_player_answers = sort_player_answers_by_dissimilarity(
+        game_state.open_answer_stats[&#39;player_answers&#39;],
+        correct_answer
+    )
     
     emit_all_answers_received(
         scores=scores,
-        correct_answer=current_question.get(&#39;open_answer&#39;, current_question.get(&#39;answer&#39;, &#39;&#39;)),
-        additional_data={&#34;player_answers&#34;: game_state.open_answer_stats[&#39;player_answers&#39;]}
+        correct_answer=correct_answer,
+        additional_data={&#34;player_answers&#34;: sorted_player_answers}
     )</code></pre>
 </details>
 <div class="desc"><p>Handle when time expires for an Open Answer question.</p>
@@ -282,11 +289,18 @@ counted as revealable letters and are always shown.</p>
     &#34;&#34;&#34;
     current_question_data = game_state.questions[game_state.current_question]
     scores = get_scores_data()
+    correct_answer = current_question_data.get(&#39;open_answer&#39;, current_question_data.get(&#39;answer&#39;, &#39;&#39;))
+    
+    # Sort player answers by dissimilarity for &#34;most interesting attempts&#34;
+    sorted_player_answers = sort_player_answers_by_dissimilarity(
+        game_state.open_answer_stats[&#39;player_answers&#39;],
+        correct_answer
+    )
     
     emit_all_answers_received(
         scores=scores,
-        correct_answer=current_question_data.get(&#39;open_answer&#39;, current_question_data.get(&#39;answer&#39;, &#39;&#39;)),
-        additional_data={&#34;player_answers&#34;: game_state.open_answer_stats[&#39;player_answers&#39;]}
+        correct_answer=correct_answer,
+        additional_data={&#34;player_answers&#34;: sorted_player_answers}
     )</code></pre>
 </details>
 <div class="desc"><p>Show results for open answer questions.</p>
@@ -296,6 +310,64 @@ results to all players, including all submitted answers.</p>
 <ul>
 <li>Event via emit_all_answers_received with correct answer and player responses</li>
 </ul></div>
+</dd>
+<dt id="app.socketio_events.open_answer_events.sort_player_answers_by_dissimilarity"><code class="name flex">
+<span>def <span class="ident">sort_player_answers_by_dissimilarity</span></span>(<span>player_answers, correct_answer)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sort_player_answers_by_dissimilarity(player_answers, correct_answer):
+    &#34;&#34;&#34;
+    Sort player answers by their dissimilarity to the correct answer.
+    
+    This puts the least similar (most interesting) answers first.
+    Frontend will then use the top 3 answers for the &#34;most interesting attempts&#34; section.
+    
+    Args:
+        player_answers: List of player answer objects
+        correct_answer: The correct answer to compare against
+        
+    Returns:
+        list: Sorted list with correct answers first, then sorted incorrect answers
+    &#34;&#34;&#34;
+    # Create a copy of the answers list to avoid modifying the original
+    player_answers = list(player_answers)
+    
+    # Separate correct and incorrect answers
+    correct_answers = [answer for answer in player_answers if answer[&#39;is_correct&#39;]]
+    incorrect_answers = [answer for answer in player_answers if not answer[&#39;is_correct&#39;]]
+    
+    # Calculate similarity for each incorrect answer
+    for answer in incorrect_answers:
+        answer_text = answer[&#39;answer&#39;].lower().strip()
+        correct_text = correct_answer.lower().strip()
+        similarity = SequenceMatcher(None, answer_text, correct_text).ratio()
+        answer[&#39;similarity&#39;] = similarity
+    
+    # Sort incorrect answers by similarity (lowest first)
+    sorted_incorrect = sorted(incorrect_answers, key=lambda x: x[&#39;similarity&#39;])
+    
+    # Recombine the answers with correct answers first, then sorted incorrect answers
+    return correct_answers + sorted_incorrect</code></pre>
+</details>
+<div class="desc"><p>Sort player answers by their dissimilarity to the correct answer.</p>
+<p>This puts the least similar (most interesting) answers first.
+Frontend will then use the top 3 answers for the "most interesting attempts" section.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>player_answers</code></strong></dt>
+<dd>List of player answer objects</dd>
+<dt><strong><code>correct_answer</code></strong></dt>
+<dd>The correct answer to compare against</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>Sorted list with correct answers first, then sorted incorrect answers</dd>
+</dl></div>
 </dd>
 <dt id="app.socketio_events.open_answer_events.submit_open_answer"><code class="name flex">
 <span>def <span class="ident">submit_open_answer</span></span>(<span>data)</span>
@@ -364,14 +436,6 @@ def submit_open_answer(data):
         
         # Add player to correct players set
         game_state.correct_players.add(player_name)
-        
-        # Update question metadata (only for correct answers)
-        QuizService.update_question_metadata(
-            str(current_question_data[&#39;_id&#39;]), 
-            is_correct=True,
-            increment_times_played=False
-        )
-        game_state.current_question_metadata_updated = True
         
         # Handle scoring based on game mode
         if game_state.is_team_mode:
@@ -471,6 +535,7 @@ and individual mode. Provides feedback for incorrect answers.</p>
 <li><code><a title="app.socketio_events.open_answer_events.handle_open_answer_time_up" href="#app.socketio_events.open_answer_events.handle_open_answer_time_up">handle_open_answer_time_up</a></code></li>
 <li><code><a title="app.socketio_events.open_answer_events.reveal_open_answer_letter" href="#app.socketio_events.open_answer_events.reveal_open_answer_letter">reveal_open_answer_letter</a></code></li>
 <li><code><a title="app.socketio_events.open_answer_events.show_open_answer_results" href="#app.socketio_events.open_answer_events.show_open_answer_results">show_open_answer_results</a></code></li>
+<li><code><a title="app.socketio_events.open_answer_events.sort_player_answers_by_dissimilarity" href="#app.socketio_events.open_answer_events.sort_player_answers_by_dissimilarity">sort_player_answers_by_dissimilarity</a></code></li>
 <li><code><a title="app.socketio_events.open_answer_events.submit_open_answer" href="#app.socketio_events.open_answer_events.submit_open_answer">submit_open_answer</a></code></li>
 </ul>
 </li>

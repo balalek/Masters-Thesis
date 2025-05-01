@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Game Page component for question display and interaction
+ * 
+ * This module provides:
+ * - Dynamic question rendering based on question type
+ * - Countdown timers with server synchronization
+ * - Answer submission tracking and statistics
+ * - Question preview and transition handling
+ * - Connection with server-side events via Socket.IO
+ * 
+ * @module Pages/Desktop/Game/GamePage
+ */
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getSocket, getServerTime } from '../../../utils/socket';
@@ -11,6 +23,12 @@ import WordChainQuiz from '../../../components/desktop/quizTypes/WordChainQuiz';
 import MathQuiz from '../../../components/desktop/quizTypes/MathQuiz';
 import BlindMapQuiz from '../../../components/desktop/quizTypes/BlindMapQuiz';
 
+/**
+ * Game Page component for displaying interactive quiz questions
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered game page component
+ */
 function GamePage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,17 +40,16 @@ function GamePage() {
   const activeTeam = location.state?.activeTeam;
   const isTeamModeBlindMap = location.state?.blind_map_is_team_play || false;
     
+  // Once time is up or everyone has answered, go to scores page with specific data
   useEffect(() => {
     const socket = getSocket();
 
     socket.on('all_answers_received', (data) => {
-      console.log('Received all_answers_received data:', data);
-      
-      // Create navigation state with the question's existing type
+
       const navigationState = {
         scores: data.scores,
         correctAnswer: data.correct_answer,
-        question: question, // Use the existing question object with its type
+        question: question,
         isLastQuestion: isLastQuestion,
         showQuestionPreviewAt: data.show_question_preview_at,
         isRemote: data.is_remote
@@ -58,12 +75,10 @@ function GamePage() {
         navigationState.question.exploded_team = data.exploded_team;
         navigationState.question.exploded_player = data.exploded_player;
       } else if (question?.type === 'MATH_QUIZ') {
-        // Add math quiz specific data from server response
         navigationState.question.sequences = data.sequences || [];
         navigationState.question.player_answers = data.player_answers || {};
         navigationState.question.eliminated_players = data.eliminated_players || [];
-      }
-      else if (question?.type === 'BLIND_MAP') {
+      } else if (question?.type === 'BLIND_MAP') {
         navigationState.question.team_guesses = data.team_guesses || {};
         navigationState.question.captain_guesses = data.captain_guesses || {};
         navigationState.question.player_locations = data.player_locations || [];
@@ -72,9 +87,6 @@ function GamePage() {
       } else {
         navigationState.answerCounts = data.answer_counts;
       }
-
-      // Debug log to check what we're passing to ScorePage
-      console.log('Navigating to ScorePage with data:', navigationState);
       
       // Navigate to scores page with appropriate data
       navigate('/scores', { state: navigationState });
@@ -85,6 +97,7 @@ function GamePage() {
     };
   }, [navigate, isLastQuestion, question]);
 
+  // Show current answer count for the active question
   useEffect(() => {
     const socket = getSocket();
 
@@ -97,6 +110,7 @@ function GamePage() {
     }
   }, []);
 
+  // Handle game reset event from the server
   useEffect(() => {
     const socket = getSocket();
 
@@ -109,20 +123,15 @@ function GamePage() {
     };
   }, [navigate]);
 
+  // Set question from location state, that came from starting the game or from scores page
   useEffect(() => {
     if (location.state && location.state.question) {
-      console.log('Setting question from location state:', location.state.question);
       setQuestion(location.state.question);
       setIsLastQuestion(location.state.is_last_question);
     }
   }, [location.state]);
 
-  useEffect(() => {
-    if (location.state) {
-      console.log('GamePage received state:', location.state);
-    }
-  }, [location.state]);
-
+  // Handle time up for some question types and send event to server
   useEffect(() => {
     // First check if the question is not null, if yes, then wait for question to be set
     if (question && location.state?.question_end_time && 
@@ -130,7 +139,6 @@ function GamePage() {
       (question.type !== 'WORD_CHAIN' || question.is_team_mode) &&
       (question.type !== 'MATH_QUIZ') &&
       (question.type !== 'BLIND_MAP')) {
-      console.log('Hello? question type:', question?.type);
       const timer = setTimeout(() => {
         const socket = getSocket();
         socket.emit('time_up');  // Emit time_up when timer ends
@@ -140,6 +148,7 @@ function GamePage() {
     }
   }, [location.state?.question_end_time, question, activeTeam]);
 
+  // Handle question preview timeout
   if (showQuestionPreview) {
     return (
       <QuestionPreview 
@@ -150,8 +159,18 @@ function GamePage() {
     );
   }
 
-  if (!question) return <div>Chybička se vloudila...</div>;
+  if (!question) return <div>Nebyla nalezena žádná otázka...</div>;
 
+
+  /**
+   * Renders the appropriate quiz component based on question type
+   * 
+   * Dynamically selects and configures the matching quiz component
+   * for the current question, passing appropriate props.
+   * 
+   * @function renderQuizType
+   * @returns {JSX.Element} The quiz-type specific component
+   */
   const renderQuizType = () => {
     if (!question) return null;
     
@@ -202,7 +221,7 @@ function GamePage() {
         />;
       default:
         console.error('Unknown question type:', question.type);
-        return <div>Unsupported question type: {question.type}</div>;
+        return <div>Nepodporovaný typ otázky: {question.type}</div>;
     }
   };
 

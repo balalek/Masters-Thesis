@@ -205,6 +205,7 @@ const OpenAnswerQuiz = ({ question, question_end_time }) => {
               mb: 4, 
               width: '100%', 
               maxWidth: '800px',
+              maxHeight: '60vh', // Adding max height to prevent very tall images from overflowing
               display: 'flex',
               justifyContent: 'center'
             }}>

@@ -752,46 +752,6 @@ el.replaceWith(d);
         return new_quiz_id
 
     @staticmethod
-    def update_question_metadata(question_id: str, is_correct: bool, increment_times_played: bool = False) -&gt; None:
-        &#34;&#34;&#34;
-        Update question metadata after it&#39;s been answered.
-        
-        Updates the usage statistics and correct answer rate for a question
-        based on player responses.
-        
-        Args:
-            question_id: ID of the question to update
-            is_correct: Whether the answer was correct
-            increment_times_played: Whether to increment the usage counter
-        &#34;&#34;&#34;
-        question = db.questions.find_one({&#34;_id&#34;: ObjectId(question_id)})
-        if not question:
-            return
-
-        current_metadata = question.get(&#39;metadata&#39;, {})
-        times_used = current_metadata.get(&#39;timesUsed&#39;, 0)
-        current_rate = current_metadata.get(&#39;averageCorrectRate&#39;, 0.0)
-
-        # Calculate new correct rate using weighted average
-        if increment_times_played:
-            new_times_used = times_used + 1
-            new_rate = ((current_rate * times_used) + (1 if is_correct else 0)) / new_times_used
-        else:
-            new_times_used = times_used
-            # Update rate without incrementing times_used
-            new_rate = ((current_rate * times_used) + (1 if is_correct else 0)) / (times_used or 1)
-
-        # Update metadata
-        update_dict = {&#34;metadata.averageCorrectRate&#34;: round(new_rate, 4)}
-        if increment_times_played:
-            update_dict[&#34;metadata.timesUsed&#34;] = new_times_used
-
-        db.questions.update_one(
-            {&#34;_id&#34;: ObjectId(question_id)},
-            {&#34;$set&#34;: update_dict}
-        )
-
-    @staticmethod
     def get_random_questions(question_type, categories=None, device_id=None, limit=5, exclude_audio=False, map_filter=None):
         &#34;&#34;&#34;
         Get random questions from public quizzes.
@@ -1680,67 +1640,6 @@ ensuring the requestor has permission to change the quiz.</p>
 <dd>If quiz not found or permission denied</dd>
 </dl></div>
 </dd>
-<dt id="app.services.quiz_service.QuizService.update_question_metadata"><code class="name flex">
-<span>def <span class="ident">update_question_metadata</span></span>(<span>question_id: str, is_correct: bool, increment_times_played: bool = False) ‑> None</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@staticmethod
-def update_question_metadata(question_id: str, is_correct: bool, increment_times_played: bool = False) -&gt; None:
-    &#34;&#34;&#34;
-    Update question metadata after it&#39;s been answered.
-    
-    Updates the usage statistics and correct answer rate for a question
-    based on player responses.
-    
-    Args:
-        question_id: ID of the question to update
-        is_correct: Whether the answer was correct
-        increment_times_played: Whether to increment the usage counter
-    &#34;&#34;&#34;
-    question = db.questions.find_one({&#34;_id&#34;: ObjectId(question_id)})
-    if not question:
-        return
-
-    current_metadata = question.get(&#39;metadata&#39;, {})
-    times_used = current_metadata.get(&#39;timesUsed&#39;, 0)
-    current_rate = current_metadata.get(&#39;averageCorrectRate&#39;, 0.0)
-
-    # Calculate new correct rate using weighted average
-    if increment_times_played:
-        new_times_used = times_used + 1
-        new_rate = ((current_rate * times_used) + (1 if is_correct else 0)) / new_times_used
-    else:
-        new_times_used = times_used
-        # Update rate without incrementing times_used
-        new_rate = ((current_rate * times_used) + (1 if is_correct else 0)) / (times_used or 1)
-
-    # Update metadata
-    update_dict = {&#34;metadata.averageCorrectRate&#34;: round(new_rate, 4)}
-    if increment_times_played:
-        update_dict[&#34;metadata.timesUsed&#34;] = new_times_used
-
-    db.questions.update_one(
-        {&#34;_id&#34;: ObjectId(question_id)},
-        {&#34;$set&#34;: update_dict}
-    )</code></pre>
-</details>
-<div class="desc"><p>Update question metadata after it's been answered.</p>
-<p>Updates the usage statistics and correct answer rate for a question
-based on player responses.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>question_id</code></strong></dt>
-<dd>ID of the question to update</dd>
-<dt><strong><code>is_correct</code></strong></dt>
-<dd>Whether the answer was correct</dd>
-<dt><strong><code>increment_times_played</code></strong></dt>
-<dd>Whether to increment the usage counter</dd>
-</dl></div>
-</dd>
 <dt id="app.services.quiz_service.QuizService.update_quiz"><code class="name flex">
 <span>def <span class="ident">update_quiz</span></span>(<span>quiz_id: str,<br>name: str,<br>questions: List[dict],<br>device_id: str,<br>deleted_questions: List[str] = None,<br>quiz_type: str = None) ‑> bson.objectid.ObjectId</span>
 </code></dt>
@@ -1891,7 +1790,6 @@ media deletion for removed questions.</p>
 <li><code><a title="app.services.quiz_service.QuizService.get_quizzes" href="#app.services.quiz_service.QuizService.get_quizzes">get_quizzes</a></code></li>
 <li><code><a title="app.services.quiz_service.QuizService.get_random_questions" href="#app.services.quiz_service.QuizService.get_random_questions">get_random_questions</a></code></li>
 <li><code><a title="app.services.quiz_service.QuizService.toggle_quiz_publicity" href="#app.services.quiz_service.QuizService.toggle_quiz_publicity">toggle_quiz_publicity</a></code></li>
-<li><code><a title="app.services.quiz_service.QuizService.update_question_metadata" href="#app.services.quiz_service.QuizService.update_question_metadata">update_question_metadata</a></code></li>
 <li><code><a title="app.services.quiz_service.QuizService.update_quiz" href="#app.services.quiz_service.QuizService.update_quiz">update_quiz</a></code></li>
 </ul>
 </li>

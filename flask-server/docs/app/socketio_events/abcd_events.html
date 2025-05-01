@@ -141,13 +141,6 @@ def submit_answer(data):
     correct_answer = current_question_data[&#39;answer&#39;]
     points_earned = POINTS_FOR_CORRECT_ANSWER if answer == correct_answer else 0
     
-    QuizService.update_question_metadata(
-        str(current_question_data[&#39;_id&#39;]), 
-        is_correct=(answer == correct_answer),
-        increment_times_played=not game_state.current_question_metadata_updated
-    )
-    game_state.current_question_metadata_updated = True
-    
     # Calculate speed points
     question_start_time = game_state.question_start_time
     question_length = game_state.questions[current_question][&#39;length&#39;] * 1000

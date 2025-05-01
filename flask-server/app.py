@@ -11,6 +11,7 @@ API endpoints and static files for the frontend.
 from app import app, socketio
 import threading
 from app.utils import create_window
+import os
 
 # Store IP address globally
 SERVER_IP = None

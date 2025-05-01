@@ -1,9 +1,33 @@
+/**
+ * @fileoverview Leaderboard component for displaying player and team scores
+ * 
+ * This component provides:
+ * - Individual player score rankings with visual score bars
+ * - Team comparison for team mode with animated bar charts
+ * - Auto-scrolling functionality for long player lists
+ * - Responsive layout with clean visual design
+ * - Color-coded score visualization
+ * 
+ * @module Components/Desktop/Miscellaneous/Leaderboard
+ */
 import React, { useRef, useEffect } from 'react';
 import { Box, Typography, Container } from '@mui/material';
 
+/**
+ * Leaderboard component for displaying current game scores
+ * 
+ * Renders either team-based or individual score displays based on game mode.
+ * Features automatic scrolling for long player lists and animated score bars.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.scores - Score data object containing player/team scores
+ * @returns {JSX.Element} The rendered leaderboard component
+ */
 const Leaderboard = ({ scores }) => {
   const scrollableRef = useRef(null);
 
+  // Automatically scroll the leaderboard when new scores are received
   useEffect(() => {
     const scrollContainer = scrollableRef.current;
     if (!scrollContainer || scores.is_team_mode) return;
@@ -25,7 +49,7 @@ const Leaderboard = ({ scores }) => {
           scrollContainer.scrollTop = currentScroll;
           animationFrameId = requestAnimationFrame(animate);
         } else {
-          // Smooth scroll back to top
+          // Smooth scroll back to top and stop
           const scrollToTop = () => {
             const startPosition = scrollContainer.scrollTop;
             const startTime = Date.now();
@@ -63,6 +87,7 @@ const Leaderboard = ({ scores }) => {
   }, [scores]);
 
   if (scores.is_team_mode) {
+    // Team mode scores display as a bar chart
     const { teams } = scores;
     const maxScore = Math.max(1, teams.blue, teams.red);
 
@@ -139,6 +164,18 @@ const Leaderboard = ({ scores }) => {
   
   const maxScore = Math.max(1, ...sortedPlayers.map(([,data]) => data.score));
 
+  /**
+   * Render a single player row in the leaderboard
+   * 
+   * Creates a grid layout row with placement number, player name,
+   * score bar visualization, and numeric score.
+   * 
+   * @function renderPlayer
+   * @param {string} playerName - Player's name
+   * @param {Object} data - Player's score data with color
+   * @param {number} index - Player's position in rankings
+   * @returns {JSX.Element} The rendered player row
+   */
   const renderPlayer = (playerName, data, index) => (
     <Box 
       key={playerName} 

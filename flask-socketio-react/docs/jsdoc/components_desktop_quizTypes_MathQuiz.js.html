@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/desktop/quizTypes/MathQuiz.js - Home Quiz Documentation</title>
+    
+    <meta name="description" content="Documentation for the Home Quiz application" />
+    
+        <meta name="keywords" content="react, quiz, documentation" />
+        <meta name="keyword" content="react, quiz, documentation" />
+    
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-App.html">App</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-App.html#~App">App</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_GameCountdown.html">Components/Desktop/Miscellaneous/GameCountdown</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_GameCountdown.html#~GameCountdown">GameCountdown</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html">Components/Desktop/Miscellaneous/ImageBlockReveal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~ImageBlockReveal">ImageBlockReveal</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~getContainerStyle">getContainerStyle</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~handleImageLoad">handleImageLoad</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html">Components/Desktop/Miscellaneous/Leaderboard</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html#~Leaderboard">Leaderboard</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html#~renderPlayer">renderPlayer</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_QuestionPreview.html">Components/Desktop/Miscellaneous/QuestionPreview</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuestionPreview.html#~QuestionPreview">QuestionPreview</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html">Components/Desktop/Miscellaneous/QuickPlayModal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html#~QuickPlayModal">QuickPlayModal</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html#~handleStartGame">handleStartGame</a></li></ul></li><li><a href="module-Components_Desktop_Room_ConnectionInfo.html">Components/Desktop/Room/ConnectionInfo</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_ConnectionInfo.html#~ConnectionInfo">ConnectionInfo</a></li></ul></li><li><a href="module-Components_Desktop_Room_PlayersList.html">Components/Desktop/Room/PlayersList</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_PlayersList.html#~PlayersList">PlayersList</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_PlayersList.html#~distributePlayersInColumns">distributePlayersInColumns</a></li></ul></li><li><a href="module-Components_Desktop_Room_StartGameTooltip.html">Components/Desktop/Room/StartGameTooltip</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_StartGameTooltip.html#~StartGameTooltip">StartGameTooltip</a></li></ul></li><li><a href="module-Components_Desktop_Room_TeamMode.html">Components/Desktop/Room/TeamMode</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_TeamMode.html#~TeamContainer">TeamContainer</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_TeamMode.html#~TeamMode">TeamMode</a></li></ul></li><li><a href="module-Constants_QuizValidation.html">Constants/QuizValidation</a></li><li><a href="module-Pages_Desktop_Game_GamePage.html">Pages/Desktop/Game/GamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_GamePage.html#~GamePage">GamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_GamePage.html#~renderQuizType">renderQuizType</a></li></ul></li><li><a href="module-Pages_Desktop_Game_RemoteGamePage.html">Pages/Desktop/Game/RemoteGamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_RemoteGamePage.html#~RemoteGamePage">RemoteGamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_RemoteGamePage.html#~handleCountdownComplete">handleCountdownComplete</a></li></ul></li><li><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html">Pages/Desktop/HomePage/DesktopHomePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~DesktopHomePage">DesktopHomePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~QuizTypeButton">QuizTypeButton</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~continueUnfinishedQuiz">continueUnfinishedQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~deleteUnfinishedQuiz">deleteUnfinishedQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~fetchQuizzes">fetchQuizzes</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~fetchUnfinishedQuizzes">fetchUnfinishedQuizzes</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleCloseSnackbar">handleCloseSnackbar</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleCreateCopy">handleCreateCopy</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleDeleteQuiz">handleDeleteQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleEditPublicQuiz">handleEditPublicQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleEditQuiz">handleEditQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleQuickPlayClick">handleQuickPlayClick</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleStartQuickPlay">handleStartQuickPlay</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleToggleShare">handleToggleShare</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~loadMore">loadMore</a></li></ul></li><li><a href="module-Pages_Desktop_HomePage_QuizListItem.html">Pages/Desktop/HomePage/QuizListItem</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~QuizListItem">QuizListItem</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~handleEdit">handleEdit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~handleStartQuiz">handleStartQuiz</a></li></ul></li><li><a href="module-Pages_Desktop_Room_RoomPage.html">Pages/Desktop/Room/RoomPage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~RoomPage">RoomPage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~getConnectionUrl">getConnectionUrl</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~getRemoteGameUrl">getRemoteGameUrl</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleChangeBlueTeamCaptain">handleChangeBlueTeamCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleChangeRedTeamCaptain">handleChangeRedTeamCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleCloseQuiz">handleCloseQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleCountdownComplete">handleCountdownComplete</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleModeChange">handleModeChange</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleSelectCaptain">handleSelectCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleStartGame">handleStartGame</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleStartGameOnAnotherScreen">handleStartGameOnAnotherScreen</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleSwitchTeam">handleSwitchTeam</a></li></ul></li><li><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html">Pages/Desktop/ScorePage/FinalScorePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html#~FinalScorePage">FinalScorePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html#~handleCloseQuiz">handleCloseQuiz</a></li></ul></li><li><a href="module-Pages_Desktop_ScorePage_ScorePage.html">Pages/Desktop/ScorePage/ScorePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~ScorePage">ScorePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~handleCloseQuiz">handleCloseQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~renderAnswers">renderAnswers</a></li></ul></li><li><a href="module-Pages_Mobile_Game_MobileGamePage.html">Pages/Mobile/Game/MobileGamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~MobileGamePage">MobileGamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleAnswer">handleAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleBlindMapAnswer">handleBlindMapAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleCaptainChoice">handleCaptainChoice</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleDrawingSubmit">handleDrawingSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleMathAnswer">handleMathAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleMoreLessVote">handleMoreLessVote</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleNumberGuess">handleNumberGuess</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleOpenAnswer">handleOpenAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleWordChainSubmit">handleWordChainSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleWordSelected">handleWordSelected</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~renderQuizType">renderQuizType</a></li></ul></li><li><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html">Pages/Mobile/JoinQuizRoom/MobileJoinQuizRoom</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~MobileJoinQuizRoom">MobileJoinQuizRoom</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleJoinGame">handleJoinGame</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleNameChange">handleNameChange</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleReset">handleReset</a></li></ul></li><li><a href="module-Themes.html">Themes</a></li><li><a href="module-Utils_LetterReveal.html">Utils/LetterReveal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_LetterReveal.html#~createInitialMask">createInitialMask</a></li><li data-type='method' style='display: none;'><a href="module-Utils_LetterReveal.html#~shouldRevealLetter">shouldRevealLetter</a></li></ul></li><li><a href="module-Utils_MathRenderer.html">Utils/MathRenderer</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_MathRenderer.html#~renderMathEquation">renderMathEquation</a></li></ul></li><li><a href="module-Utils_ScrollbarStyle.html">Utils/ScrollbarStyle</a></li><li><a href="module-Utils_Socket.html">Utils/Socket</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~getServerTime">getServerTime</a></li><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~getSocket">getSocket</a></li><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~synchronizeTime">synchronizeTime</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#MathQuiz">MathQuiz</a></li><li><a href="global.html#WordChainQuiz">WordChainQuiz</a></li><li><a href="global.html#fixAnagram">fixAnagram</a></li><li><a href="global.html#generateAnagram">generateAnagram</a></li><li><a href="global.html#isValidAnagram">isValidAnagram</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/desktop/quizTypes/MathQuiz.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect, useRef } from 'react';
+import { Box, Typography, Paper, Avatar } from '@mui/material';
+import { useTimer } from 'react-timer-hook';
+import { getSocket, getServerTime } from '../../../utils/socket';
+import { renderMathEquation } from '../../../utils/mathRenderer';
+
+/**
+ * Component to display a Math Quiz game
+ */
+const MathQuiz = ({ question, question_end_time }) => {
+  const [currentSequenceIndex, setCurrentSequenceIndex] = useState(0);
+  const [eliminatedPlayers, setEliminatedPlayers] = useState([]);
+  const [playerAnswers, setPlayerAnswers] = useState({});
+  const [scores, setScores] = useState({});
+  const [isTeamMode, setIsTeamMode] = useState(false);
+  const [teamAnswers, setTeamAnswers] = useState({ blue: [], red: [] });
+  const [players, setPlayers] = useState({});
+  const [playerStatuses, setPlayerStatuses] = useState({});
+  const sequencesRef = useRef([]);
+  const socket = getSocket();
+
+  // Timer hook from react-timer-hook
+  const {
+    seconds,
+    minutes,
+    isRunning,
+    start,
+    pause,
+    restart,
+    totalSeconds
+  } = useTimer({ 
+    expiryTimestamp: new Date(), 
+    onExpire: handleTimerExpire,
+    autoStart: false
+  });
+
+  // Add a state to track the display time for smoother countdown
+  const [displaySeconds, setDisplaySeconds] = useState(null);
+
+  // Update display seconds when timer changes
+  useEffect(() => {
+    if (isRunning) {
+      setDisplaySeconds(seconds);
+    }
+  }, [seconds, isRunning]);
+
+  // Handler for when timer expires
+  function handleTimerExpire() {
+    console.log("Timer expired for sequence", currentSequenceIndex);
+    socket.emit('math_sequence_completed', {
+      current_index: currentSequenceIndex,
+      next_index: currentSequenceIndex + 1
+    });
+  }
+
+  // Initialize sequences from question
+  useEffect(() => {
+    if (question?.sequences &amp;&amp; question.sequences.length > 0) {
+      sequencesRef.current = [...question.sequences];
+      
+      // Set timer for the first sequence
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + sequencesRef.current[0].length);
+      restart(time);
+    }
+
+    if (question?.eliminated_players) {
+      setEliminatedPlayers(question.eliminated_players || []);
+    }
+
+    // Initialize players from question
+    if (question?.players) {
+      setPlayers(question.players);
+    }
+
+    setIsTeamMode(!!question?.is_team_mode);
+  }, [question, restart]);
+
+  // Handle socket events
+  useEffect(() => {
+    socket.on('math_quiz_update', (data) => {
+      setCurrentSequenceIndex(data.current_sequence || 0);
+      setEliminatedPlayers(data.eliminated_players || []);
+      setPlayerAnswers(data.player_answers || {});
+      setPlayerStatuses(data.player_statuses || {});
+      setScores(data.scores || {});
+      
+      if (data.players) {
+        setPlayers(data.players);
+      }
+      
+      if (isTeamMode) {
+        setTeamAnswers(data.team_answers || { blue: [], red: [] });
+      }
+
+      // Check if all active players have answered
+      const activePlayerCount = Object.keys(data.player_statuses || {}).filter(
+        name => !data.eliminated_players?.includes(name)
+      ).length;
+      
+      const answeredCount = Object.values(data.player_statuses || {}).filter(
+        status => status.hasAnswered &amp;&amp; !status.isEliminated
+      ).length;
+      
+      // Fast-forward timer if all players have answered
+      if (activePlayerCount > 0 &amp;&amp; answeredCount === activePlayerCount &amp;&amp; seconds > 3) {
+        console.log(`Fast-forwarding timer from ${seconds} to 3 seconds`);
+        const time = new Date();
+        time.setSeconds(time.getSeconds() + 3);
+        restart(time);
+        // Immediately set display seconds to match for visual consistency
+        setDisplaySeconds(3);
+      }
+    });
+
+    socket.on('math_sequence_change', (data) => {
+      setCurrentSequenceIndex(data.sequence_index);
+      
+      // Reset timer for the new sequence
+      const newSequence = sequencesRef.current[data.sequence_index];
+      if (newSequence) {
+        const time = new Date();
+        time.setSeconds(time.getSeconds() + newSequence.length);
+        restart(time);
+      }
+    });
+
+    // Add listener for fast_forward_timer event
+    socket.on('fast_forward_timer', (data) => {
+      console.log(`Received fast_forward_timer event: ${JSON.stringify(data)}`);
+      const remainingSeconds = data.remaining_seconds || 3;
+      
+      // Only update the timer if the current timer is greater than the target seconds
+      // This ensures we only go down to 3 seconds, never up to 3 seconds
+      if (seconds > remainingSeconds) {
+        console.log(`Fast-forwarding timer from ${seconds} to ${remainingSeconds} seconds`);
+        const time = new Date();
+        time.setSeconds(time.getSeconds() + remainingSeconds);
+        restart(time);
+        
+        // Update display seconds immediately for visual consistency
+        setDisplaySeconds(remainingSeconds);
+      } else {
+        console.log(`Not updating timer as current seconds (${seconds}) ≤ target seconds (${remainingSeconds})`);
+      }
+    });
+
+    return () => {
+      socket.off('math_quiz_update');
+      socket.off('math_sequence_change');
+      socket.off('fast_forward_timer');
+    };
+  }, [socket, restart, seconds, isTeamMode]);
+
+  // Render the current equation
+  const getCurrentEquation = () => {
+    if (!sequencesRef.current.length || currentSequenceIndex >= sequencesRef.current.length) {
+      return null;
+    }
+    
+    const currentSequence = sequencesRef.current[currentSequenceIndex];
+    return currentSequence ? currentSequence.equation : '';
+  };
+
+  // Function to render player cards similar to WordChainQuiz
+  const renderPlayerCards = () => {
+    const playerNames = Object.keys(players);
+    
+    if (!playerNames.length) {
+      return null;
+    }
+
+    // If in team mode, split players by team
+    if (isTeamMode) {
+      // Get players in each team
+      const blueTeamPlayers = playerNames.filter(name => 
+        players[name]?.team === 'blue' || question?.blue_team?.includes(name));
+      const redTeamPlayers = playerNames.filter(name => 
+        players[name]?.team === 'red' || question?.red_team?.includes(name));
+        
+      return (
+        &lt;Box 
+          sx={{ 
+            display: 'flex',
+            justifyContent: 'space-between',
+            width: '100%'
+          }}
+        >
+          {/* Blue Team */}
+          &lt;Box 
+            sx={{ 
+              width: '49.5%',
+              border: '3px solid #186CF6', // Blue team border
+              borderRadius: 3,
+              padding: 1, // Reduced padding
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}
+          >
+            &lt;Typography 
+              variant="h5" 
+              sx={{ 
+                color: '#186CF6', 
+                fontWeight: 'bold',
+                mb: 1 // Reduced margin
+              }}
+            >
+              Modrý tým
+            &lt;/Typography>
+            
+            &lt;Box 
+              sx={{ 
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1.5, // Gap between player cards
+                justifyContent: 'center',
+                width: '100%'
+              }}
+            >
+              {blueTeamPlayers.map((playerName) => renderPlayerCard(playerName))}
+            &lt;/Box>
+          &lt;/Box>
+          
+          {/* Red Team */}
+          &lt;Box 
+            sx={{ 
+              width: '49.5%',
+              border: '3px solid #EF4444', // Red team border
+              borderRadius: 3,
+              padding: 1, // Reduced padding
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}
+          >
+            &lt;Typography 
+              variant="h5" 
+              sx={{ 
+                color: '#EF4444', 
+                fontWeight: 'bold',
+                mb: 1 // Reduced margin
+              }}
+            >
+              Červený tým
+            &lt;/Typography>
+            
+            &lt;Box 
+              sx={{ 
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1.5, // Gap between player cards
+                justifyContent: 'center',
+                width: '100%'
+              }}
+            >
+              {redTeamPlayers.map((playerName) => renderPlayerCard(playerName))}
+            &lt;/Box>
+          &lt;/Box>
+        &lt;/Box>
+      );
+    }
+
+    // For non-team mode, use the existing layout
+    return (
+      &lt;Box 
+        sx={{ 
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%'
+        }}
+      >
+        &lt;Box 
+          sx={{ 
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: `repeat(${Math.min(4, playerNames.length)}, 1fr)`,
+              sm: `repeat(${Math.min(6, playerNames.length)}, 1fr)`,
+              md: `repeat(${Math.min(8, playerNames.length)}, 1fr)`,
+              lg: `repeat(${Math.min(10, playerNames.length)}, 1fr)`
+            },
+            gap: 2,
+            justifyContent: 'center'
+          }}
+        >
+          {playerNames.map((playerName) => renderPlayerCard(playerName))}
+        &lt;/Box>
+      &lt;/Box>
+    );
+  };
+  
+  // Extract rendering of a single player card to a separate function
+  const renderPlayerCard = (playerName) => {
+    const isEliminated = eliminatedPlayers.includes(playerName);
+    const playerColor = players[playerName]?.color || '#ccc';
+    const hasAnswered = playerStatuses[playerName]?.hasAnswered || playerAnswers[playerName] !== undefined;
+    
+    // Check if the player personally answered or if they are just part of a team that answered
+    const personallyAnswered = Object.values(playerAnswers).some(answers => 
+      answers.some(a => a.player === playerName)
+    );
+    
+    // Determine the status text based on player state
+    let statusText = 'Počítá...';
+    if (isEliminated) {
+      statusText = 'Vyřazen';
+    } else if (hasAnswered) {
+      if (personallyAnswered) {
+        statusText = 'Odpověděl';
+      } else {
+        // This player didn't answer personally but is on a team that answered
+        statusText = 'Vyřešeno';
+      }
+    }
+    
+    return (
+      &lt;Paper 
+        key={playerName}
+        elevation={1}
+        sx={{ 
+          p: 1.5, 
+          position: 'relative',
+          height: '165px', 
+          width: '128px',
+          borderRadius: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          bgcolor: isEliminated ? 'rgba(244, 67, 54, 0.1)' : 'background.paper',
+          opacity: isEliminated ? 0.7 : 1,
+          border: isEliminated ? '2px solid #f44336' : 'none',
+        }}
+      >
+        &lt;Avatar 
+          sx={{ 
+            bgcolor: playerColor,
+            width: 48,
+            height: 48,
+            fontSize: '1.5rem',
+            mb: 2,
+            color: 'white',
+            opacity: isEliminated ? 0.5 : 1
+          }}
+        >
+          {playerName.charAt(0).toUpperCase()}
+        &lt;/Avatar>
+        
+        &lt;Typography
+          variant="h6"
+          sx={{
+            fontSize: '1.1rem',
+            textAlign: 'center',
+            mb: 1,
+            opacity: isEliminated ? 0.5 : 1,
+            width: '100%',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            lineHeight: '1.2',
+            minHeight: '2.4em'
+          }}
+        >
+          {playerName}
+        &lt;/Typography>
+        
+        &lt;Typography 
+          variant="body2" 
+          color={isEliminated ? "error" : (hasAnswered ? "success.main" : "text.secondary")}
+          sx={{ fontWeight: 'medium' }}
+        >
+          {statusText}
+        &lt;/Typography>
+      &lt;/Paper>
+    );
+  };
+  
+  return (
+    &lt;Box sx={{ 
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      p: 3,
+      justifyContent: 'space-between' // Distribute space evenly
+    }}>
+      {/* Center content grid - now centered vertically with flex-grow to take space */}
+      &lt;Box sx={{ flex: 1 }} /> {/* Top spacing to push content to center */}
+      
+      &lt;Box sx={{ 
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr auto',
+        alignItems: 'center',
+        gap: 4,
+        px: 4,
+      }}>
+        {/* Timer bubble with more consistent display */}
+        &lt;Box sx={{ 
+          width: 120,
+          height: 120,
+          borderRadius: '50%',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          border: '2px solid #3B82F6'
+        }}>
+          &lt;Typography variant="h2" sx={{ fontWeight: 'bold', color: '#3B82F6' }}>
+            {displaySeconds !== null ? displaySeconds : seconds}
+          &lt;/Typography>
+        &lt;/Box>
+
+        {/* Current Equation */}
+        &lt;Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            borderRadius: 2,
+            backgroundColor: 'background.paper',
+            textAlign: 'center',
+            width: '100%'
+          }}
+        >
+          &lt;Typography 
+            variant="h3" 
+            component="div" 
+            sx={{ 
+              fontWeight: 'medium',
+              fontFamily: 'math',
+              whiteSpace: 'pre-wrap'
+            }}
+          >
+            {renderMathEquation ? renderMathEquation(getCurrentEquation()) : getCurrentEquation()}
+          &lt;/Typography>
+        &lt;/Paper>
+
+        {/* Question counter in a bubble - updated format to show X/Y with "úkolů" */}
+        &lt;Box sx={{ 
+          width: 120,
+          height: 120,
+          borderRadius: '50%',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          border: '2px solid #3B82F6'
+        }}>
+          &lt;Typography variant="h2" sx={{ fontWeight: 'bold', color: '#3B82F6' }}>
+            {currentSequenceIndex + 1}/{sequencesRef.current.length || 0}
+          &lt;/Typography>
+          &lt;Typography variant="subtitle1" sx={{ color: '#3B82F6', mt: -1 }}>
+            úkolů
+          &lt;/Typography>
+        &lt;/Box>
+      &lt;/Box>
+      
+      &lt;Box sx={{ flex: 1 }} /> {/* Middle spacing */}
+      
+      {/* Player cards at the bottom */}
+      {renderPlayerCards()}
+    &lt;/Box>
+  );
+};
+
+export default MathQuiz;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a> using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+<script src="scripts/collapse.js" defer></script>
+
+
+</body>
+</html>

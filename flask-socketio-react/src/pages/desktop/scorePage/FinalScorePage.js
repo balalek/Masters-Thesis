@@ -1,39 +1,64 @@
+/**
+ * @fileoverview Final Score Page component for displaying end-of-game results
+ * 
+ * This module provides:
+ * - Final leaderboard display with player rankings
+ * - Visual podium for top 3 players in free-for-all mode
+ * - Team-based results display with team members in team mode
+ * - Score visualization with player avatars and colors
+ * - Game reset functionality
+ * 
+ * @module Pages/Desktop/ScorePage/FinalScorePage
+ */
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, Container, Avatar } from '@mui/material';
+import { Box, Button, Typography, Avatar } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { getSocket } from '../../../utils/socket';
 
+/**
+ * Final Score Page component for displaying end-of-game results
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered final score page component
+ */
 const FinalScorePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const scores = location.state?.scores || {};
   const isRemote = location.state?.isRemote;
 
+  // Check if the scores object is empty and handle navigation accordingly
   useEffect(() => {
-    // Check if we have the required data
     if (Object.keys(scores).length === 0) {
       console.error('No scores data available');
       navigate('/');
       return;
     }
-    console.log('FinalScorePage loaded with scores:', scores);
   }, [scores, navigate]);
 
+  // Check if the game is remote and handle navigation accordingly
   useEffect(() => {
-      const socket = getSocket();
-  
-      socket.on('game_reset', (data) => {
-        navigate(data.was_remote ? '/remote' : '/');
-      });
-  
-      return () => {
-        socket.off('game_reset');
-      };
-    }, [navigate]);
+    const socket = getSocket();
 
+    socket.on('game_reset', (data) => {
+      navigate(data.was_remote ? '/remote' : '/');
+    });
+
+    return () => {
+      socket.off('game_reset');
+    };
+  }, [navigate]);
+
+  /**
+   * Handles quiz closure and cleanup.
+   * 
+   * Exits fullscreen mode, resets the game state on the server,
+   * and navigates back to the home page.
+   * 
+   * @function handleCloseQuiz
+   */
   const handleCloseQuiz = () => {
-    // Exit fullscreen before closing
     const exitFullscreen = async () => {
       try {
         if (document.fullscreenElement) {
@@ -58,6 +83,7 @@ const FinalScorePage = () => {
     });
   };
 
+  // Team mode visualization
   if (scores.is_team_mode) {
     const { teams, blue_team, red_team, individual } = scores;
     const sortedTeams = [
@@ -129,7 +155,7 @@ const FinalScorePage = () => {
               border: `3px solid ${team.color}`,
               boxShadow: `0 0 20px ${team.color}20`
             }}>
-              {/* Team Name - Now at top */}
+              {/* Team Name - At top */}
               <Typography variant="h2" sx={{ 
                 color: team.color,
                 fontWeight: 'bold',
@@ -139,7 +165,7 @@ const FinalScorePage = () => {
                 {isTie ? 'REMÍZA' : (index === 0 ? 'Vítězové' : 'Poražení')}
               </Typography>
 
-              {/* Win/Lose Status - Now below team name */}
+              {/* Win/Lose Status - Below team name */}
               {isWinner && (
                 <Typography 
                   variant="h4" 
@@ -209,6 +235,7 @@ const FinalScorePage = () => {
     );
   }
 
+  // Free-for-all mode visualization with podium
   const sortedPlayers = Object.entries(scores)
     .sort(([,a], [,b]) => b.score - a.score);
 
@@ -360,7 +387,7 @@ const FinalScorePage = () => {
         <Box sx={{ 
           display: 'flex',
           justifyContent: 'center',
-          alignItems: 'center', // Center items vertically in the train section
+          alignItems: 'center',
           width: '100%',
           mt: 2,
           mb: 4,
@@ -375,9 +402,9 @@ const FinalScorePage = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center', // Center items vertically within each player card
+                justifyContent: 'center',
                 width: '220px',
-                height: '160px', // Define fixed height
+                height: '160px',
                 mb: 2,
               }}
             >
@@ -390,7 +417,7 @@ const FinalScorePage = () => {
                   fontSize: '1.8rem', 
                   color: 'white',
                   mb: 2,
-                  boxShadow: `0 2px 12px ${data.color}60`, // Added glow effect using player color
+                  boxShadow: `0 2px 12px ${data.color}60`, // Glow effect using player color
                 }}
               >
                 {playerName.charAt(0).toUpperCase()}

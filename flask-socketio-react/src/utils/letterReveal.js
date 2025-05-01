@@ -1,9 +1,22 @@
 /**
- * Utilities for letter masking and revealing in quiz games
+ * @fileoverview Utilities for progressive letter revealing in open answer and drawing quizzes
+ * 
+ * This module provides:
+ * - Word masking with underscores for hidden letters
+ * - Progressive letter reveal calculations based on time
+ * - Strategic letter selection algorithms for hints
+ * - Mask updating with newly revealed letters
+ * 
+ * @module Utils/LetterReveal
  */
 
 /**
  * Creates an initial mask for a word or phrase, replacing letters with underscores
+ * 
+ * Preserves spaces and special characters while masking all letters that
+ * players need to guess.
+ * 
+ * @function createInitialMask
  * @param {string} answer - The correct answer to mask
  * @returns {string} A string with letters replaced by underscores and spaces preserved
  */
@@ -17,6 +30,14 @@ export const createInitialMask = (answer) => {
 
 /**
  * Calculates if a letter should be revealed at the current time
+ * 
+ * Uses a sophisticated algorithm to determine reveal timing:
+ * - Delays initial reveals until 20% of time has passed
+ * - Stops reveals in the final 10% of time
+ * - Limits total reveals to 50% of the answer's letters
+ * - Scales reveal rate to ensure smooth progression
+ * 
+ * @function shouldRevealLetter
  * @param {Object} params - Parameters for the calculation
  * @param {number} params.timePassedPercent - Percentage of time passed (0-1)
  * @param {string} params.answer - The full answer string
@@ -75,21 +96,4 @@ export const shouldRevealLetter = ({
   }
   
   return { shouldReveal: false };
-};
-
-/**
- * Updates a mask with a newly revealed letter at a specific position
- * @param {string} mask - Current mask
- * @param {string} answer - Original answer
- * @param {number} position - Position to reveal
- * @returns {string} Updated mask with the letter revealed
- */
-export const updateMaskWithReveal = (mask, answer, position) => {
-  if (!mask || !answer || position < 0 || position >= answer.length) {
-    return mask;
-  }
-  
-  const maskArray = mask.split('');
-  maskArray[position] = answer[position];
-  return maskArray.join('');
 };

@@ -207,7 +207,6 @@ def start_game():
                         categories = config.get('categories', None)
                         # Get exclude audio preference
                         exclude_audio = config.get('excludeAudio', False)
-                        print(f"Exclude audio: {exclude_audio}")
                         
                         # Get the device ID to exclude questions created by this device
                         device_id = get_device_id()
@@ -593,14 +592,17 @@ def next_question():
     # For Guess a Number in team mode, initialize the phase
     if game_state.is_team_mode and next_question.get('type') == 'GUESS_A_NUMBER':
         game_state.number_guess_phase = 1
+        print(f"team active? {game_state.active_team}")
         
         # Make sure active_team is set before switching
         if game_state.active_team is None:
             # Start with blue team if no active team is set
             game_state.active_team = 'blue'
         else:
-            # Switch active team from the previous question
-            game_state.active_team = 'red' if game_state.active_team == 'blue' else 'blue'
+            # Switch active team from the previous question (it's like this, because we have two phases)
+            # In the first phase active is for example blue, in second red, 
+            # so in first phase in next question will start red -> meaning this is correct code!!
+            game_state.active_team = 'red' if game_state.active_team == 'red' else 'blue'
 
     # Send the next question to all players devices
     socketio.emit('next_question', {

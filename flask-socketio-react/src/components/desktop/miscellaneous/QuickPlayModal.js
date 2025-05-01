@@ -1,3 +1,7 @@
+/**
+ * @fileoverview QuickPlayModal component - dialog for configuring and starting quick play games
+ * @module Components/Desktop/Miscellaneous/QuickPlayModal
+ */
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -26,7 +30,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS, QUIZ_VALIDATION, QUIZ_CATEGORIES } from '../../../constants/quizValidation';
 import { scrollbarStyle } from '../../../utils/scrollbarStyle';
 
-// Available quiz type configurations for quick play
+/**
+ * Quiz types available for quick play mode
+ * @constant
+ * @type {string[]}
+ */
 const QUICK_PLAY_TYPES = [
   QUIZ_TYPES.ABCD,
   QUIZ_TYPES.TRUE_FALSE,
@@ -35,19 +43,28 @@ const QUICK_PLAY_TYPES = [
   QUIZ_TYPES.WORD_CHAIN,
   QUIZ_TYPES.GUESS_A_NUMBER,
   QUIZ_TYPES.MATH_QUIZ,
-  QUIZ_TYPES.BLIND_MAP,
-  // Add more types as they become available for quick play
+  QUIZ_TYPES.BLIND_MAP
 ];
 
 /**
- * A modal dialog for configuring quick play games
- * @param {Object} props
+ * Modal dialog component for configuring and starting quick play games
+ * 
+ * Provides customizable options for each quiz type:
+ * - Drawing: rounds and time per round
+ * - Word Chain: rounds and player time limits
+ * - ABCD/True-False/Open Answer/Guess a number: number of questions and categories
+ * - Math Quiz: number of questions
+ * - Blind Map: rounds and map preference
+ * 
+ * @component
+ * @param {Object} props - Component props
  * @param {boolean} props.open - Whether the dialog is open
- * @param {function} props.onClose - Function to call when the dialog is closed
- * @param {function} props.onStartGame - Function to call when a game is started
- * @param {string} props.selectedType - The currently selected quiz type
+ * @param {Function} props.onClose - Function to call when the dialog is closed
+ * @param {Function} props.onStartGame - Function to call with configuration when a game is started
+ * @param {string} props.selectedType - The initially selected quiz type
+ * @returns {React.ReactElement} Rendered modal dialog
  */
-const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
+const QuickPlayModal = ({ open, onClose, onStartGame }) => {
   const [loading, setLoading] = useState(false);
   
   // State to track which quiz types are selected
@@ -92,10 +109,22 @@ const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
   // Track expanded accordion panels
   const [expanded, setExpanded] = useState(false);
 
+  /**
+   * Handle accordion panel expansion/collapse
+   * 
+   * @param {string} panel - Panel identifier to toggle
+   * @returns {Function} Event handler for accordion changes
+   */
   const handleAccordionChange = (panel) => (event, isExpanded) => {
     setExpanded(isExpanded ? panel : false);
   };
 
+  /**
+   * Toggle selection of a quiz type
+   * 
+   * @param {string} type - Quiz type identifier
+   * @returns {Function} Event handler for checkbox changes
+   */
   const handleTypeSelect = (type) => (event) => {
     setSelectedTypes(prev => ({
       ...prev,
@@ -108,6 +137,14 @@ const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
     }
   };
 
+  /**
+   * Start the game with current configuration
+   * 
+   * Gathers all selected quiz types and their configurations,
+   * builds a combined game configuration and passes it to the parent.
+   * 
+   * @function handleStartGame
+   */
   const handleStartGame = () => {
     setLoading(true);
     
@@ -187,6 +224,11 @@ const QuickPlayModal = ({ open, onClose, onStartGame, selectedType }) => {
 
   const atLeastOneSelected = Object.values(selectedTypes).some(Boolean);
 
+  /**
+   * Configuration for Select components with multiple options
+   * 
+   * @type {Object}
+   */
   const MenuProps = {
     PaperProps: {
       style: {

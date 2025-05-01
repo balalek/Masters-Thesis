@@ -1,15 +1,33 @@
+/**
+ * @fileoverview Mobile Join Quiz Room component for player connection
+ * 
+ * This module provides:
+ * - Player name and color selection interface
+ * - Real-time color availability updates via socket.io
+ * - Form validation for player names
+ * - Session persistence between reconnections
+ * - Transition to waiting room after successful connection
+ * 
+ * @module Pages/Mobile/JoinQuizRoom/MobileJoinQuizRoom
+ */
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Add useLocation
-import { Box, TextField, Button, Typography, Container, Avatar } from '@mui/material';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Box, TextField, Button, Typography, Container } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import { getSocket } from '../../../utils/socket';
 import WaitingRoom from '../../../components/mobile/screensBetweenRounds/WaitingRoom';
 
+/**
+ * Mobile Join Quiz Room component for player registration
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered join room component
+ */
 function MobileJoinQuizRoom() {
-  const location = useLocation(); // Add this
+  const location = useLocation();
   const [playerName, setPlayerName] = useState(location.state?.playerName || '');
   const [selectedColor, setSelectedColor] = useState(location.state?.playerColor || null);
-  const [playerColor, setPlayerColor] = useState(null);  // Add new state for permanent color
+  const [playerColor, setPlayerColor] = useState(null);
   const [availableColors, setAvailableColors] = useState([]);
   const [nameError, setNameError] = useState('');
   const [isPlayerCreated, setIsPlayerCreated] = useState(false);
@@ -17,20 +35,18 @@ function MobileJoinQuizRoom() {
   const navigate = useNavigate();
   const socket = getSocket();
 
-  // Initial color fetch
+  // Fetch available colors from the server on component mount
   useEffect(() => {
     fetch(`http://${window.location.hostname}:5000/available_colors`)
       .then(response => response.json())
       .then(data => {
-        console.log('Initial colors fetch:', data.colors);
         setAvailableColors(data.colors);
       });
   }, []);
 
-  // Socket listeners
+  // Listen for color updates and game reset events from the server
   useEffect(() => {
     socket.on('colors_updated', (data) => {
-      console.log('Colors updated received:', data.colors);
       setAvailableColors(data.colors);
     });
 
@@ -57,14 +73,23 @@ function MobileJoinQuizRoom() {
     }
   }, [availableColors, selectedColor, isPlayerCreated]);
 
+  // Set the selected color from the state if available
+  // This is for faster registration if player wants to play again
   useEffect(() => {
-    // If we have state data, auto-join the game
     if (location.state?.playerName && location.state?.playerColor) {
       // Select the color that is stored in the state
       setSelectedColor(location.state.playerColor);
     }
   }, []);
 
+  /**
+   * Handle player joining the game
+   * 
+   * Sends player data to the server and transitions to waiting room
+   * if successful, or displays an error message if joining fails.
+   * 
+   * @function handleJoinGame
+   */
   const handleJoinGame = () => {
     if (!playerName.trim() || !selectedColor) return;
 
@@ -93,6 +118,15 @@ function MobileJoinQuizRoom() {
       });
   };
 
+  /**
+   * Handle player name changes
+   * 
+   * Validates the player name and sets appropriate error messages
+   * when name length requirements are not met.
+   * 
+   * @function handleNameChange
+   * @param {Object} e - React change event
+   */
   const handleNameChange = (e) => {
     const name = e.target.value;
     setPlayerName(name);
@@ -104,9 +138,17 @@ function MobileJoinQuizRoom() {
     }
   };
 
+  /**
+   * Reset player creation state
+   * 
+   * Returns from waiting room to the join form while preserving
+   * the player's color selection.
+   * 
+   * @function handleReset
+   */
   const handleReset = () => {
     setIsPlayerCreated(false);
-    setSelectedColor(playerColor); // Add this line to keep the color selected
+    setSelectedColor(playerColor);
   };
 
   return (
@@ -114,8 +156,8 @@ function MobileJoinQuizRoom() {
       <Box sx={{ 
         display: 'flex', 
         flexDirection: 'column',
-        justifyContent: 'center', // Center content vertically
-        alignItems: 'center',     // Center content horizontally
+        justifyContent: 'center',
+        alignItems: 'center',
         minHeight: '100vh',
         py: 4
       }}>
@@ -123,14 +165,14 @@ function MobileJoinQuizRoom() {
           <WaitingRoom 
             playerName={playerName} 
             playerColor={playerColor}
-            onReset={handleReset}  // Add this prop
+            onReset={handleReset}
           />
         ) : (
           <Box sx={{
             display: 'flex',
             flexDirection: 'column',
             gap: 3,
-            alignItems: 'center' // Center form content horizontally
+            alignItems: 'center'
           }}>
             <Typography variant="h4" component="h1">
               Připojení do kvízu
@@ -156,7 +198,7 @@ function MobileJoinQuizRoom() {
                 display: 'flex',
                 flexWrap: 'wrap',
                 gap: 2,
-                justifyContent: 'center' // Center the color buttons
+                justifyContent: 'center'
               }}
             >
               {availableColors.map((color) => (
@@ -169,7 +211,7 @@ function MobileJoinQuizRoom() {
                   <Button
                     variant={selectedColor === color ? "contained" : "outlined"}
                     sx={{
-                      backgroundColor: color,  // Always show the color
+                      backgroundColor: color,
                       width: '100%',
                       height: '50px',
                       position: 'relative',
@@ -203,7 +245,7 @@ function MobileJoinQuizRoom() {
             size="large"
             onClick={handleJoinGame}
             disabled={!playerName.trim() || !selectedColor || !!nameError}
-            sx={{ mt: 4 }} // Margin top
+            sx={{ mt: 4 }}
           >
             Připojit
           </Button>

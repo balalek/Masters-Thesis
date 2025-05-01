@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/desktop/miscellaneous/ImageBlockReveal.js - Home Quiz Documentation</title>
+    
+    <meta name="description" content="Documentation for the Home Quiz application" />
+    
+        <meta name="keywords" content="react, quiz, documentation" />
+        <meta name="keyword" content="react, quiz, documentation" />
+    
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-App.html">App</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-App.html#~App">App</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_GameCountdown.html">Components/Desktop/Miscellaneous/GameCountdown</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_GameCountdown.html#~GameCountdown">GameCountdown</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html">Components/Desktop/Miscellaneous/ImageBlockReveal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~ImageBlockReveal">ImageBlockReveal</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~getContainerStyle">getContainerStyle</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~handleImageLoad">handleImageLoad</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html">Components/Desktop/Miscellaneous/Leaderboard</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html#~Leaderboard">Leaderboard</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html#~renderPlayer">renderPlayer</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_QuestionPreview.html">Components/Desktop/Miscellaneous/QuestionPreview</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuestionPreview.html#~QuestionPreview">QuestionPreview</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html">Components/Desktop/Miscellaneous/QuickPlayModal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html#~QuickPlayModal">QuickPlayModal</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html#~handleStartGame">handleStartGame</a></li></ul></li><li><a href="module-Components_Desktop_Room_ConnectionInfo.html">Components/Desktop/Room/ConnectionInfo</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_ConnectionInfo.html#~ConnectionInfo">ConnectionInfo</a></li></ul></li><li><a href="module-Components_Desktop_Room_PlayersList.html">Components/Desktop/Room/PlayersList</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_PlayersList.html#~PlayersList">PlayersList</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_PlayersList.html#~distributePlayersInColumns">distributePlayersInColumns</a></li></ul></li><li><a href="module-Components_Desktop_Room_StartGameTooltip.html">Components/Desktop/Room/StartGameTooltip</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_StartGameTooltip.html#~StartGameTooltip">StartGameTooltip</a></li></ul></li><li><a href="module-Components_Desktop_Room_TeamMode.html">Components/Desktop/Room/TeamMode</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_TeamMode.html#~TeamContainer">TeamContainer</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_TeamMode.html#~TeamMode">TeamMode</a></li></ul></li><li><a href="module-Constants_QuizValidation.html">Constants/QuizValidation</a></li><li><a href="module-Pages_Desktop_Game_GamePage.html">Pages/Desktop/Game/GamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_GamePage.html#~GamePage">GamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_GamePage.html#~renderQuizType">renderQuizType</a></li></ul></li><li><a href="module-Pages_Desktop_Game_RemoteGamePage.html">Pages/Desktop/Game/RemoteGamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_RemoteGamePage.html#~RemoteGamePage">RemoteGamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_RemoteGamePage.html#~handleCountdownComplete">handleCountdownComplete</a></li></ul></li><li><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html">Pages/Desktop/HomePage/DesktopHomePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~DesktopHomePage">DesktopHomePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~QuizTypeButton">QuizTypeButton</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~continueUnfinishedQuiz">continueUnfinishedQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~deleteUnfinishedQuiz">deleteUnfinishedQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~fetchQuizzes">fetchQuizzes</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~fetchUnfinishedQuizzes">fetchUnfinishedQuizzes</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleCloseSnackbar">handleCloseSnackbar</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleCreateCopy">handleCreateCopy</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleDeleteQuiz">handleDeleteQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleEditPublicQuiz">handleEditPublicQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleEditQuiz">handleEditQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleQuickPlayClick">handleQuickPlayClick</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleStartQuickPlay">handleStartQuickPlay</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleToggleShare">handleToggleShare</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~loadMore">loadMore</a></li></ul></li><li><a href="module-Pages_Desktop_HomePage_QuizListItem.html">Pages/Desktop/HomePage/QuizListItem</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~QuizListItem">QuizListItem</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~handleEdit">handleEdit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~handleStartQuiz">handleStartQuiz</a></li></ul></li><li><a href="module-Pages_Desktop_Room_RoomPage.html">Pages/Desktop/Room/RoomPage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~RoomPage">RoomPage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~getConnectionUrl">getConnectionUrl</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~getRemoteGameUrl">getRemoteGameUrl</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleChangeBlueTeamCaptain">handleChangeBlueTeamCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleChangeRedTeamCaptain">handleChangeRedTeamCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleCloseQuiz">handleCloseQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleCountdownComplete">handleCountdownComplete</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleModeChange">handleModeChange</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleSelectCaptain">handleSelectCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleStartGame">handleStartGame</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleStartGameOnAnotherScreen">handleStartGameOnAnotherScreen</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleSwitchTeam">handleSwitchTeam</a></li></ul></li><li><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html">Pages/Desktop/ScorePage/FinalScorePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html#~FinalScorePage">FinalScorePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html#~handleCloseQuiz">handleCloseQuiz</a></li></ul></li><li><a href="module-Pages_Desktop_ScorePage_ScorePage.html">Pages/Desktop/ScorePage/ScorePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~ScorePage">ScorePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~handleCloseQuiz">handleCloseQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~renderAnswers">renderAnswers</a></li></ul></li><li><a href="module-Pages_Mobile_Game_MobileGamePage.html">Pages/Mobile/Game/MobileGamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~MobileGamePage">MobileGamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleAnswer">handleAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleBlindMapAnswer">handleBlindMapAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleCaptainChoice">handleCaptainChoice</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleDrawingSubmit">handleDrawingSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleMathAnswer">handleMathAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleMoreLessVote">handleMoreLessVote</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleNumberGuess">handleNumberGuess</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleOpenAnswer">handleOpenAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleWordChainSubmit">handleWordChainSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleWordSelected">handleWordSelected</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~renderQuizType">renderQuizType</a></li></ul></li><li><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html">Pages/Mobile/JoinQuizRoom/MobileJoinQuizRoom</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~MobileJoinQuizRoom">MobileJoinQuizRoom</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleJoinGame">handleJoinGame</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleNameChange">handleNameChange</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleReset">handleReset</a></li></ul></li><li><a href="module-Themes.html">Themes</a></li><li><a href="module-Utils_LetterReveal.html">Utils/LetterReveal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_LetterReveal.html#~createInitialMask">createInitialMask</a></li><li data-type='method' style='display: none;'><a href="module-Utils_LetterReveal.html#~shouldRevealLetter">shouldRevealLetter</a></li></ul></li><li><a href="module-Utils_MathRenderer.html">Utils/MathRenderer</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_MathRenderer.html#~renderMathEquation">renderMathEquation</a></li></ul></li><li><a href="module-Utils_ScrollbarStyle.html">Utils/ScrollbarStyle</a></li><li><a href="module-Utils_Socket.html">Utils/Socket</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~getServerTime">getServerTime</a></li><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~getSocket">getSocket</a></li><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~synchronizeTime">synchronizeTime</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#MathQuiz">MathQuiz</a></li><li><a href="global.html#WordChainQuiz">WordChainQuiz</a></li><li><a href="global.html#fixAnagram">fixAnagram</a></li><li><a href="global.html#generateAnagram">generateAnagram</a></li><li><a href="global.html#isValidAnagram">isValidAnagram</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/desktop/miscellaneous/ImageBlockReveal.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @fileoverview Image Block Reveal component for progressive image unveiling
+ * 
+ * This component provides:
+ * - Progressive image reveal through a 3x3 grid of blocks
+ * - Randomized reveal sequence for visual interest
+ * - Time-based reveal calculation synchronized with question timer
+ * - Responsive sizing based on image dimensions and viewport
+ * - Smooth transition effects for block removal
+ * 
+ * @module Components/Desktop/Miscellaneous/ImageBlockReveal
+ */
+import React, { useState, useEffect, useRef } from 'react';
+import { Box } from '@mui/material';
+
+/**
+ * Image Block Reveal component for gradually unveiling images
+ * 
+ * Divides an image into 9 blocks that progressively reveal the image
+ * as time passes, creating anticipation and visual interest during
+ * the question answering period.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.imageUrl - URL of the image to display and reveal
+ * @param {number} props.timeRemaining - Time remaining in milliseconds
+ * @param {number} props.totalTime - Total question time in milliseconds
+ * @param {Function} props.onError - Handler for image loading errors
+ * @returns {JSX.Element} The rendered image block reveal component
+ */
+const ImageBlockReveal = ({ imageUrl, timeRemaining, totalTime, onError }) => {
+  const [revealedBlocks, setRevealedBlocks] = useState([]);
+  const blocksToRevealRef = useRef(null);
+  const containerRef = useRef(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  
+  // Initialize the blocks reveal sequence once
+  useEffect(() => {
+    if (!blocksToRevealRef.current) {
+      // Create array of all 9 block indexes
+      const allBlocks = [...Array(9).keys()];
+      
+      // Shuffle blocks for randomized reveal order
+      const shuffledBlocks = [...allBlocks].sort(() => Math.random() - 0.5);
+      
+      // Store the reveal sequence
+      blocksToRevealRef.current = shuffledBlocks;
+      
+      // Reveal the first block immediately
+      setRevealedBlocks([shuffledBlocks[0]]);
+    }
+  }, []);
+
+  // Update revealed blocks based on time passed
+  useEffect(() => {
+    if (timeRemaining === null || !blocksToRevealRef.current) return;
+    
+    // Calculate time passed percentage
+    const timePassed = totalTime - timeRemaining;
+    const timePassedPercent = timePassed / totalTime;
+    
+    // Determine how many blocks should be revealed at this time
+    // We want all 9 blocks revealed by 80% of time
+    // The first block is revealed at 0%, and then one additional block every 10%
+    const targetRevealCount = Math.min(9, Math.ceil(timePassedPercent * 9 / 0.8));
+    
+    // If we need to show more blocks than currently revealed
+    if (targetRevealCount > revealedBlocks.length) {
+      const newRevealedBlocks = blocksToRevealRef.current.slice(0, targetRevealCount);
+      setRevealedBlocks(newRevealedBlocks);
+    }
+  }, [timeRemaining, totalTime, revealedBlocks.length]);
+
+  /**
+   * Handles image load event and captures natural dimensions
+   * 
+   * @function handleImageLoad
+   * @param {Event} e - Image load event
+   */
+  const handleImageLoad = (e) => {
+    const img = e.target;
+    const { naturalWidth, naturalHeight } = img;
+    
+    // Store the natural dimensions of the image
+    setImageDimensions({ width: naturalWidth, height: naturalHeight });
+    setImageLoaded(true);
+  };
+
+  /**
+   * Calculates container dimensions based on image aspect ratio
+   * 
+   * Determines optimal container size considering image aspect ratio,
+   * viewport dimensions, and maximum width/height constraints.
+   * 
+   * @function getContainerStyle
+   * @returns {Object} CSS style object with width, height, and position
+   */
+  const getContainerStyle = () => {
+    if (!imageLoaded) {
+      return { width: '100%', maxWidth: '800px' };
+    }
+    
+    const { width, height } = imageDimensions;
+    const aspectRatio = height / width;
+    
+    // Limit max width to 800px and max height to 60vh
+    const maxWidth = 800;
+    const maxHeight = window.innerHeight * 0.6; // 60vh
+    
+    let finalWidth, finalHeight;
+    
+    if (aspectRatio > 1) {
+      // Portrait image - height is the limiting factor
+      finalHeight = Math.min(maxHeight, maxWidth * aspectRatio);
+      finalWidth = finalHeight / aspectRatio;
+    } else {
+      // Landscape image - width is the limiting factor
+      finalWidth = Math.min(maxWidth, maxHeight / aspectRatio);
+      finalHeight = finalWidth * aspectRatio;
+    }
+    
+    return {
+      width: finalWidth + 'px',
+      height: finalHeight + 'px',
+      position: 'relative',
+    };
+  };
+
+  return (
+    &lt;Box
+      ref={containerRef}
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        maxWidth: '800px',
+        overflow: 'hidden',
+      }}
+    >
+      &lt;Box
+        sx={{
+          ...getContainerStyle(),
+          position: 'relative',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateRows: 'repeat(3, 1fr)',
+          overflow: 'hidden',
+          borderRadius: 2,
+          boxShadow: 4,
+          border: '1px solid rgba(0,0,0,0.1)',
+        }}
+      >
+        {/* Main image */}
+        &lt;Box 
+          component="img"
+          src={imageUrl}
+          alt="Question Media"
+          sx={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            zIndex: 1,
+          }}
+          onLoad={handleImageLoad}
+          onError={onError}
+        />
+
+        {/* Overlay grid cells */}
+        {imageLoaded &amp;&amp; [...Array(9)].map((_, index) => {
+          const row = Math.floor(index / 3);
+          const col = index % 3;
+          const isRevealed = revealedBlocks.includes(index);
+
+          return (
+            &lt;Box
+              key={index}
+              sx={{
+                gridRow: row + 1,
+                gridColumn: col + 1,
+                backgroundColor: 'black',
+                zIndex: isRevealed ? 0 : 2,
+                transition: 'opacity 0.5s ease',
+                opacity: isRevealed ? 0 : 1,
+              }}
+            />
+          );
+        })}
+      &lt;/Box>
+    &lt;/Box>
+  );
+};
+
+export default ImageBlockReveal;</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a> using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+<script src="scripts/collapse.js" defer></script>
+
+
+</body>
+</html>

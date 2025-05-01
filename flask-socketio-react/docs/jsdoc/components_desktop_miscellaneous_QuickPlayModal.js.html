@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/desktop/miscellaneous/QuickPlayModal.js - Home Quiz Documentation</title>
+    
+    <meta name="description" content="Documentation for the Home Quiz application" />
+    
+        <meta name="keywords" content="react, quiz, documentation" />
+        <meta name="keyword" content="react, quiz, documentation" />
+    
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-App.html">App</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-App.html#~App">App</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_GameCountdown.html">Components/Desktop/Miscellaneous/GameCountdown</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_GameCountdown.html#~GameCountdown">GameCountdown</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html">Components/Desktop/Miscellaneous/ImageBlockReveal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~ImageBlockReveal">ImageBlockReveal</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~getContainerStyle">getContainerStyle</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~handleImageLoad">handleImageLoad</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html">Components/Desktop/Miscellaneous/Leaderboard</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html#~Leaderboard">Leaderboard</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html#~renderPlayer">renderPlayer</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_QuestionPreview.html">Components/Desktop/Miscellaneous/QuestionPreview</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuestionPreview.html#~QuestionPreview">QuestionPreview</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html">Components/Desktop/Miscellaneous/QuickPlayModal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html#~QuickPlayModal">QuickPlayModal</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html#~handleStartGame">handleStartGame</a></li></ul></li><li><a href="module-Components_Desktop_Room_ConnectionInfo.html">Components/Desktop/Room/ConnectionInfo</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_ConnectionInfo.html#~ConnectionInfo">ConnectionInfo</a></li></ul></li><li><a href="module-Components_Desktop_Room_PlayersList.html">Components/Desktop/Room/PlayersList</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_PlayersList.html#~PlayersList">PlayersList</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_PlayersList.html#~distributePlayersInColumns">distributePlayersInColumns</a></li></ul></li><li><a href="module-Components_Desktop_Room_StartGameTooltip.html">Components/Desktop/Room/StartGameTooltip</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_StartGameTooltip.html#~StartGameTooltip">StartGameTooltip</a></li></ul></li><li><a href="module-Components_Desktop_Room_TeamMode.html">Components/Desktop/Room/TeamMode</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_TeamMode.html#~TeamContainer">TeamContainer</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_TeamMode.html#~TeamMode">TeamMode</a></li></ul></li><li><a href="module-Constants_QuizValidation.html">Constants/QuizValidation</a></li><li><a href="module-Pages_Desktop_Game_GamePage.html">Pages/Desktop/Game/GamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_GamePage.html#~GamePage">GamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_GamePage.html#~renderQuizType">renderQuizType</a></li></ul></li><li><a href="module-Pages_Desktop_Game_RemoteGamePage.html">Pages/Desktop/Game/RemoteGamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_RemoteGamePage.html#~RemoteGamePage">RemoteGamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_RemoteGamePage.html#~handleCountdownComplete">handleCountdownComplete</a></li></ul></li><li><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html">Pages/Desktop/HomePage/DesktopHomePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~DesktopHomePage">DesktopHomePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~QuizTypeButton">QuizTypeButton</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~continueUnfinishedQuiz">continueUnfinishedQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~deleteUnfinishedQuiz">deleteUnfinishedQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~fetchQuizzes">fetchQuizzes</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~fetchUnfinishedQuizzes">fetchUnfinishedQuizzes</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleCloseSnackbar">handleCloseSnackbar</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleCreateCopy">handleCreateCopy</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleDeleteQuiz">handleDeleteQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleEditPublicQuiz">handleEditPublicQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleEditQuiz">handleEditQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleQuickPlayClick">handleQuickPlayClick</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleStartQuickPlay">handleStartQuickPlay</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleToggleShare">handleToggleShare</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~loadMore">loadMore</a></li></ul></li><li><a href="module-Pages_Desktop_HomePage_QuizListItem.html">Pages/Desktop/HomePage/QuizListItem</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~QuizListItem">QuizListItem</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~handleEdit">handleEdit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~handleStartQuiz">handleStartQuiz</a></li></ul></li><li><a href="module-Pages_Desktop_Room_RoomPage.html">Pages/Desktop/Room/RoomPage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~RoomPage">RoomPage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~getConnectionUrl">getConnectionUrl</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~getRemoteGameUrl">getRemoteGameUrl</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleChangeBlueTeamCaptain">handleChangeBlueTeamCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleChangeRedTeamCaptain">handleChangeRedTeamCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleCloseQuiz">handleCloseQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleCountdownComplete">handleCountdownComplete</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleModeChange">handleModeChange</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleSelectCaptain">handleSelectCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleStartGame">handleStartGame</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleStartGameOnAnotherScreen">handleStartGameOnAnotherScreen</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleSwitchTeam">handleSwitchTeam</a></li></ul></li><li><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html">Pages/Desktop/ScorePage/FinalScorePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html#~FinalScorePage">FinalScorePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html#~handleCloseQuiz">handleCloseQuiz</a></li></ul></li><li><a href="module-Pages_Desktop_ScorePage_ScorePage.html">Pages/Desktop/ScorePage/ScorePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~ScorePage">ScorePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~handleCloseQuiz">handleCloseQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~renderAnswers">renderAnswers</a></li></ul></li><li><a href="module-Pages_Mobile_Game_MobileGamePage.html">Pages/Mobile/Game/MobileGamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~MobileGamePage">MobileGamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleAnswer">handleAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleBlindMapAnswer">handleBlindMapAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleCaptainChoice">handleCaptainChoice</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleDrawingSubmit">handleDrawingSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleMathAnswer">handleMathAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleMoreLessVote">handleMoreLessVote</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleNumberGuess">handleNumberGuess</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleOpenAnswer">handleOpenAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleWordChainSubmit">handleWordChainSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleWordSelected">handleWordSelected</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~renderQuizType">renderQuizType</a></li></ul></li><li><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html">Pages/Mobile/JoinQuizRoom/MobileJoinQuizRoom</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~MobileJoinQuizRoom">MobileJoinQuizRoom</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleJoinGame">handleJoinGame</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleNameChange">handleNameChange</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleReset">handleReset</a></li></ul></li><li><a href="module-Themes.html">Themes</a></li><li><a href="module-Utils_LetterReveal.html">Utils/LetterReveal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_LetterReveal.html#~createInitialMask">createInitialMask</a></li><li data-type='method' style='display: none;'><a href="module-Utils_LetterReveal.html#~shouldRevealLetter">shouldRevealLetter</a></li></ul></li><li><a href="module-Utils_MathRenderer.html">Utils/MathRenderer</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_MathRenderer.html#~renderMathEquation">renderMathEquation</a></li></ul></li><li><a href="module-Utils_ScrollbarStyle.html">Utils/ScrollbarStyle</a></li><li><a href="module-Utils_Socket.html">Utils/Socket</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~getServerTime">getServerTime</a></li><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~getSocket">getSocket</a></li><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~synchronizeTime">synchronizeTime</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#MathQuiz">MathQuiz</a></li><li><a href="global.html#WordChainQuiz">WordChainQuiz</a></li><li><a href="global.html#fixAnagram">fixAnagram</a></li><li><a href="global.html#generateAnagram">generateAnagram</a></li><li><a href="global.html#isValidAnagram">isValidAnagram</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/desktop/miscellaneous/QuickPlayModal.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @fileoverview QuickPlayModal component - dialog for configuring and starting quick play games
+ * @module Components/Desktop/Miscellaneous/QuickPlayModal
+ */
+import React, { useState } from 'react';
+import { 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions, 
+  Button, 
+  Typography, 
+  Box, 
+  Slider,
+  Checkbox,
+  FormControlLabel,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Divider,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Chip,
+  OutlinedInput,
+  ListItemText
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS, QUIZ_VALIDATION, QUIZ_CATEGORIES } from '../../../constants/quizValidation';
+import { scrollbarStyle } from '../../../utils/scrollbarStyle';
+
+/**
+ * Quiz types available for quick play mode
+ * @constant
+ * @type {string[]}
+ */
+const QUICK_PLAY_TYPES = [
+  QUIZ_TYPES.ABCD,
+  QUIZ_TYPES.TRUE_FALSE,
+  QUIZ_TYPES.OPEN_ANSWER,
+  QUIZ_TYPES.DRAWING,
+  QUIZ_TYPES.WORD_CHAIN,
+  QUIZ_TYPES.GUESS_A_NUMBER,
+  QUIZ_TYPES.MATH_QUIZ,
+  QUIZ_TYPES.BLIND_MAP
+];
+
+/**
+ * Modal dialog component for configuring and starting quick play games
+ * 
+ * Provides customizable options for each quiz type:
+ * - Drawing: rounds and time per round
+ * - Word Chain: rounds and player time limits
+ * - ABCD/True-False/Open Answer/Guess a number: number of questions and categories
+ * - Math Quiz: number of questions
+ * - Blind Map: rounds and map preference
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {boolean} props.open - Whether the dialog is open
+ * @param {Function} props.onClose - Function to call when the dialog is closed
+ * @param {Function} props.onStartGame - Function to call with configuration when a game is started
+ * @param {string} props.selectedType - The initially selected quiz type
+ * @returns {React.ReactElement} Rendered modal dialog
+ */
+const QuickPlayModal = ({ open, onClose, onStartGame }) => {
+  const [loading, setLoading] = useState(false);
+  
+  // State to track which quiz types are selected
+  const [selectedTypes, setSelectedTypes] = useState({});
+  
+  // Drawing-specific state
+  const [drawingRounds, setDrawingRounds] = useState(
+    QUIZ_VALIDATION.DRAWING.DEFAULT_ROUNDS
+  );
+  const [drawingTime, setDrawingTime] = useState(
+    QUIZ_VALIDATION.DRAWING.DEFAULT_TIME
+  );
+
+  // Word chain-specific state
+  const [wordChainRounds, setWordChainRounds] = useState(QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS);
+  const [wordChainTime, setWordChainTime] = useState(QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME);
+  
+  // ABCD-specific state
+  const [abcdQuestions, setAbcdQuestions] = useState(5);
+  const [abcdCategories, setAbcdCategories] = useState([]);
+
+  // True/False-specific state
+  const [trueFalseQuestions, setTrueFalseQuestions] = useState(5);
+  const [trueFalseCategories, setTrueFalseCategories] = useState([]);
+  
+  // Open Answer-specific state
+  const [openAnswerQuestions, setOpenAnswerQuestions] = useState(5);
+  const [openAnswerCategories, setOpenAnswerCategories] = useState([]);
+  const [excludeOpenAnswerAudio, setExcludeOpenAnswerAudio] = useState(false);
+  
+  // Guess a Number-specific state
+  const [guessNumberQuestions, setGuessNumberQuestions] = useState(5);
+  const [guessNumberCategories, setGuessNumberCategories] = useState([]);
+  
+  // Math Quiz-specific state
+  const [mathQuizQuestions, setMathQuizQuestions] = useState(2);
+  
+  // Blind Map-specific state
+  const [blindMapRounds, setBlindMapRounds] = useState(2);
+  const [blindMapPreferredMap, setBlindMapPreferredMap] = useState('both'); // 'cz', 'eu', or 'both'
+  
+  // Track expanded accordion panels
+  const [expanded, setExpanded] = useState(false);
+
+  /**
+   * Handle accordion panel expansion/collapse
+   * 
+   * @param {string} panel - Panel identifier to toggle
+   * @returns {Function} Event handler for accordion changes
+   */
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
+  /**
+   * Toggle selection of a quiz type
+   * 
+   * @param {string} type - Quiz type identifier
+   * @returns {Function} Event handler for checkbox changes
+   */
+  const handleTypeSelect = (type) => (event) => {
+    setSelectedTypes(prev => ({
+      ...prev,
+      [type]: event.target.checked
+    }));
+
+    // If checked, expand the panel
+    if (event.target.checked) {
+      setExpanded(type);
+    }
+  };
+
+  /**
+   * Start the game with current configuration
+   * 
+   * Gathers all selected quiz types and their configurations,
+   * builds a combined game configuration and passes it to the parent.
+   * 
+   * @function handleStartGame
+   */
+  const handleStartGame = () => {
+    setLoading(true);
+    
+    // Get all selected quiz types
+    const types = Object.keys(selectedTypes).filter(type => selectedTypes[type]);
+    
+    if (types.length === 0) {
+      alert('Vyberte alespoň jeden typ kvízu');
+      setLoading(false);
+      return;
+    }
+
+    // Create configuration for each selected type
+    const typesConfig = types.map(type => {
+      switch (type) {
+        case QUIZ_TYPES.DRAWING:
+          return {
+            type: QUIZ_TYPES.DRAWING,
+            numRounds: drawingRounds,
+            roundLength: drawingTime
+          };
+        case QUIZ_TYPES.WORD_CHAIN:
+          return {
+            type: QUIZ_TYPES.WORD_CHAIN,
+            numRounds: wordChainRounds,
+            roundLength: wordChainTime
+          };
+        case QUIZ_TYPES.ABCD:
+          return {
+            type: QUIZ_TYPES.ABCD,
+            numQuestions: abcdQuestions,
+            categories: abcdCategories.length > 0 ? abcdCategories : null
+          };
+        case QUIZ_TYPES.TRUE_FALSE:
+          return {
+            type: QUIZ_TYPES.TRUE_FALSE,
+            numQuestions: trueFalseQuestions,
+            categories: trueFalseCategories.length > 0 ? trueFalseCategories : null
+          };
+        case QUIZ_TYPES.OPEN_ANSWER:
+          return {
+            type: QUIZ_TYPES.OPEN_ANSWER,
+            numQuestions: openAnswerQuestions,
+            categories: openAnswerCategories.length > 0 ? openAnswerCategories : null,
+            excludeAudio: excludeOpenAnswerAudio
+          };
+        case QUIZ_TYPES.GUESS_A_NUMBER:
+          return {
+            type: QUIZ_TYPES.GUESS_A_NUMBER,
+            numQuestions: guessNumberQuestions,
+            categories: guessNumberCategories.length > 0 ? guessNumberCategories : null
+          };
+        case QUIZ_TYPES.MATH_QUIZ:
+          return {
+            type: QUIZ_TYPES.MATH_QUIZ,
+            numQuestions: mathQuizQuestions
+          };
+        case QUIZ_TYPES.BLIND_MAP:
+          return {
+            type: QUIZ_TYPES.BLIND_MAP,
+            numRounds: blindMapRounds,
+            preferredMap: blindMapPreferredMap
+          };
+        default:
+          return { type };
+      }
+    });
+
+    // Always use the COMBINED_QUIZ format, even for a single quiz type
+    const config = {
+      quick_play_type: QUIZ_TYPES.COMBINED_QUIZ,
+      typesConfig
+    };
+    
+    onStartGame(config);
+  };
+
+  const atLeastOneSelected = Object.values(selectedTypes).some(Boolean);
+
+  /**
+   * Configuration for Select components with multiple options
+   * 
+   * @type {Object}
+   */
+  const MenuProps = {
+    PaperProps: {
+      style: {
+        maxHeight: 224,
+        width: 250,
+        ...scrollbarStyle
+      },
+    },
+  };
+
+  return (
+    &lt;Dialog 
+      open={open} 
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+    >
+      &lt;DialogTitle>Rychlá hra&lt;/DialogTitle>
+      
+      &lt;DialogContent sx={{ ...scrollbarStyle }}>
+        &lt;Typography variant="body1" gutterBottom sx={{ mb: 2 }}>
+          Vyberte typy kvízů, které chcete zahrnout:
+        &lt;/Typography>
+
+        {QUICK_PLAY_TYPES.map((type) => (
+          &lt;Box key={type} sx={{ mb: 2 }}>
+            &lt;FormControlLabel
+              control={
+                &lt;Checkbox
+                  checked={!!selectedTypes[type]}
+                  onChange={handleTypeSelect(type)}
+                  name={type}
+                />
+              }
+              label={QUIZ_TYPE_TRANSLATIONS[type]}
+            />
+            
+            {selectedTypes[type] &amp;&amp; (
+              &lt;Accordion 
+                expanded={expanded === type}
+                onChange={handleAccordionChange(type)}
+                sx={{ mt: 1, ml: 4 }}
+              >
+                &lt;AccordionSummary expandIcon={&lt;ExpandMoreIcon />}>
+                  &lt;Typography>Nastavení&lt;/Typography>
+                &lt;/AccordionSummary>
+                &lt;AccordionDetails>
+                  {type === QUIZ_TYPES.DRAWING &amp;&amp; (
+                    &lt;Box>
+                      &lt;Typography gutterBottom>
+                        Počet kol: {drawingRounds}
+                      &lt;/Typography>
+                      &lt;Slider
+                        value={drawingRounds}
+                        onChange={(e, value) => setDrawingRounds(value)}
+                        aria-labelledby="rounds-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={QUIZ_VALIDATION.DRAWING.MIN_ROUNDS}
+                        max={QUIZ_VALIDATION.DRAWING.MAX_ROUNDS_QUICK_PLAY}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      &lt;Typography gutterBottom>
+                        Délka kola: {drawingTime} sekund
+                      &lt;/Typography>
+                      &lt;Slider
+                        value={drawingTime}
+                        onChange={(e, value) => setDrawingTime(value)}
+                        aria-labelledby="time-slider"
+                        valueLabelDisplay="auto"
+                        step={15}
+                        marks
+                        min={QUIZ_VALIDATION.DRAWING.MIN_TIME}
+                        max={QUIZ_VALIDATION.DRAWING.MAX_TIME}
+                      />
+                      
+                      &lt;Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        Celkový počet kol: {drawingRounds} × počet hráčů (všichni hráči se vystřídají s kreslením)
+                      &lt;/Typography>
+                      &lt;Typography variant="body2" color="text.secondary">
+                        V každém kole dostane hráč na výběr ze 3 slov ke kreslení
+                      &lt;/Typography>
+                    &lt;/Box>
+                  )}
+                  
+                  {type === QUIZ_TYPES.WORD_CHAIN &amp;&amp; (
+                    &lt;Box>
+                      &lt;Typography gutterBottom>
+                        Počet her: {wordChainRounds}
+                      &lt;/Typography>
+                      &lt;Slider
+                        value={wordChainRounds}
+                        onChange={(e, value) => setWordChainRounds(value)}
+                        aria-labelledby="word-chain-rounds-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={QUIZ_VALIDATION.WORD_CHAIN.MIN_ROUNDS}
+                        max={QUIZ_VALIDATION.WORD_CHAIN.MAX_ROUNDS_QUICK_PLAY}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      &lt;Typography gutterBottom>
+                        Časový limit hráče: {wordChainTime} sekund (pouze režim všichni proti všem)
+                      &lt;/Typography>
+                      &lt;Slider
+                        value={wordChainTime}
+                        onChange={(e, value) => setWordChainTime(value)}
+                        aria-labelledby="word-chain-time-slider"
+                        valueLabelDisplay="auto"
+                        step={5}
+                        marks
+                        min={QUIZ_VALIDATION.WORD_CHAIN.MIN_TIME}
+                        max={QUIZ_VALIDATION.WORD_CHAIN.MAX_TIME}
+                      />
+                      
+                      &lt;Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        Hráči budou pokračovat ve slovním řetězu a snažit se vymyslet slovo začínající na poslední písmeno předchozího slova
+                      &lt;/Typography>
+                      &lt;Typography variant="body2" color="text.secondary">
+                        První slovo bude vybráno náhodně ze slovníku
+                      &lt;/Typography>
+                    &lt;/Box>
+                  )}
+
+                  {type === QUIZ_TYPES.ABCD &amp;&amp; (
+                    &lt;Box>
+                      &lt;Typography gutterBottom>
+                        Počet otázek: {abcdQuestions}
+                      &lt;/Typography>
+                      &lt;Slider
+                        value={abcdQuestions}
+                        onChange={(e, value) => setAbcdQuestions(value)}
+                        aria-labelledby="abcd-questions-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      &lt;FormControl sx={{ width: '100%', mb: 2 }}>
+                        &lt;InputLabel id="abcd-categories-label">Kategorie (volitelné)&lt;/InputLabel>
+                        &lt;Select
+                          labelId="abcd-categories-label"
+                          id="abcd-categories"
+                          multiple
+                          value={abcdCategories}
+                          onChange={(e) => setAbcdCategories(e.target.value)}
+                          input={&lt;OutlinedInput label="Kategorie (volitelné)" />}
+                          renderValue={(selected) => (
+                            &lt;Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                &lt;Chip key={value} label={value} />
+                              ))}
+                            &lt;/Box>
+                          )}
+                          MenuProps={MenuProps}
+                        >
+                          {QUIZ_CATEGORIES.map((category) => (
+                            &lt;MenuItem key={category} value={category}>
+                              &lt;Checkbox checked={abcdCategories.indexOf(category) > -1} />
+                              &lt;ListItemText primary={category} />
+                            &lt;/MenuItem>
+                          ))}
+                        &lt;/Select>
+                      &lt;/FormControl>
+                      
+                      &lt;Typography variant="body2" color="text.secondary">
+                        Náhodné ABCD otázky vybrané z veřejných kvízů
+                      &lt;/Typography>
+                    &lt;/Box>
+                  )}
+
+                  {type === QUIZ_TYPES.TRUE_FALSE &amp;&amp; (
+                    &lt;Box>
+                      &lt;Typography gutterBottom>
+                        Počet otázek: {trueFalseQuestions}
+                      &lt;/Typography>
+                      &lt;Slider
+                        value={trueFalseQuestions}
+                        onChange={(e, value) => setTrueFalseQuestions(value)}
+                        aria-labelledby="true-false-questions-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      &lt;FormControl sx={{ width: '100%', mb: 2 }}>
+                        &lt;InputLabel id="true-false-categories-label">Kategorie (volitelné)&lt;/InputLabel>
+                        &lt;Select
+                          labelId="true-false-categories-label"
+                          id="true-false-categories"
+                          multiple
+                          value={trueFalseCategories}
+                          onChange={(e) => setTrueFalseCategories(e.target.value)}
+                          input={&lt;OutlinedInput label="Kategorie (volitelné)" />}
+                          renderValue={(selected) => (
+                            &lt;Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                &lt;Chip key={value} label={value} />
+                              ))}
+                            &lt;/Box>
+                          )}
+                          MenuProps={MenuProps}
+                        >
+                          {QUIZ_CATEGORIES.map((category) => (
+                            &lt;MenuItem key={category} value={category}>
+                              &lt;Checkbox checked={trueFalseCategories.indexOf(category) > -1} />
+                              &lt;ListItemText primary={category} />
+                            &lt;/MenuItem>
+                          ))}
+                        &lt;/Select>
+                      &lt;/FormControl>
+                      
+                      &lt;Typography variant="body2" color="text.secondary">
+                        Náhodné Pravda/Lež otázky vybrané z veřejných kvízů
+                      &lt;/Typography>
+                    &lt;/Box>
+                  )}
+                  
+                  {type === QUIZ_TYPES.OPEN_ANSWER &amp;&amp; (
+                    &lt;Box>
+                      &lt;Typography gutterBottom>
+                        Počet otázek: {openAnswerQuestions}
+                      &lt;/Typography>
+                      &lt;Slider
+                        value={openAnswerQuestions}
+                        onChange={(e, value) => setOpenAnswerQuestions(value)}
+                        aria-labelledby="open-answer-questions-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      &lt;FormControl sx={{ width: '100%', mb: 2 }}>
+                        &lt;InputLabel id="open-answer-categories-label">Kategorie (volitelné)&lt;/InputLabel>
+                        &lt;Select
+                          labelId="open-answer-categories-label"
+                          id="open-answer-categories"
+                          multiple
+                          value={openAnswerCategories}
+                          onChange={(e) => setOpenAnswerCategories(e.target.value)}
+                          input={&lt;OutlinedInput label="Kategorie (volitelné)" />}
+                          renderValue={(selected) => (
+                            &lt;Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                &lt;Chip key={value} label={value} />
+                              ))}
+                            &lt;/Box>
+                          )}
+                          MenuProps={MenuProps}
+                        >
+                          {QUIZ_CATEGORIES.map((category) => (
+                            &lt;MenuItem key={category} value={category}>
+                              &lt;Checkbox checked={openAnswerCategories.indexOf(category) > -1} />
+                              &lt;ListItemText primary={category} />
+                            &lt;/MenuItem>
+                          ))}
+                        &lt;/Select>
+                      &lt;/FormControl>
+                      &lt;FormControlLabel
+                        control={
+                          &lt;Checkbox 
+                            checked={excludeOpenAnswerAudio}
+                            onChange={(e) => setExcludeOpenAnswerAudio(e.target.checked)}
+                          />
+                        }
+                        label="Nepřidávat audio otázky"
+                      />
+                      &lt;Typography variant="body2" color="text.secondary">
+                        Náhodné otázky s otevřenou odpovědí vybrané z veřejných kvízů
+                      &lt;/Typography>
+                    &lt;/Box>
+                  )}
+                  
+                  {type === QUIZ_TYPES.GUESS_A_NUMBER &amp;&amp; (
+                    &lt;Box>
+                      &lt;Typography gutterBottom>
+                        Počet otázek: {guessNumberQuestions}
+                      &lt;/Typography>
+                      &lt;Slider
+                        value={guessNumberQuestions}
+                        onChange={(e, value) => setGuessNumberQuestions(value)}
+                        aria-labelledby="guess-number-questions-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      &lt;FormControl sx={{ width: '100%', mb: 2 }}>
+                        &lt;InputLabel id="guess-number-categories-label">Kategorie (volitelné)&lt;/InputLabel>
+                        &lt;Select
+                          labelId="guess-number-categories-label"
+                          id="guess-number-categories"
+                          multiple
+                          value={guessNumberCategories}
+                          onChange={(e) => setGuessNumberCategories(e.target.value)}
+                          input={&lt;OutlinedInput label="Kategorie (volitelné)" />}
+                          renderValue={(selected) => (
+                            &lt;Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                &lt;Chip key={value} label={value} />
+                              ))}
+                            &lt;/Box>
+                          )}
+                          MenuProps={MenuProps}
+                        >
+                          {QUIZ_CATEGORIES.map((category) => (
+                            &lt;MenuItem key={category} value={category}>
+                              &lt;Checkbox checked={guessNumberCategories.indexOf(category) > -1} />
+                              &lt;ListItemText primary={category} />
+                            &lt;/MenuItem>
+                          ))}
+                        &lt;/Select>
+                      &lt;/FormControl>
+                      
+                      &lt;Typography variant="body2" color="text.secondary">
+                        Náhodné otázky typu Hádej číslo vybrané z veřejných kvízů
+                      &lt;/Typography>
+                    &lt;/Box>
+                  )}
+                  
+                  {type === QUIZ_TYPES.MATH_QUIZ &amp;&amp; (
+                    &lt;Box>
+                      &lt;Typography gutterBottom>
+                        Počet otázek: {mathQuizQuestions}
+                      &lt;/Typography>
+                      &lt;Slider
+                        value={mathQuizQuestions}
+                        onChange={(e, value) => setMathQuizQuestions(value)}
+                        aria-labelledby="math-quiz-questions-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      &lt;Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Náhodné matematické otázky vybrané z veřejných kvízů
+                      &lt;/Typography>
+                      &lt;Typography variant="body2" color="warning.main" sx={{ mt: 1, fontWeight: 'medium' }}>
+                        Pozor, jedna otázka obsahuje více matematických rovnic
+                      &lt;/Typography>
+                    &lt;/Box>
+                  )}
+                  
+                  {type === QUIZ_TYPES.BLIND_MAP &amp;&amp; (
+                    &lt;Box>
+                      &lt;Typography gutterBottom>
+                        Počet kol: {blindMapRounds}
+                      &lt;/Typography>
+                      &lt;Slider
+                        value={blindMapRounds}
+                        onChange={(e, value) => setBlindMapRounds(value)}
+                        aria-labelledby="blind-map-rounds-slider"
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={1}
+                        max={20}
+                        sx={{ mb: 3 }}
+                      />
+                      
+                      &lt;FormControl fullWidth sx={{ mb: 2 }}>
+                        &lt;InputLabel id="map-selection-label">Preferované mapy&lt;/InputLabel>
+                        &lt;Select
+                          labelId="map-selection-label"
+                          value={blindMapPreferredMap}
+                          label="Preferované mapy"
+                          onChange={(e) => setBlindMapPreferredMap(e.target.value)}
+                        >
+                          &lt;MenuItem value="cz">Česká republika&lt;/MenuItem>
+                          &lt;MenuItem value="eu">Evropa&lt;/MenuItem>
+                          &lt;MenuItem value="both">Obě mapy&lt;/MenuItem>
+                        &lt;/Select>
+                      &lt;/FormControl>
+                      
+                      &lt;Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Náhodné otázky typu Slepá mapa vybrané z veřejných kvízů
+                      &lt;/Typography>
+                    &lt;/Box>
+                  )}
+                &lt;/AccordionDetails>
+              &lt;/Accordion>
+            )}
+            
+            {type !== QUICK_PLAY_TYPES[QUICK_PLAY_TYPES.length - 1] &amp;&amp; (
+              &lt;Divider sx={{ my: 2 }} />
+            )}
+          &lt;/Box>
+        ))}
+
+        {!atLeastOneSelected &amp;&amp; (
+          &lt;Typography variant="body2" color="error" sx={{ mt: 2 }}>
+            Vyberte alespoň jeden typ kvízu
+          &lt;/Typography>
+        )}
+      &lt;/DialogContent>
+      
+      &lt;DialogActions>
+        &lt;Button onClick={onClose}>Zrušit&lt;/Button>
+        &lt;Button 
+          onClick={handleStartGame} 
+          variant="contained"
+          disabled={loading || !atLeastOneSelected}
+        >
+          {loading ? 'Načítání...' : 'Spustit hru'}
+        &lt;/Button>
+      &lt;/DialogActions>
+    &lt;/Dialog>
+  );
+};
+
+export default QuickPlayModal;</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a> using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+<script src="scripts/collapse.js" defer></script>
+
+
+</body>
+</html>

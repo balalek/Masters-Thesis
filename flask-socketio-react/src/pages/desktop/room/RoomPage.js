@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Room Page component for managing game setup and player assignments
+ * 
+ * This module provides:
+ * - Player joining and team assignment management
+ * - Game mode selection (team vs. free-for-all)
+ * - Game initialization and starting
+ * - Remote display connection management
+ * - Captain selection for team mode
+ * 
+ * @module Pages/Desktop/Room/RoomPage
+ */
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
@@ -7,16 +19,20 @@ import PlayersList from '../../../components/desktop/room/PlayersList';
 import TeamMode from '../../../components/desktop/room/TeamMode';
 import ConnectionInfo from '../../../components/desktop/room/ConnectionInfo';
 import StartGameTooltip from '../../../components/desktop/room/StartGameTooltip';
-import { QUIZ_TYPES, QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
+import { QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
 
+/**
+ * Room Page component for setting up and starting games
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered room page component
+ */
 const RoomPage = () => {
   const location = useLocation();
   const quizId = location.state?.quizId;  // Get quiz ID from navigation state
-  // Get quick play configuration
-  const quickPlayConfig = location.state?.quickPlayConfig;
-  
-  const [players, setPlayers] = useState([]); // Add back players state
-  const [blueTeam, setBlueTeam] = useState([]); // Store teams directly
+  const quickPlayConfig = location.state?.quickPlayConfig; // Get quick play configuration from navigation state
+  const [players, setPlayers] = useState([]);
+  const [blueTeam, setBlueTeam] = useState([]);
   const [redTeam, setRedTeam] = useState([]);
   const [selectedMode, setSelectedMode] = useState('freeforall');
   const [blueTeamCaptainIndex, setBlueTeamCaptainIndex] = useState(0);
@@ -27,30 +43,37 @@ const RoomPage = () => {
   const [isRemoteDisplayConnected, setIsRemoteDisplayConnected] = useState(false);
   const [isRemoteGame, setIsRemoteGame] = useState(false);
   const [serverIP, setServerIP] = useState('');
-  const [serverPort, setServerPort] = useState('');
   const navigate = useNavigate();
 
-  // Get server IP address on component mount
+  /**
+   * Fetches the server's IP address for connection information.
+   */
   useEffect(() => {
     fetch(`/server_ip`)
       .then(response => response.json())
       .then(data => {
         setServerIP(data.ip);
-        setServerPort(data.port || location.port || '5000');
-        console.log("Server IP address:", data.ip);
       })
       .catch(error => {
         console.error("Error fetching server IP:", error);
         // Fallback to using the current hostname
         setServerIP(window.location.hostname);
-        setServerPort(location.port || '5000');
       });
   }, []);
 
+  /**
+   * Handles socket event listeners for player management and game state updates.
+   * 
+   * Sets up listeners for:
+   * - Player joining and leaving
+   * - Game starting
+   * - Remote display connections
+   * - Player name changes
+   */
   useEffect(() => {
     const socket = getSocket();
 
-    // ask if the remote display is connected
+    // Ask if the remote display is connected
     socket.emit('is_remote_connected');
 
     socket.on('player_joined', (data) => {
@@ -75,7 +98,7 @@ const RoomPage = () => {
       }
     });
 
-    // Add listener for player leaving the room
+    // Listener for player leaving the room
     socket.on('player_left', (data) => {
       const playerName = data.player_name;
       
@@ -94,7 +117,7 @@ const RoomPage = () => {
     });
 
     socket.on('game_started', (data) => {
-      setGameData(data); // Store the game data
+      setGameData(data);
       setShowCountdown(true); // Show countdown instead of immediate navigation
     });
 
@@ -107,7 +130,6 @@ const RoomPage = () => {
       setIsRemoteGame(true);
     });
     
-    // Add listener for player name changes
     socket.on('player_name_changed', (data) => {
       const { old_name, new_name, color } = data;
       
@@ -137,11 +159,13 @@ const RoomPage = () => {
       socket.off('remote_display_connected');
       socket.off('game_started_remote');
       socket.off('player_name_changed');
-      socket.off('player_left'); // Clean up the new event listener
+      socket.off('player_left');
     };
 }, [navigate, selectedMode, blueTeam.length, redTeam.length]);
 
-  // Activate quiz when component mounts so players can join
+  /**
+   * Activates the quiz server when the component mounts.
+   */
   useEffect(() => {
     fetch(`http://${window.location.hostname}:5000/activate_quiz`, {
       method: 'POST',
@@ -149,7 +173,9 @@ const RoomPage = () => {
     });
   }, []);
   
-  /*// Enter fullscreen mode on component mount
+  /**
+   * Enters fullscreen mode when the component mounts.
+   */
   useEffect(() => {
     const enterFullscreen = async () => {
       try {
@@ -168,8 +194,16 @@ const RoomPage = () => {
     };
 
     enterFullscreen();
-  }, []);*/
+  }, []);
 
+  /**
+   * Initiates game start on the current screen.
+   * 
+   * Prepares a payload with team assignments and game configuration,
+   * then sends it to the server.
+   * 
+   * @function handleStartGame
+   */
   const handleStartGame = () => {
     setStartGameError('');
     
@@ -179,20 +213,19 @@ const RoomPage = () => {
         blue: blueTeam.map(player => player.name),
         red: redTeam.map(player => player.name)
       } : null,
-      // Add captain indices to the payload
       captainIndices: selectedMode === 'team' ? {
         blue: blueTeamCaptainIndex,
         red: redTeamCaptainIndex
       } : null,
       isRemote: false,
-      quizId: quizId  // Add quiz ID to payload
+      quizId: quizId
     };
 
     // Add quick play configuration if present
     if (quickPlayConfig) {
       payload.quick_play_type = quickPlayConfig.quick_play_type;
       
-      // Add typesConfig for combined quiz format
+      // Add typesConfig for combined quiz format - definittely
       if (quickPlayConfig.typesConfig) {
         payload.typesConfig = quickPlayConfig.typesConfig;
       }
@@ -213,6 +246,14 @@ const RoomPage = () => {
       });
   };
 
+  /**
+   * Initiates game start on a remote screen.
+   * 
+   * Similar to handleStartGame but sets isRemote flag to true,
+   * allowing the game to be displayed on a connected remote screen.
+   * 
+   * @function handleStartGameOnAnotherScreen
+   */
   const handleStartGameOnAnotherScreen = () => {
     setStartGameError('');
     
@@ -222,20 +263,19 @@ const RoomPage = () => {
         blue: blueTeam.map(player => player.name),
         red: redTeam.map(player => player.name)
       } : null,
-      // Add captain indices to the payload
       captainIndices: selectedMode === 'team' ? {
         blue: blueTeamCaptainIndex,
         red: redTeamCaptainIndex
       } : null,
       isRemote: true,
-      quizId: quizId  // Add quiz ID to payload
+      quizId: quizId
     };
 
     // Add quick play configuration if present
     if (quickPlayConfig) {
       payload.quick_play_type = quickPlayConfig.quick_play_type;
       
-      // Add typesConfig for combined quiz format
+      // Add typesConfig for combined quiz format  - definittely
       if (quickPlayConfig.typesConfig) {
         payload.typesConfig = quickPlayConfig.typesConfig;
       }
@@ -256,6 +296,15 @@ const RoomPage = () => {
     });
   };
 
+  /**
+   * Handles switching between team mode and free-for-all mode.
+   * 
+   * Redistributes players to teams when switching to team mode,
+   * and combines teams into a single player list when switching to free-for-all.
+   * 
+   * @function handleModeChange
+   * @param {string} mode - The selected game mode ('team' or 'freeforall')
+   */
   const handleModeChange = (mode) => {
     if (mode === 'team' && selectedMode === 'freeforall') {
       // Initialize teams when switching to team mode
@@ -270,18 +319,28 @@ const RoomPage = () => {
       
       setBlueTeam(initialTeams.blue);
       setRedTeam(initialTeams.red);
-      setBlueTeamCaptainIndex(0); // Reset captain indices
+      // Reset captain indices
+      setBlueTeamCaptainIndex(0);
       setRedTeamCaptainIndex(0);
       setPlayers([]); // Clear players array when in team mode
     } else if (mode === 'freeforall') {
       // When switching to free-for-all, combine teams into players array
       setPlayers([...blueTeam, ...redTeam]);
-      setBlueTeam([]); // Clear teams when in free-for-all mode
+      // Clear teams when in free-for-all mode
+      setBlueTeam([]);
       setRedTeam([]);
     }
     setSelectedMode(mode);
   };
 
+  /**
+   * Handles quiz closure and cleanup.
+   * 
+   * Exits fullscreen mode, resets the game state on the server,
+   * and navigates back to the home page.
+   * 
+   * @function handleCloseQuiz
+   */
   const handleCloseQuiz = () => {
     // Exit fullscreen before closing
     const exitFullscreen = async () => {
@@ -308,14 +367,33 @@ const RoomPage = () => {
     });
   };
 
+  /**
+   * Cycles the blue team captain to the next player.
+   * 
+   * @function handleChangeBlueTeamCaptain
+   */
   const handleChangeBlueTeamCaptain = () => {
     setBlueTeamCaptainIndex((prevIndex) => (prevIndex + 1) % Math.min(players.length, 5));
   };
 
+  /**
+   * Cycles the red team captain to the next player.
+   * 
+   * @function handleChangeRedTeamCaptain
+   */
   const handleChangeRedTeamCaptain = () => {
     setRedTeamCaptainIndex((prevIndex) => (prevIndex + 1) % Math.max(players.length - 5, 0));
   };
 
+  /**
+   * Moves a player from one team to the other.
+   * 
+   * Maintains team balance and updates captain indices if needed.
+   * 
+   * @function handleSwitchTeam
+   * @param {string} playerName - Name of the player to switch
+   * @param {boolean} isFromBlueTeam - Whether the player is currently on the blue team
+   */
   const handleSwitchTeam = (playerName, isFromBlueTeam) => {
     if (isFromBlueTeam) {
       if (redTeam.length >= 5) return; // Check target team capacity
@@ -333,8 +411,8 @@ const RoomPage = () => {
       setBlueTeam(prev => prev.filter(p => p.name !== playerName));
       setRedTeam(prev => [...prev, player]);
     } else {
-      if (blueTeam.length >= 5) return; // Check target team capacity
-      if (redTeam.length <= 1) return; // Ensure source team not empty
+      if (blueTeam.length >= 5) return;
+      if (redTeam.length <= 1) return;
       
       const playerIndex = redTeam.findIndex(p => p.name === playerName);
       const player = redTeam[playerIndex];
@@ -350,6 +428,13 @@ const RoomPage = () => {
     }
   };
 
+  /**
+   * Directly selects a player as team captain.
+   * 
+   * @function handleSelectCaptain
+   * @param {string} playerName - Name of the player to make captain
+   * @param {boolean} isBlueTeam - Whether the player is on the blue team
+   */
   const handleSelectCaptain = (playerName, isBlueTeam) => {
     if (isBlueTeam) {
       const newIndex = blueTeam.findIndex(p => p.name === playerName);
@@ -360,17 +445,36 @@ const RoomPage = () => {
     }
   };
 
-  // Get connection URLs using the serverIP and port
+  /**
+   * Generates the URL for players to join the game.
+   * 
+   * @function getConnectionUrl
+   * @returns {string} URL for players to connect to the game
+   */
   const getConnectionUrl = () => {
     if (!serverIP) return `http://${window.location.hostname}:3000/play`;
     return `http://${serverIP}:5000/play`; // For .exe app 5000 port
 };
 
+  /**
+   * Generates the URL for connecting a remote display.
+   * 
+   * @function getRemoteGameUrl
+   * @returns {string} URL for connecting a remote display
+   */
   const getRemoteGameUrl = () => {
     if (!serverIP) return `http://${window.location.hostname}:3000/remote`;
     return `http://${serverIP}:5000/remote`; // For .exe app 5000 port
 };
 
+  /**
+   * Handles completion of the countdown before game start.
+   * 
+   * Calculates timing values for synchronization with the server,
+   * then navigates to the game screen with the necessary state.
+   * 
+   * @function handleCountdownComplete
+   */
   const handleCountdownComplete = () => {
     const current_time = getServerTime();
     // Use game_time to track how long after the game start we are
@@ -424,7 +528,6 @@ const RoomPage = () => {
 
   // Check if we're in a quick play mode to display the appropriate UI
   const isQuickPlayMode = !!quickPlayConfig;
-  const quickPlayType = quickPlayConfig?.quick_play_type;
 
   return (
     <Box sx={{ padding: 2, position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -440,7 +543,7 @@ const RoomPage = () => {
 
       {/* Title and mode selection */}
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
-        Čekárna {isQuickPlayMode ? `- ${QUIZ_TYPE_TRANSLATIONS[quickPlayType] || "Rychlá hra"}` : ""}
+        Čekárna {isQuickPlayMode ? `- Rychlá hra` : ""}
       </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2, mt: 1 }}>
         <Button
@@ -495,7 +598,7 @@ const RoomPage = () => {
               onChangeBlueTeamCaptain={handleChangeBlueTeamCaptain}
               onChangeRedTeamCaptain={handleChangeRedTeamCaptain}
               onSwitchTeam={handleSwitchTeam}
-              onSelectCaptain={handleSelectCaptain} // Add this prop
+              onSelectCaptain={handleSelectCaptain}
             />
           )}
         </Box>

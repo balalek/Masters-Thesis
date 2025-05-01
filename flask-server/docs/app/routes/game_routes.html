@@ -351,11 +351,6 @@ def start_game():
         # Store the captain indices in game state
         game_state.blue_captain_index = blue_captain_index
         game_state.red_captain_index = red_captain_index
-        
-        # Get the actual captain names using the indices
-        blue_captain = game_state.blue_team[blue_captain_index] if game_state.blue_team and len(game_state.blue_team) &gt; blue_captain_index else None
-        red_captain = game_state.red_team[red_captain_index] if game_state.red_team and len(game_state.red_team) &gt; red_captain_index else None
-        
         game_state.team_scores = {&#39;blue&#39;: 0, &#39;red&#39;: 0}
 
         if len(game_state.blue_team) &lt; 2 or len(game_state.red_team) &lt; 2:
@@ -470,7 +465,7 @@ def start_game():
                         num_questions = config.get(&#39;numQuestions&#39;, 5)
                         categories = config.get(&#39;categories&#39;, None)
                         # Get exclude audio preference
-                        exclude_audio = config.get(&#39;excludeOpenAnswerAudio&#39;, False)
+                        exclude_audio = config.get(&#39;excludeAudio&#39;, False)
                         
                         # Get the device ID to exclude questions created by this device
                         device_id = get_device_id()
@@ -613,6 +608,25 @@ def start_game():
         # Update game state with processed questions
         game_state.questions = final_questions
 
+        # Increment times_used for all questions in the selected quiz
+        # Skip this step for quick play mode - those questions are randomly selected, so it makes no sense for them
+        try:
+            # Get all question IDs from the quiz
+            question_ids = [ObjectId(q[&#34;_id&#34;]) for q in questions if &#34;_id&#34; in q]
+            
+            if question_ids:
+                # Batch update all questions to increment timesUsed counter
+                db.questions.update_many(
+                    {&#34;_id&#34;: {&#34;$in&#34;: question_ids}},
+                    {&#34;$inc&#34;: {&#34;metadata.timesUsed&#34;: 1}}
+                )
+                print(f&#34;Updated timesUsed count for {len(question_ids)} questions&#34;)
+
+        except Exception as e:
+            print(f&#34;Error updating question times_used metadata: {str(e)}&#34;)
+            # Continue with the game even if metadata update fails
+            pass
+
     # Reset game state for the new game
     game_state.current_question = 0
     game_state.reset_question_state()
@@ -678,7 +692,8 @@ def start_game():
         &#34;show_first_question_preview&#34;: game_start_time,
         &#34;show_game_at&#34;: game_start_at,
         &#34;active_team&#34;: game_state.active_team,
-        &#34;is_last_question&#34;: is_last_question
+        &#34;is_last_question&#34;: is_last_question,
+        &#34;blind_map_is_team_play&#34;: game_state.is_team_mode
     }
 
     # First send the standard event to everyone (especially for the main display)
@@ -722,6 +737,7 @@ def start_game():
         # Send it to the specific player&#39;s room (each player has their own room)
         socketio.emit(&#39;game_started_mobile&#39;, player_game_data, room=player_name)
     
+    game_state.is_game_running = True
     return jsonify({&#34;message&#34;: &#34;Game started&#34;}), 200</code></pre>
 </details>
 <div class="desc"><p>Initialize and start a new game session.</p>

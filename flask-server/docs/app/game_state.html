@@ -91,6 +91,7 @@ questions, scores, teams, and specialized state for different question types.</p
         self.questions = []  # List of questions in the quiz
         self.answers_received = 0  # How many players have answered the current question
         self.answer_counts = [0, 0, 0, 0]  # How many players answered each option (0-3)
+        self.is_game_running = False  # Is the game currently running?
         self.is_quiz_active = False  # Is the quiz currently active? (meaning we are in RoomPage in the frontend)
         self.is_team_mode = False
         self.blue_team = []
@@ -100,7 +101,6 @@ questions, scores, teams, and specialized state for different question types.</p
         self.team_scores = {&#39;blue&#39;: 0, &#39;red&#39;: 0}
         self.question_start_time = None
         self.is_remote = False  # Playing on a remote device (e.g., TV)
-        self.current_question_metadata_updated = False  # Track if we&#39;ve already incremented times played
         
         # Open answer specific state
         self.correct_players = set()  # Set of players who answered correctly
@@ -194,7 +194,6 @@ questions, scores, teams, and specialized state for different question types.</p
         &#34;&#34;&#34;
         self.answers_received = 0
         self.answer_counts = [0, 0, 0, 0]  # We&#39;ll use indices 0 and 1 for more/less votes
-        self.current_question_metadata_updated = False
         
         # Reset open answer specific state
         self.correct_players = set()
@@ -336,7 +335,6 @@ equivalent to starting a new game session.</p></div>
     &#34;&#34;&#34;
     self.answers_received = 0
     self.answer_counts = [0, 0, 0, 0]  # We&#39;ll use indices 0 and 1 for more/less votes
-    self.current_question_metadata_updated = False
     
     # Reset open answer specific state
     self.correct_players = set()

@@ -36,7 +36,8 @@
     "start": "cross-env WDS_SOCKET_HOST=0.0.0.0 WDS_SOCKET_PORT=3000 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "docs": "jsdoc -c jsdoc.conf.json"
   },
   "eslintConfig": {
     "extends": [
@@ -57,6 +58,8 @@
     ]
   },
   "devDependencies": {
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "docdash": "^2.0.2",
+    "jsdoc": "^4.0.4"
   }
 }

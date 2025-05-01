@@ -165,8 +165,8 @@ def index():
 <h2 id="returns">Returns</h2>
 <p>HTML content of the main index page</p></div>
 </dd>
-<dt id="app.routes.base_routes.play"><code class="name flex">
-<span>def <span class="ident">play</span></span>(<span>)</span>
+<dt id="app.routes.base_routes.serve_react_routes"><code class="name flex">
+<span>def <span class="ident">serve_react_routes</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -174,38 +174,23 @@ def index():
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@base_routes.route(&#39;/play&#39;)
-def play():
+@base_routes.route(&#39;/mobile-game&#39;)
+@base_routes.route(&#39;/room&#39;)
+@base_routes.route(&#39;/game&#39;)
+@base_routes.route(&#39;/scores&#39;)
+@base_routes.route(&#39;/final-score&#39;)
+@base_routes.route(&#39;/remote&#39;)
+@base_routes.route(&#39;/create-quiz&#39;)
+def serve_react_routes():
     &#34;&#34;&#34;
-    Explicit route for the &#39;play&#39; page to support page refreshing in packaged app.
+    Explicit routes for all React client-side paths to support page refreshing in packaged app.
     
     Returns:
         HTML content of the main index page (React handles the routing)
     &#34;&#34;&#34;
     return send_from_directory(app.static_folder, &#39;index.html&#39;)</code></pre>
 </details>
-<div class="desc"><p>Explicit route for the 'play' page to support page refreshing in packaged app.</p>
-<h2 id="returns">Returns</h2>
-<p>HTML content of the main index page (React handles the routing)</p></div>
-</dd>
-<dt id="app.routes.base_routes.remote"><code class="name flex">
-<span>def <span class="ident">remote</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@base_routes.route(&#39;/remote&#39;)
-def remote():
-    &#34;&#34;&#34;
-    Explicit route for the &#39;remote&#39; page to support page refreshing in packaged app.
-    
-    Returns:
-        HTML content of the main index page (React handles the routing)
-    &#34;&#34;&#34;
-    return send_from_directory(app.static_folder, &#39;index.html&#39;)</code></pre>
-</details>
-<div class="desc"><p>Explicit route for the 'remote' page to support page refreshing in packaged app.</p>
+<div class="desc"><p>Explicit routes for all React client-side paths to support page refreshing in packaged app.</p>
 <h2 id="returns">Returns</h2>
 <p>HTML content of the main index page (React handles the routing)</p></div>
 </dd>
@@ -267,8 +252,7 @@ Falls back to index.html for client-side routing support.</p>
 <li><code><a title="app.routes.base_routes.get_server_ip" href="#app.routes.base_routes.get_server_ip">get_server_ip</a></code></li>
 <li><code><a title="app.routes.base_routes.get_server_time" href="#app.routes.base_routes.get_server_time">get_server_time</a></code></li>
 <li><code><a title="app.routes.base_routes.index" href="#app.routes.base_routes.index">index</a></code></li>
-<li><code><a title="app.routes.base_routes.play" href="#app.routes.base_routes.play">play</a></code></li>
-<li><code><a title="app.routes.base_routes.remote" href="#app.routes.base_routes.remote">remote</a></code></li>
+<li><code><a title="app.routes.base_routes.serve_react_routes" href="#app.routes.base_routes.serve_react_routes">serve_react_routes</a></code></li>
 <li><code><a title="app.routes.base_routes.serve_static" href="#app.routes.base_routes.serve_static">serve_static</a></code></li>
 </ul>
 </li>

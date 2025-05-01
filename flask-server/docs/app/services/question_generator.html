@@ -679,6 +679,9 @@ applying filters for categories and excluding questions from the current device.
             # In team mode, we don&#39;t need player_order
             if &#39;player_order&#39; not in game_state.word_chain_state:
                 game_state.word_chain_state[&#39;player_order&#39;] = []
+
+            # Initialize bomb timer (random between 2-4 mins)
+            round_length = randint(120, 240)
         else:
             initialize_player_order(round_length)
             # Free-for-all: start with first player in player order

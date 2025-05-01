@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Score Page component for displaying round results and leaderboards
+ * 
+ * This module provides:
+ * - Display of question results with type-specific visualizations
+ * - Leaderboard display showing current standings
+ * - Automatic navigation to next question after countdown
+ * - Special handling for final question transitions
+ * - Dynamic rendering based on question type
+ * 
+ * @module Pages/Desktop/ScorePage/ScorePage
+ */
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
@@ -12,6 +24,12 @@ import WordChainResults from '../../../components/desktop/answerTypes/WordChainR
 import MathQuizResults from '../../../components/desktop/answerTypes/MathQuizResults';
 import BlindMapResult from '../../../components/desktop/answerTypes/BlindMapResult';
 
+/**
+ * Score Page component for displaying results between questions
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered score page component
+ */
 const ScorePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -24,15 +42,6 @@ const ScorePage = () => {
   const [countdown, setCountdown] = useState(8);
   const socket = getSocket();
   const [timeRemaining, setTimeRemaining] = useState(5);
-
-  // Add logging for initial props
-  useEffect(() => {
-    console.log('ScorePage initial state:', {
-      isLastQuestion,
-      question,
-      showQuestionPreviewAt
-    });
-  }, []);
 
   // Single timer effect that handles both countdown and navigation
   useEffect(() => {
@@ -54,7 +63,6 @@ const ScorePage = () => {
                 const current_time = getServerTime();
                 const game_time = showQuestionPreviewAt + data.preview_time - current_time; // Time until game starts
                 const question_end_time = current_time + (data.question.length * 1000) + game_time;
-                console.log('active team:', data.active_team, 'is active team blind map:', data.activeTeam !== null);
 
                 navigate('/game', { 
                   state: { 
@@ -77,7 +85,7 @@ const ScorePage = () => {
     }
   }, [navigate, isLastQuestion, showQuestionPreviewAt]);
 
-  // Modify the useEffect for countdown
+  // Countdown effect for the last question
   useEffect(() => {
     if (isLastQuestion) {
       setCountdown(5);
@@ -85,7 +93,7 @@ const ScorePage = () => {
         setCountdown(prev => {
           if (prev <= 1) {
             clearInterval(timer);
-            // Navigate immediately to prevent any content from being displayed
+            // Navigate immediately to final score page
             socket.emit('show_final_score');
             navigate('/final-score', { 
               state: { 
@@ -104,6 +112,7 @@ const ScorePage = () => {
     }
   }, [isLastQuestion]);
 
+  // Socket event listener for game reset
   useEffect(() => {
       const socket = getSocket();
   
@@ -115,7 +124,14 @@ const ScorePage = () => {
         socket.off('game_reset');
       };
     }, [navigate]);
-    
+
+  /**
+   * Handles quiz closure and cleanup.
+   * 
+   * Resets the game state on the server and navigates back to the appropriate page.
+   * 
+   * @function handleCloseQuiz
+   */
   const handleCloseQuiz = () => {
     fetch(`http://${window.location.hostname}:5000/reset_game`, {
       method: 'POST',
@@ -130,14 +146,15 @@ const ScorePage = () => {
       });
   };
 
-  // Add logging to inspect what question data we're receiving
-  useEffect(() => {
-    console.log('ScorePage question data:', {
-      question: question,
-      locationState: location.state
-    });
-  }, [question, correctAnswer, answerCounts]);
-
+  /**
+   * Renders the appropriate answer component based on question type.
+   * 
+   * Dynamically selects and configures the correct visualization component
+   * for the current question's answer type.
+   * 
+   * @function renderAnswers
+   * @returns {JSX.Element} The appropriate answer component for the question type
+   */
   const renderAnswers = () => {
     // Simply use the question's type property directly
     const questionType = question?.type || 'ABCD'; // Default to ABCD if no type
@@ -191,7 +208,6 @@ const ScorePage = () => {
           playerAnswers={question.player_answers || {}}
         />;
       case 'BLIND_MAP':
-        // Make sure to pass blind map data directly to the component
         return <BlindMapResult 
           question={question} 
           team_guesses={location.state?.team_guesses || question?.team_guesses}
@@ -251,8 +267,8 @@ const ScorePage = () => {
           {isLastQuestion ? '' : 'Výsledky kola'}
         </Typography>
 
-        {/* Remove Next button since navigation is automatic */}
-        {isLastQuestion && countdown === 0 && !location.state?.isRemote && (
+        {/* Right - Close Quiz Button (only show if last question) */}
+        { isLastQuestion && countdown === 0 && !location.state?.isRemote && (
           <Button
             variant="contained"
             onClick={handleCloseQuiz}
@@ -263,7 +279,7 @@ const ScorePage = () => {
         )}
       </Box>
 
-      {/* Main content area - Hide everything when countdown is 0 */}
+      {/* Main content area - Hide everything when countdown is 0 (when it's last question) */}
       <Box sx={{ 
         flex: 1, 
         display: 'flex', 
@@ -299,7 +315,7 @@ const ScorePage = () => {
         )}
       </Box>
 
-      {/* Answer buttons - now rendered based on question type - Hide when countdown is 0 */}
+      {/* Answer buttons - rendered based on question type - Hide when countdown is 0 */}
       <Box sx={{ visibility: countdown === 0 ? 'hidden' : 'visible' }}>
         {renderAnswers()}
       </Box>

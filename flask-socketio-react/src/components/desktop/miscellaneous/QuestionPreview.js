@@ -1,8 +1,32 @@
+/**
+ * @fileoverview Question Preview component with countdown timer
+ * 
+ * This component provides:
+ * - Visual preview of the upcoming question text
+ * - Server-synchronized countdown to question start
+ * - Automatic transition to game screen when time expires
+ * - Centered layout with prominent countdown display
+ * 
+ * @module Components/Desktop/Miscellaneous/QuestionPreview
+ */
 import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
-import { getSocket, getServerTime } from '../../../utils/socket';
+import { getServerTime } from '../../../utils/socket';
 
-const QuestionPreview = ({ question, onPreviewComplete, showAt }) => { // Added showAt prop
+/**
+ * Question Preview component for pre-question display
+ * 
+ * Shows the question text with a countdown timer, then calls
+ * the completion callback when the timer reaches zero.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.question - The question text to display
+ * @param {Function} props.onPreviewComplete - Callback when countdown completes
+ * @param {number} props.showAt - Server timestamp (ms) when to start the question
+ * @returns {JSX.Element} The rendered question preview component
+ */
+const QuestionPreview = ({ question, onPreviewComplete, showAt }) => {
   const [count, setCount] = useState(5);
 
   useEffect(() => {
@@ -20,7 +44,7 @@ const QuestionPreview = ({ question, onPreviewComplete, showAt }) => { // Added 
     }, 100);
 
     return () => clearInterval(timer);
-  }, [onPreviewComplete, showAt]); // Added showAt dependency
+  }, [onPreviewComplete, showAt]);
 
   return (
     <Box sx={{
@@ -38,7 +62,7 @@ const QuestionPreview = ({ question, onPreviewComplete, showAt }) => { // Added 
         sx={{ 
           textAlign: 'center',
           maxWidth: '80%',
-          whiteSpace: 'pre-line' // Add this to respect newline characters
+          whiteSpace: 'pre-line'
         }}
       >
         {question}

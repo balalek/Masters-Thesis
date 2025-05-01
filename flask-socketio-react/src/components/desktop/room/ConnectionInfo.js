@@ -1,7 +1,29 @@
+/**
+ * @fileoverview Connection Info component for displaying player join instructions
+ * 
+ * This component provides:
+ * - QR code for quick mobile device connection
+ * - Text URL alternative for manual connection
+ * - Visual divider between connection methods
+ * - Network connectivity instructions
+ * 
+ * @module Components/Desktop/Room/ConnectionInfo
+ */
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { QRCodeSVG } from 'qrcode.react';
 
+/**
+ * Connection information display with QR code and text URL
+ * 
+ * Presents multiple ways for players to join the game session,
+ * including a scannable QR code and a text URL address.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.connectionUrl - The URL for players to connect to the game
+ * @returns {JSX.Element} The rendered connection info component
+ */
 const ConnectionInfo = ({ connectionUrl }) => (
   <Box sx={{ 
     display: 'flex', 
@@ -9,7 +31,6 @@ const ConnectionInfo = ({ connectionUrl }) => (
     justifyContent: 'center',
     gap: 4,
     width: '100%'
-    // Removed mt, pt, and mb to let parent control spacing
   }}>
     {/* QR Code */}
     <Box sx={{ textAlign: 'center' }}>

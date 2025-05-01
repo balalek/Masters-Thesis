@@ -20,10 +20,7 @@ from .constants import is_online
 
 # Initialize Flask app with static folder configuration
 app = Flask(__name__, static_folder='../static', static_url_path='')
-secret_key = os.getenv('SECRET_KEY')
-if not secret_key:
-    raise ValueError("SECRET_KEY environment variable not set. Please set it in your .env file.")
-app.config['SECRET_KEY'] = secret_key
+app.config['SECRET_KEY'] = 'home-quiz-default-secret-key'
 
 # Setup CORS to allow cross-origin requests (important for development and API)
 CORS(app, resources={r"/*": {"origins": "*"}})
