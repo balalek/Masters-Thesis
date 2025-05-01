@@ -1,3 +1,16 @@
+/**
+ * @fileoverview Question Form component for creating and editing ABCD/True-False questions
+ * 
+ * This component provides:
+ * - Dynamic form switching between ABCD and True/False formats
+ * - Form validation for question content and parameters
+ * - Backend validation integration
+ * - Time limit configuration via slider
+ * - Category selection with autocomplete
+ * - Error handling and feedback
+ * 
+ * @module Components/Desktop/CreateQuiz/QuestionForm
+ */
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { 
   Box, 
@@ -15,6 +28,20 @@ import {
 } from '@mui/material';
 import { QUIZ_VALIDATION, QUIZ_CATEGORIES, QUESTION_TYPES } from '../../../../constants/quizValidation';
 
+/**
+ * Question Form component for creating and editing multiple-choice questions
+ * 
+ * Provides form fields for ABCD and True/False question types with
+ * validation, error handling, and seamless switching between formats.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onSubmit - Callback function when form is submitted
+ * @param {Object} props.editQuestion - Question data when editing an existing question
+ * @param {boolean} props.isAbcd - Whether the form should show ABCD or True/False fields
+ * @param {Object} ref - Forwarded ref for parent control of form submission
+ * @returns {JSX.Element} The rendered question form component
+ */
 const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref) => {
   const answerLetters = ['A', 'B', 'C', 'D'];
 
@@ -23,7 +50,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
     question: '',
     answers: isAbcd ? Array(4).fill('') : ['Pravda', 'Lež'],
     correctAnswer: null,
-    length: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT, // Use length consistently
+    length: QUIZ_VALIDATION.TIME_LIMIT.DEFAULT,
     category: '',
     isTrueFalse: !isAbcd,
     type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
@@ -32,7 +59,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
   const [errors, setErrors] = useState({
     question: '',
     answers: ['', '', '', ''],
-    length: '', // Changed from timeLimit to length
+    length: '',
     category: ''
   });
 
@@ -86,13 +113,22 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
         type: isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE,
       }));
     }
-  }, [editQuestion]); // Remove isAbcd dependency from this effect
+  }, [editQuestion]);
 
+  /**
+   * Validates form data against content and format rules
+   * 
+   * Checks all fields for required values, length constraints,
+   * and validates that a correct answer is selected.
+   * 
+   * @function validateForm
+   * @returns {boolean} True if validation passes, false otherwise
+   */
   const validateForm = () => {
     const newErrors = {
       question: '',
       answers: ['', '', '', ''],
-      length: '', // Changed from timeLimit to length
+      length: '',
       category: ''
     };
     let isValid = true;
@@ -159,10 +195,18 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
     return isValid;
   };
 
+  /**
+   * Validates question with backend API
+   * 
+   * Sends question data to the server for additional validation
+   * like checking for duplicate questions.
+   * 
+   * @async
+   * @function checkQuestionWithBackend
+   * @param {Object} questionData - The question data to validate
+   * @returns {Promise<boolean>} True if validation succeeds, false otherwise
+   */
   const checkQuestionWithBackend = async (questionData) => {
-    // Log the question data before sending to backend
-    console.log('Question data being sent to backend:', JSON.stringify(questionData));
-    
     try {
       const response = await fetch('/check_question', {
         method: 'POST',
@@ -176,10 +220,10 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
 
       if (!response.ok) {
         const data = await response.json();
-        setBackendError(data.error); // Set backend error separately
+        setBackendError(data.error);
         return false;
       }
-      setBackendError(''); // Clear error on success
+      setBackendError('');
       return true;
     } catch (error) {
       console.error('Error checking question:', error);
@@ -188,6 +232,14 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
     }
   };
 
+  /**
+   * Resets form to default state
+   * 
+   * Clears all form fields and errors, resetting to the default
+   * state based on current question type.
+   * 
+   * @function resetForm
+   */
   const resetForm = () => {
     setFormData({
       question: '',
@@ -208,20 +260,26 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
     setBackendError('');
   };
 
+  /**
+   * Exposes form methods to parent component
+   * 
+   * Provides the parent component with access to form submission
+   * and reset functionality through the forwarded ref.
+   */
   useImperativeHandle(ref, () => ({
     submitForm: async () => {
       if (validateForm()) {
-        // Ensure type is set before submission and map length to timeLimit for backend compatibility
+        // Ensure type is set before submission
         const dataToSubmit = {
           ...formData,
           type: formData.type || (isAbcd ? QUESTION_TYPES.ABCD : QUESTION_TYPES.TRUE_FALSE),
-          timeLimit: formData.length // Add timeLimit for backward compatibility
+          timeLimit: formData.length
         };
         
         const backendValid = await checkQuestionWithBackend(dataToSubmit);
         if (backendValid) {
           onSubmit(dataToSubmit);
-          resetForm(); // Reset form after successful submit
+          resetForm();
         }
       }
     },
@@ -234,7 +292,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
       flexDirection: 'column', 
       gap: 3,
       pb: 2,
-      pt: 0.8 // padding top to prevent label cutoff
+      pt: 0.8
     }}>
       <TextField
         fullWidth
@@ -275,7 +333,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
             </Box>
           ))}
           
-          {/* Add error message for ABCD form when no correct answer is selected */}
+          {/* Error message for ABCD form when no correct answer is selected */}
           {errors.correctAnswer && (
             <FormHelperText error sx={{ mt: 1, ml: 2 }}>
               {errors.correctAnswer}
@@ -298,7 +356,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
         </FormControl>
       )}
 
-      <Box sx={{ px: 2, width: '99%' }}> {/* Adjust width and padding */}
+      <Box sx={{ px: 2, width: '99%' }}>
         <Typography gutterBottom>
           Časový limit: {formData.length} vteřin
         </Typography>
@@ -317,7 +375,7 @@ const QuestionForm = forwardRef(({ onSubmit, editQuestion = null, isAbcd }, ref)
           ]}
           sx={{
             '& .MuiSlider-markLabel': {
-              transform: 'translateX(-50%)', // Center the labels under marks
+              transform: 'translateX(-50%)',
             }
           }}
         />

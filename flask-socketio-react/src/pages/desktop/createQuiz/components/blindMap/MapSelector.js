@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Map Selector component for Blind Map question creation
+ * 
+ * This component provides:
+ * - Interactive map interface for selecting geographical locations
+ * - Support for both Czech Republic and European maps
+ * - Visual radius indicators for scoring zones
+ * - Difficulty level configuration with preset radius sizes
+ * - Location preview with coordinates and map display
+ * 
+ * @module Components/Desktop/CreateQuiz/BlindMap/MapSelector
+ */
 import React, { useRef, useState, useEffect } from 'react';
 import {
   Box,
@@ -8,8 +20,7 @@ import {
   FormHelperText,
   FormControl,
   Select,
-  MenuItem,
-  Grid
+  MenuItem
 } from '@mui/material';
 import { scrollbarStyle } from '../../../../../utils/scrollbarStyle';
 import { QUIZ_VALIDATION } from '../../../../../constants/quizValidation';
@@ -18,9 +29,26 @@ import { QUIZ_VALIDATION } from '../../../../../constants/quizValidation';
 import czMapImage from '../../../../../assets/maps/cz.png';
 import europeMapImage from '../../../../../assets/maps/europe.png';
 
-// Use radius presets from constants instead of defining them here
 const RADIUS_PRESETS = QUIZ_VALIDATION.BLIND_MAP.RADIUS_PRESETS;
 
+/**
+ * Map Selector component for interactive location selection
+ * 
+ * Provides a UI for selecting geographic coordinates on a map with
+ * difficulty settings that control the size of the scoring radius.
+ * Supports both Czech Republic and European maps with appropriate scaling.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {number|null} props.locationX - Current X coordinate (0-1)
+ * @param {number|null} props.locationY - Current Y coordinate (0-1)
+ * @param {string} props.mapType - Map type ('cz' or 'europe')
+ * @param {string} props.error - Error message to display
+ * @param {Function} props.onSelectLocation - Callback when location is selected
+ * @param {string} props.radiusPreset - Difficulty preset ('EASY' or 'HARD')
+ * @param {Function} props.onRadiusChange - Callback when radius preset changes
+ * @returns {JSX.Element} The rendered map selector component
+ */
 const MapSelector = ({ 
   locationX,
   locationY,
@@ -34,7 +62,7 @@ const MapSelector = ({
   const mapRef = useRef(null);
   const [tempLocation, setTempLocation] = useState({ x: null, y: null });
   const [selectedPreset, setSelectedPreset] = useState(radiusPreset || 'EASY');
-  // Add a temporary preset state just for the modal
+  // Temporary preset state just for the modal
   const [tempPreset, setTempPreset] = useState(radiusPreset || 'EASY');
   const [mapDimensions, setMapDimensions] = useState({ width: 1, height: 1 });
 
@@ -43,7 +71,14 @@ const MapSelector = ({
     setSelectedPreset(radiusPreset || 'EASY');
   }, [radiusPreset]);
 
-  // Update map dimensions when the map image loads or changes
+  /**
+   * Update map dimensions when image loads
+   * 
+   * Captures the actual dimensions of the map image for
+   * accurate radius circle scaling.
+   * 
+   * @function handleMapLoad
+   */
   const handleMapLoad = () => {
     if (mapRef.current) {
       const { width, height } = mapRef.current.getBoundingClientRect();
@@ -51,7 +86,15 @@ const MapSelector = ({
     }
   };
 
-  // Handle map click to set temporary location
+  /**
+   * Handle map click to set temporary location
+   * 
+   * Calculates normalized coordinates (0-1) from the click position
+   * relative to the map dimensions.
+   * 
+   * @function handleMapClick
+   * @param {React.MouseEvent} e - Click event
+   */
   const handleMapClick = (e) => {
     if (!mapRef.current) return;
     
@@ -65,7 +108,14 @@ const MapSelector = ({
     });
   };
 
-  // Open the map selection modal
+  /**
+   * Open the map selection modal
+   * 
+   * Initializes the temporary location and preset values
+   * with the current values.
+   * 
+   * @function openMapSelector
+   */
   const openMapSelector = () => {
     setTempLocation({ 
       x: locationX, 
@@ -76,7 +126,13 @@ const MapSelector = ({
     setMapModalOpen(true);
   };
 
-  // Close the map modal and discard changes
+  /**
+   * Close the map modal without saving changes
+   * 
+   * Resets temporary values to the current confirmed values.
+   * 
+   * @function closeMapModal
+   */
   const closeMapModal = () => {
     setMapModalOpen(false);
     setTempLocation({ 
@@ -87,7 +143,14 @@ const MapSelector = ({
     setTempPreset(selectedPreset);
   };
 
-  // Confirm location selection
+  /**
+   * Confirm location selection and close modal
+   * 
+   * Saves the temporary location and preset values
+   * as the confirmed values.
+   * 
+   * @function confirmLocationSelection
+   */
   const confirmLocationSelection = () => {
     if (tempLocation.x !== null && tempLocation.y !== null) {
       onSelectLocation(tempLocation.x, tempLocation.y);
@@ -100,14 +163,28 @@ const MapSelector = ({
     setMapModalOpen(false);
   };
 
-  // Handle radius preset change in the modal
+  /**
+   * Handle radius preset change in the modal
+   * 
+   * Updates the temporary radius preset value.
+   * 
+   * @function handleRadiusPresetChange
+   * @param {Object} event - Change event
+   */
   const handleRadiusPresetChange = (event) => {
     const newPreset = event.target.value;
     // Only update the temporary preset
     setTempPreset(newPreset);
   };
 
-  // Get the current map image based on mapType
+  /**
+   * Get the current map image based on mapType
+   * 
+   * Returns the appropriate map image for the current map type.
+   * 
+   * @function getCurrentMapImage
+   * @returns {string} URL of the map image
+   */
   const getCurrentMapImage = () => {
     return mapType === 'cz' ? czMapImage : europeMapImage;
   };
@@ -216,7 +293,7 @@ const MapSelector = ({
             />
           </Box>
           
-          {/* Update the difficulty selector in preview to match modal layout */}
+          {/* Difficulty selector in preview should match modal layout */}
           <Box sx={{ 
             mt: 2,
             display: 'flex', 
@@ -274,7 +351,7 @@ const MapSelector = ({
             Vyberte umístění na mapě {mapType === 'cz' ? 'České republiky' : 'Evropy'}
           </Typography>
           
-          {/* Remove difficulty controls from the top of the modal */}
+          {/* Map image with click event */}
           
           <Box sx={{ position: 'relative', width: '100%' }}>
             <Box
@@ -293,8 +370,8 @@ const MapSelector = ({
             
             {tempLocation.x !== null && tempLocation.y !== null && (
               <>
-                {/* Only show radius circles in EASY mode */}
-                {tempPreset === 'EASY' && ( // Use tempPreset here
+                {/* Temporary radius circle for selected location */}
+                {tempPreset === 'EASY' && (
                   <Box
                     sx={{
                       position: 'absolute',
@@ -312,14 +389,14 @@ const MapSelector = ({
                   />
                 )}
                 
-                {/* Exact center circle (always shown) */}
+                {/* Temporary radius circle for selected location */}
                 <Box
                   sx={{
                     position: 'absolute',
                     left: `${tempLocation.x * 100}%`,
                     top: `${tempLocation.y * 100}%`,
                     transform: 'translate(-50%, -50%)',
-                    width: `${RADIUS_PRESETS[tempPreset].exact * 200}%`, // Use tempPreset here
+                    width: `${RADIUS_PRESETS[tempPreset].exact * 200}%`,
                     height: `${RADIUS_PRESETS[tempPreset].exact * 200 * (mapDimensions.width / mapDimensions.height)}%`,
                     bgcolor: 'rgba(244, 67, 54, 0.3)',
                     border: '1px solid rgba(244, 67, 54, 0.7)',
@@ -349,7 +426,7 @@ const MapSelector = ({
             )}
           </Box>
           
-          {/* Move difficulty controls to the bottom with the buttons */}
+          {/* Difficulty controls at the bottom with the buttons */}
           <Box sx={{ 
             mt: 3, 
             display: 'flex', 

@@ -1,16 +1,41 @@
+/**
+ * @fileoverview Sortable Question component for drag-and-drop question management
+ * 
+ * This component provides:
+ * - Draggable question items for reordering in a quiz
+ * - Type-specific content rendering for different question types
+ * - Edit and delete actions for questions
+ * - Visual feedback during drag operations
+ * - Contextual information display based on question properties
+ * 
+ * @module Components/Desktop/CreateQuiz/QuestionPreview/SortableQuestion
+ */
 import React, { useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Box, Typography, IconButton, Paper, Divider } from '@mui/material';
+import { Box, Typography, IconButton, Paper } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import EditIcon from '@mui/icons-material/Edit';
 import { QUESTION_TYPES, QUIZ_TYPES } from '../../../../../constants/quizValidation';
 
+/**
+ * Sortable Question component for displaying and managing quiz questions
+ * 
+ * Renders a draggable question item with type-specific content display,
+ * edit/delete controls, and visual feedback during drag operations.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data object with type-specific properties
+ * @param {number} props.index - Question's position in the list (zero-based)
+ * @param {Function} props.onDelete - Callback for question deletion
+ * @param {Function} props.onEdit - Callback for question editing
+ * @param {Function} props.setActiveId - Handler to set active drag item ID
+ * @param {boolean} props.isDragging - Whether this question is currently being dragged
+ * @returns {JSX.Element} The rendered sortable question component
+ */
 const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDragging }) => {
-  // Add debugging logs when component renders or question changes
-  useEffect(() => {
-  }, [question, index]);
 
   const {
     attributes,
@@ -31,6 +56,19 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
     opacity: isSortableDragging ? 0.4 : 1,
   };
 
+  /**
+   * Renders question content based on question type
+   * 
+   * Provides different layouts and information display for:
+   * - Math Quiz: Shows equations with answers and time limits
+   * - Open Answer: Shows correct answer and media information
+   * - Guess a Number: Shows correct numeric answer
+   * - Blind Map: Shows city name, anagram, and clues
+   * - ABCD/True-False: Shows answer options with correct answer highlighted
+   * 
+   * @function renderQuestionContent
+   * @returns {JSX.Element} Type-specific question content
+   */
   const renderQuestionContent = () => {
     if (question.type === QUESTION_TYPES.MATH_QUIZ || question.type === QUIZ_TYPES.MATH_QUIZ) {
       // Check for both possible type values to be safe
@@ -90,7 +128,7 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
               my: 0.5,
               bgcolor: 'success.light',
               borderRadius: 1,
-              width: '100%'  // Make box full width
+              width: '100%'
             }}
           >
             <Typography align="left">
@@ -115,7 +153,7 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
             my: 0.5,
             bgcolor: 'success.light',
             borderRadius: 1,
-            width: '100%'  // Make box full width
+            width: '100%'
           }}
         >
           <Typography align="left">
@@ -132,7 +170,7 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
               my: 0.5,
               bgcolor: 'success.light',
               borderRadius: 1,
-              width: '100%'  // Make box full width
+              width: '100%'
             }}
           >
             <Typography align="left">
@@ -174,7 +212,7 @@ const SortableQuestion = ({ question, index, onDelete, onEdit, setActiveId, isDr
           my: 0.5,
           bgcolor: ansIndex === question.correctAnswer ? 'success.light' : 'action.hover',
           borderRadius: 1,
-          width: '100%'  // Make all answer boxes full width
+          width: '100%'
         }}
       >
         <Typography align="left">

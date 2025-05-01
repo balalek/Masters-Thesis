@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Question Preview component for displaying and managing quiz questions
+ * 
+ * This component provides:
+ * - Drag-and-drop reordering of questions in a quiz
+ * - Visual representation of different question types
+ * - Validation warnings for standalone special question types
+ * - Options to edit or delete individual questions
+ * - Empty state messaging when no questions exist
+ * 
+ * @module Components/Desktop/CreateQuiz/QuestionPreview/QuestionPreview
+ */
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Alert } from '@mui/material';
 import {
@@ -8,6 +20,20 @@ import { DragOverlay } from '@dnd-kit/core';
 import SortableQuestion from './SortableQuestion';
 import { QUIZ_TYPES } from '../../../../../constants/quizValidation';
 
+/**
+ * Question Preview component for displaying and managing quiz questions
+ * 
+ * Renders a sortable list of questions with drag-and-drop reordering,
+ * validation warnings, and options to edit or delete questions.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Array} props.questions - Array of question objects to display
+ * @param {Function} props.onDelete - Handler for question deletion
+ * @param {Function} props.onEdit - Handler for question editing
+ * @param {Function} props.onMove - Handler for question reordering
+ * @returns {JSX.Element} The rendered question preview component
+ */
 const QuestionPreview = ({ 
   questions = [], 
   onDelete = () => {}, 

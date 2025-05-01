@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Drawing Form component for creating and editing Drawing quiz questions
+ * 
+ * This component provides:
+ * - Form for configuring Drawing quiz parameters
+ * - Rounds configuration via slider
+ * - Time limit settings for drawing turns
+ * - Informational display about Drawing gameplay
+ * - Validation of quiz parameters
+ * 
+ * @module Components/Desktop/CreateQuiz/DrawingForm
+ */
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -9,8 +21,21 @@ import {
 import InfoIcon from '@mui/icons-material/Info';
 import { QUIZ_VALIDATION } from '../../../../constants/quizValidation';
 
+/**
+ * Drawing Form component for configuring Drawing quiz questions
+ * 
+ * Allows setting rounds and time limits for Drawing questions,
+ * providing informational guidance and validation feedback.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onSubmit - Callback when form is submitted
+ * @param {Object} props.editQuestion - Question data when editing existing question
+ * @param {Object} ref - Forwarded ref for parent access to form methods
+ * @returns {JSX.Element} The rendered form component
+ */
 const DrawingForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) => {
-  // Initialize with default values, not with editQuestion
+  // Initialize with default values
   const [formData, setFormData] = useState({
     length: QUIZ_VALIDATION.DRAWING.DEFAULT_TIME,
     rounds: QUIZ_VALIDATION.DRAWING.DEFAULT_ROUNDS
@@ -20,7 +45,6 @@ const DrawingForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =>
   // Update formData when editQuestion changes
   useEffect(() => {
     if (editQuestion) {
-      console.log("Updating form with editQuestion:", editQuestion);
       setFormData({
         length: editQuestion.length || QUIZ_VALIDATION.DRAWING.DEFAULT_TIME,
         rounds: editQuestion.rounds || QUIZ_VALIDATION.DRAWING.DEFAULT_ROUNDS
@@ -34,6 +58,15 @@ const DrawingForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =>
     }
   }, [editQuestion]);
 
+  /**
+   * Validates form data against quiz constraints
+   * 
+   * Checks time limit and rounds count against min/max constraints
+   * and sets appropriate error messages if validation fails.
+   * 
+   * @function validateForm
+   * @returns {boolean} True if validation passes, false otherwise
+   */
   const validateForm = () => {
     const newErrors = {};
 
@@ -53,6 +86,14 @@ const DrawingForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =>
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission after validation
+   * 
+   * Validates form data and calls the onSubmit callback with
+   * the formatted question data if validation passes.
+   * 
+   * @function handleSubmit
+   */
   const handleSubmit = () => {
     if (!validateForm()) return;
 
@@ -63,6 +104,11 @@ const DrawingForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =>
     resetForm();
   };
 
+  /**
+   * Resets form to default values
+   * 
+   * @function resetForm
+   */
   const resetForm = () => {
     setFormData({
       length: QUIZ_VALIDATION.DRAWING.DEFAULT_TIME,
@@ -71,6 +117,12 @@ const DrawingForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =>
     setErrors({});
   };
 
+  /**
+   * Exposes form methods to parent component
+   * 
+   * Provides external access to form submission and reset functionality
+   * through the forwarded ref.
+   */
   React.useImperativeHandle(ref, () => ({
     submitForm: handleSubmit,
     resetForm

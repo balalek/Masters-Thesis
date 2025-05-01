@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Dialog for adding existing questions to a quiz
+ * 
+ * This component provides:
+ * - Search functionality for finding existing questions
+ * - Filtering options by source (own/public) and question type
+ * - Question selection and preview
+ * - Pagination for browsing large sets of questions
+ * - Data transformation for consistent question format
+ * 
+ * @module Components/Desktop/CreateQuiz/ExistingQuestions/AddExistingQuestionDialog
+ */
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -13,19 +25,30 @@ import {
   List,
   ListItem,
   ListItemText,
-  Checkbox,
   InputAdornment,
   Select,
   MenuItem,
-  ToggleButtonGroup,
-  ToggleButton
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { QUESTION_TYPES, QUIZ_TYPES } from '../../../../../constants/quizValidation';
+import { QUESTION_TYPES } from '../../../../../constants/quizValidation';
 import QuestionCard from './QuestionCard';
 import { scrollbarStyle } from '../../../../../utils/scrollbarStyle';
 import { QUIZ_VALIDATION } from '../../../../../constants/quizValidation';
 
+/**
+ * Dialog component for searching and adding existing questions
+ * 
+ * Allows users to search, filter and select existing questions from their own
+ * collection or public questions. Provides pagination, previews, and handles
+ * data transformation for consistent question formats.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {boolean} props.open - Whether the dialog is open
+ * @param {Function} props.onClose - Handler for dialog close
+ * @param {Function} props.onAddQuestions - Callback for adding selected questions
+ * @returns {JSX.Element} The rendered dialog component
+ */
 const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
   const [search, setSearch] = useState('');
   const [questionSource, setQuestionSource] = useState('others');
@@ -33,7 +56,6 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -44,10 +66,20 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
     setExpandedQuestionId(null);
   }, [open, search, questionSource, questionTypes]);
 
+  /**
+   * Fetch questions from the server with current filters
+   * 
+   * Retrieves questions based on current search, source, and type filters.
+   * Handles pagination and appending results to existing list.
+   * 
+   * @async
+   * @function fetchQuestions
+   * @param {number} pageNum - Page number to fetch
+   * @param {boolean} append - Whether to append results to existing list
+   */
   const fetchQuestions = async (pageNum = 1, append = false) => {
     try {
       setLoading(true);
-      setError(null);
       
       const params = new URLSearchParams({
         type: questionSource,
@@ -56,26 +88,21 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
         page: pageNum
       });
       
-      console.log(`Fetching questions with params: ${params.toString()}`);
-      
       const response = await fetch(`/get_existing_questions?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch questions');
       }
       
       const data = await response.json();
-      console.log(`Got ${data.questions.length} questions, total: ${data.totalCount}`);
       
       const newQuestions = data.questions.map(q => {
-        // Make sure answers is always properly formatted
+        // Make sure answers are always properly formatted
         let answers = q.answers;
         if (!answers && q.type === QUESTION_TYPES.OPEN_ANSWER) {
           answers = [{ text: `Správná odpověď: ${q.open_answer || ''}`, isCorrect: true }];
         } else if (!answers && q.type === QUESTION_TYPES.GUESS_A_NUMBER) {
           answers = [{ text: `Správná odpověď: ${q.number_answer || '0'}`, isCorrect: true }];
         } else if (!answers && q.type === QUESTION_TYPES.BLIND_MAP) {
-          // Add console log to debug the blind map data
-          console.log('Processing blind map question:', q);
           answers = [{ text: `Správná odpověď: ${q.city_name || q.cityName || 'Není uvedeno'}`, isCorrect: true }];
         } else if (!answers && q.options) {
           answers = q.options.map((text, index) => ({
@@ -92,9 +119,9 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
           answers: answers
         };
         
-        // Make sure open answer fields are properly included
+        // Make sure specific question type fields are properly included
         if (q.type === QUESTION_TYPES.OPEN_ANSWER) {
-          questionData.answer = q.open_answer;  // Make sure we preserve the answer
+          questionData.answer = q.open_answer;
           questionData.mediaType = q.media_type;
           questionData.mediaUrl = q.media_url;
           questionData.showImageGradually = q.show_image_gradually;
@@ -102,7 +129,6 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
         } else if (q.type === QUESTION_TYPES.GUESS_A_NUMBER) {
           questionData.answer = q.number_answer || 0;
         } else if (q.type === QUESTION_TYPES.BLIND_MAP) {
-          // Add BlindMap specific fields
           questionData.cityName = q.city_name || q.cityName || '';
           questionData.city_name = q.city_name || q.cityName || '';
           questionData.anagram = q.anagram || '';
@@ -122,20 +148,27 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
       setHasMore(data.hasMore);
       setTotalCount(data.totalCount);
     } catch (err) {
-      setError('Failed to load questions');
       console.error('Error fetching questions:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Load more questions when user clicks "Load More" button
+   * 
+   * Increments the page counter and fetches the next page of results,
+   * appending them to the existing list.
+   * 
+   * @function handleLoadMore
+   */
   const handleLoadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
     fetchQuestions(nextPage, true);
   };
 
-  // Modify useEffect to reset pagination when filters change
+  // Reset pagination when filters change
   useEffect(() => {
     if (open) {
       setPage(1);
@@ -153,18 +186,50 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
     }
   }, [open]);
 
+  /**
+   * Handle search text changes
+   * 
+   * Updates the search query state when user types in the search field.
+   * 
+   * @function handleSearchChange
+   * @param {Object} event - Change event from the search input
+   */
   const handleSearchChange = (event) => {
     setSearch(event.target.value);
   };
 
+  /**
+   * Handle change in question source filter
+   * 
+   * Toggles between showing user's own questions or public questions.
+   * 
+   * @function handleQuestionSourceChange
+   * @param {Object} event - Change event from the source select
+   */
   const handleQuestionSourceChange = (event) => {
     setQuestionSource(event.target.value);
   };
 
+  /**
+   * Handle change in question type filter
+   * 
+   * Updates the type filter to show specific question types or all types.
+   * 
+   * @function handleQuestionTypesChange
+   * @param {Object} event - Change event from the type select
+   */
   const handleQuestionTypesChange = (event) => {
     setQuestionTypes(event.target.value);
   };
 
+  /**
+   * Toggle a question's selection state
+   * 
+   * Adds or removes a question from the selected questions array.
+   * 
+   * @function handleToggleQuestion
+   * @param {Object} question - Question to toggle selection
+   */
   const handleToggleQuestion = (question) => {
     const currentIndex = selectedQuestions.findIndex(q => q.id === question.id);
     const newSelected = [...selectedQuestions];
@@ -178,14 +243,30 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
     setSelectedQuestions(newSelected);
   };
 
+  /**
+   * Handle adding selected questions to the quiz
+   * 
+   * Processes selected questions, transforms them to the proper format,
+   * and calls the onAddQuestions callback before closing the dialog.
+   * 
+   * @function handleAddSelected
+   */
   const handleAddSelected = () => {
     // Use the transformation logic before adding questions
     handleAddExistingQuestions(selectedQuestions);
     onClose();
   };
 
+  /**
+   * Transform and prepare selected questions for adding to quiz
+   * 
+   * Handles type-specific transformations to ensure questions are
+   * properly formatted for the quiz editor.
+   * 
+   * @function handleAddExistingQuestions
+   * @param {Array} selectedQuestions - Questions selected by the user
+   */
   const handleAddExistingQuestions = (selectedQuestions) => {
-    console.log('Selected questions to add:', selectedQuestions);
     
     const newQuestions = selectedQuestions.map(question => {
       // Create base question with all original fields
@@ -198,12 +279,11 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
         copy_of: question.copy_of || question._id || question.id,
         is_copy: true
       };
-      
+      // Specific transformations based on question type
       if (question.type === QUESTION_TYPES.BLIND_MAP) {
-        console.log('Processing Blind Map Question:', question);
         return {
           ...baseQuestion,
-          text: "Slepá mapa",  // Preserve text field
+          text: "Slepá mapa",
           cityName: question.cityName || question.city_name || '',
           anagram: question.anagram || '',
           locationX: question.coords ? question.coords[0] : (question.locationX || question.location_x || 0),
@@ -235,16 +315,12 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
           sequences: question.sequences?.map(seq => ({
             id: Date.now() + Math.random(),
             equation: seq.equation || '',
-            // Fix: Use nullish coalescing to preserve zero values
             answer: seq.answer !== undefined && seq.answer !== null ? seq.answer : '',
             length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT
           })) || []
         };
       } else if (question.type === QUESTION_TYPES.ABCD || question.type === QUESTION_TYPES.TRUE_FALSE) {
-        // DEBUG THE SOURCE DATA
-        console.log(`Processing ${question.type} question:`, JSON.stringify(question.answers));
-        
-        // Fix: Don't transform just directly use the answers as they are
+        // Don't transform just directly use the answers as they are
         return {
           ...baseQuestion,
           answers: Array.isArray(question.answers) 
@@ -259,9 +335,6 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
       // Default case - return the base question with all original properties
       return baseQuestion;
     });
-    
-    // Log the transformed questions for debugging
-    console.log('Transformed questions:', newQuestions);
     onAddQuestions(newQuestions);
   };
 
@@ -272,8 +345,6 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
     const matchesSource = 
       (questionSource === 'mine' && question.isMyQuestion) ||
       (questionSource === 'others' && !question.isMyQuestion);
-    
-    // Fix matching logic to show ALL question types when "all" is selected
     const matchesType = 
       questionTypes === 'all' || question.type === questionTypes;
       
@@ -286,13 +357,15 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
       onClose={onClose} 
       fullWidth 
       maxWidth="md"
-      PaperProps={{
-        sx: {
-          height: '80vh', // Fixed height
-          maxHeight: '800px', // Maximum height
-          display: 'flex',
-          flexDirection: 'column'
-        }
+      slotProps={{
+        paper: {
+          sx: {
+            height: '80vh',
+            maxHeight: '800px',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+        },
       }}
     >
       <DialogTitle>Přidat existující otázku</DialogTitle>
@@ -436,7 +509,7 @@ const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
         </Box>
       </DialogContent>
       <DialogActions sx={{ 
-        px: 3, // Match content padding
+        px: 3,
         py: 2,
         borderTop: '1px solid',
         borderColor: 'divider'

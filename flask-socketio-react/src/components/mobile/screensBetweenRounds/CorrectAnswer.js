@@ -1,10 +1,37 @@
+/**
+ * @fileoverview Correct Answer success screen for mobile players
+ * 
+ * This component provides:
+ * - Visual feedback for correct answers
+ * - Special highlight for exact/perfect answers
+ * - Points display with both earned and total points
+ * - Customizable title and message text
+ * 
+ * @module Components/Mobile/ScreensBetweenRounds/CorrectAnswer
+ */
 import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 
-const CorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult, customTitle, customMessage }) => {
+/**
+ * Correct Answer component for displaying success feedback
+ * 
+ * Shows a celebratory screen when a player has answered correctly,
+ * with special visual indicators for exact/perfect guesses and
+ * detailed point information.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {number} props.points_earned - Points earned for this answer
+ * @param {number} props.total_points - Player's total score after this answer
+ * @param {boolean} props.exactGuess - Whether this was an exact or perfect answer
+ * @param {string} props.customTitle - Optional custom title text
+ * @param {string} props.customMessage - Optional custom message text
+ * @returns {JSX.Element} The rendered success screen
+ */
+const CorrectAnswer = ({ points_earned, total_points, exactGuess, customTitle, customMessage }) => {
   return (
     <Box
       sx={{
@@ -27,7 +54,7 @@ const CorrectAnswer = ({ points_earned, total_points, exactGuess, guessResult, c
         variant="h1" 
         sx={{ 
           color: 'white', 
-          fontSize: '3em',  // Reduced from 4.5em
+          fontSize: '3em',
           fontWeight: 'bold',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',

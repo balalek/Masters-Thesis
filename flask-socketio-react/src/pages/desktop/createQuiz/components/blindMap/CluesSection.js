@@ -1,6 +1,32 @@
+/**
+ * @fileoverview Clues Section component for Blind Map question creation
+ * 
+ * This component provides:
+ * - Input fields for entering up to three optional clues
+ * - Character count display for each clue
+ * - Input validation with error handling
+ * - Length restrictions for clue text
+ * 
+ * @module Components/Desktop/CreateQuiz/BlindMap/CluesSection
+ */
 import React from 'react';
-import { Box, Typography, TextField } from '@mui/material';
+import { Typography, TextField } from '@mui/material';
 
+/**
+ * Clues Section component for entering location hints
+ * 
+ * Allows quiz creators to add up to three optional clues to help players
+ * figure out the anagram during gameplay.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.clue1 - Text for the first clue
+ * @param {string} props.clue2 - Text for the second clue
+ * @param {string} props.clue3 - Text for the third clue
+ * @param {Function} props.onChange - Handler for clue text changes
+ * @param {Object} props.errors - Validation errors for each clue field
+ * @returns {JSX.Element} The rendered clues input section
+ */
 const CluesSection = ({ 
   clue1, 
   clue2, 

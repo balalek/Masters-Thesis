@@ -1,3 +1,16 @@
+/**
+ * @fileoverview Blind Map Form component for creating and editing map-based questions
+ * 
+ * This component provides:
+ * - City name and anagram input with validation
+ * - Map selection between Czech Republic and Europe
+ * - Location marking on the selected map
+ * - Clue management for player hints
+ * - Scoring radius configuration
+ * - Time limit configuration via slider
+ * 
+ * @module Components/Desktop/CreateQuiz/BlindMap/BlindMapForm
+ */
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -13,6 +26,19 @@ import { isValidAnagram, generateAnagram, fixAnagram } from './AnagramUtils';
 import MapSelector from './MapSelector';
 import CluesSection from './CluesSection';
 
+/**
+ * Blind Map Form component for creating map-based location guessing questions
+ * 
+ * Allows quiz creators to define a location on a map with associated anagram puzzle
+ * and optional clues. Supports two map types and configurable scoring precision.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onSubmit - Callback when form is submitted
+ * @param {Object} props.editQuestion - Question data when editing existing question
+ * @param {Object} ref - Forwarded ref for parent access to form methods
+ * @returns {JSX.Element} The rendered form component
+ */
 const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) => {
   const initialFormData = editQuestion || {
     cityName: '',
@@ -30,7 +56,7 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
 
-  // Handle editing
+  // Handle editing - populate form with existing question data
   useEffect(() => {
     if (editQuestion) {
       // Rearrange clues to avoid gaps
@@ -68,6 +94,15 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     }
   };
 
+  /**
+   * Validate form data against content and format rules
+   * 
+   * Checks city name, anagram validity, map location selection,
+   * clue length, and time limit range.
+   * 
+   * @function validateForm
+   * @returns {boolean} True if validation passes, false otherwise
+   */
   const validateForm = () => {
     const newErrors = {};
 
@@ -78,7 +113,7 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
       newErrors.cityName = 'Název města nesmí být delší než 50 znaků';
     }
 
-    // Enhanced anagram validation - now case-insensitive
+    // Enhanced anagram validation - case-insensitive
     if (!formData.anagram.trim()) {
       newErrors.anagram = 'Přesmyčka je povinná';
     } else if (formData.anagram.replace(/\s+/g, '').length !== formData.cityName.replace(/\s+/g, '').length) {
@@ -115,6 +150,14 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Generate random anagram from city name
+   * 
+   * Calls the anagram generator utility to create a valid
+   * anagram from the current city name.
+   * 
+   * @function handleGenerateAnagram
+   */
   const handleGenerateAnagram = () => {
     if (formData.cityName) {
       const newAnagram = generateAnagram(formData.cityName);
@@ -125,6 +168,16 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     }
   };
 
+  /**
+   * Handle map type change between Czech and Europe
+   * 
+   * Resets location if map type changes to ensure
+   * coordinates remain valid for the selected map.
+   * 
+   * @function handleMapTypeChange
+   * @param {Event} event - Change event
+   * @param {string} value - New map type value
+   */
   const handleMapTypeChange = (event, value) => {
     if (value) {
       if (value !== formData.mapType) {
@@ -144,7 +197,12 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     }
   };
 
-  // Add handler for radius preset changes
+  /**
+   * Change scoring radius precision for location guessing
+   * 
+   * @function handleRadiusChange
+   * @param {string} preset - Radius preset ('EASY' or 'HARD')
+   */
   const handleRadiusChange = (preset) => {
     if (preset) {
       setFormData(prevData => ({
@@ -154,6 +212,13 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     }
   };
 
+  /**
+   * Update map location coordinates when user selects a point
+   * 
+   * @function handleSelectLocation
+   * @param {number} x - X coordinate on the map
+   * @param {number} y - Y coordinate on the map
+   */
   const handleSelectLocation = (x, y) => {
     if (x !== null && y !== null) {
       setFormData(prevData => ({
@@ -164,6 +229,13 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     }
   };
 
+  /**
+   * Update clue text for a specific clue field
+   * 
+   * @function handleClueChange
+   * @param {string} field - Field name (clue1, clue2, clue3)
+   * @param {string} value - New clue text
+   */
   const handleClueChange = (field, value) => {
     setFormData({
       ...formData,
@@ -171,6 +243,14 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     });
   };
 
+  /**
+   * Handle form submission after validation
+   * 
+   * Validates the form, rearranges clues to avoid gaps,
+   * and calls the onSubmit callback with the formatted question data.
+   * 
+   * @function handleSubmit
+   */
   const handleSubmit = () => {
     if (!validateForm()) return;
 
@@ -192,7 +272,18 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     resetForm();
   };
 
-  // Helper function to rearrange clues
+  /**
+   * Rearrange clues to avoid gaps between them
+   * 
+   * Moves non-empty clues to the beginning of the array to
+   * prevent gaps in the displayed clues.
+   * 
+   * @function rearrangeClues
+   * @param {string} clue1 - First clue text
+   * @param {string} clue2 - Second clue text
+   * @param {string} clue3 - Third clue text
+   * @returns {Object} Object with rearranged clues
+   */
   const rearrangeClues = (clue1, clue2, clue3) => {
     const nonEmptyClues = [clue1, clue2, clue3].filter(clue => clue && clue.trim() !== '');
     
@@ -203,6 +294,11 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     };
   };
 
+  /**
+   * Reset form to default values
+   * 
+   * @function resetForm
+   */
   const resetForm = () => {
     setFormData({
       cityName: '',
@@ -210,7 +306,7 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
       locationX: null,
       locationY: null,
       mapType: 'cz',
-      radiusPreset: 'HARD', // Changed from 'MEDIUM' to 'HARD'
+      radiusPreset: 'HARD',
       clue1: '',
       clue2: '',
       clue3: '',
@@ -219,6 +315,11 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     setErrors({});
   };
 
+  /**
+   * Expose form methods to parent component.
+   * Provides external access to form submission and reset functionality
+   * through the forwarded ref.
+   */
   React.useImperativeHandle(ref, () => ({
     submitForm: handleSubmit,
     resetForm

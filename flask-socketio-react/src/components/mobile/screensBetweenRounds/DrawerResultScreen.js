@@ -1,9 +1,37 @@
+/**
+ * @fileoverview Drawer Result Screen for displaying drawing round results
+ * 
+ * This component provides:
+ * - Results feedback for the player who was drawing
+ * - Different visual states based on guessing success rate
+ * - Points earned display with total score update
+ * - Late selection indicator when player chose their word late
+ * - Context-appropriate messages based on performance
+ * 
+ * @module Components/Mobile/ScreensBetweenRounds/DrawerResultScreen
+ */
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InfoIcon from '@mui/icons-material/Info';
 import ErrorIcon from '@mui/icons-material/Error';
 
+/**
+ * Drawer Result Screen component for displaying drawing results
+ * 
+ * Shows feedback to the player who was drawing based on how many
+ * other players correctly guessed their drawing, including points
+ * earned and visual indicators of success level.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {number} props.pointsEarned - Points earned for this drawing
+ * @param {number} props.totalPoints - Player's total score after this round
+ * @param {number} props.correctGuessCount - Number of players who guessed correctly
+ * @param {number} props.totalGuessers - Total number of players who could guess
+ * @param {boolean} props.isLateSelection - Whether the player selected their word late
+ * @returns {JSX.Element} The rendered drawer result screen
+ */
 const DrawerResultScreen = ({ pointsEarned, totalPoints, correctGuessCount, totalGuessers, isLateSelection }) => {
   // Determine status based on how many people guessed correctly
   let status = "none"; // none, some, all

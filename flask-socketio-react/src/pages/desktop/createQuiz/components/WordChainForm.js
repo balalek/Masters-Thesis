@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Word Chain Form component for creating and editing Word Chain quizzes
+ * 
+ * This component provides:
+ * - Form for configuring Word Chain quiz parameters
+ * - Time limit configuration for player turns
+ * - Informational display about Word Chain gameplay
+ * - Validation of quiz parameters
+ * - Integration with parent form submission framework
+ * 
+ * @module Components/Desktop/CreateQuiz/WordChainForm
+ */
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -9,6 +21,19 @@ import {
 import InfoIcon from '@mui/icons-material/Info';
 import { QUIZ_VALIDATION } from '../../../../constants/quizValidation';
 
+/**
+ * Word Chain Form component for configuring Word Chain quiz questions
+ * 
+ * Allows setting time limits for player turns in Word Chain games,
+ * with appropriate validation and feedback.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onSubmit - Callback when form is submitted
+ * @param {Object} props.editQuestion - Question data when editing existing question
+ * @param {Object} ref - Forwarded ref for parent access to form methods
+ * @returns {JSX.Element} The rendered form component
+ */
 const WordChainForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) => {
   // Initialize with default values, not with editQuestion
   const [formData, setFormData] = useState({
@@ -20,7 +45,6 @@ const WordChainForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) 
   // Update formData when editQuestion changes
   useEffect(() => {
     if (editQuestion) {
-      console.log("Updating form with editQuestion:", editQuestion);
       setFormData({
         length: editQuestion.length || QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME,
         rounds: QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS // Always 1
@@ -34,6 +58,15 @@ const WordChainForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) 
     }
   }, [editQuestion]);
 
+  /**
+   * Validates form data against quiz constraints
+   * 
+   * Checks time limit values against min/max constraints
+   * and sets appropriate error messages if validation fails.
+   * 
+   * @function validateForm
+   * @returns {boolean} True if validation passes, false otherwise
+   */
   const validateForm = () => {
     const newErrors = {};
 
@@ -43,12 +76,20 @@ const WordChainForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) 
       newErrors.length = `Časový limit musí být mezi ${QUIZ_VALIDATION.WORD_CHAIN.MIN_TIME} až ${QUIZ_VALIDATION.WORD_CHAIN.MAX_TIME} sekundami`;
     }
 
-    // Rounds validation not needed anymore since it's fixed at 1
+    // Rounds validation not needed since it's fixed at 1
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission after validation
+   * 
+   * Validates form data and calls the onSubmit callback with
+   * the formatted question data if validation passes.
+   * 
+   * @function handleSubmit
+   */
   const handleSubmit = () => {
     if (!validateForm()) return;
 
@@ -60,6 +101,11 @@ const WordChainForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) 
     resetForm();
   };
 
+  /**
+   * Resets form to default values
+   * 
+   * @function resetForm
+   */
   const resetForm = () => {
     setFormData({
       length: QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME,
@@ -68,6 +114,12 @@ const WordChainForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) 
     setErrors({});
   };
 
+  /**
+   * Exposes form methods to parent component
+   * 
+   * Provides external access to form submission and reset functionality
+   * through the forwarded ref.
+   */
   React.useImperativeHandle(ref, () => ({
     submitForm: handleSubmit,
     resetForm
@@ -86,8 +138,6 @@ const WordChainForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) 
           Časový limit na hráče se týká pouze režimu všichni proti všem. Týmový režim má tajný časový limit. <br />
         </Typography>
       </Paper>
-
-      {/* Removed rounds slider since it's fixed at 1 */}
 
       <Box sx={{ px: 2, width: '99%' }}>
         <Typography gutterBottom>

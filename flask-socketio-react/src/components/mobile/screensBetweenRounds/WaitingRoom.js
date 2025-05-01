@@ -1,4 +1,16 @@
-import React, { act, useEffect, useState } from 'react';
+/**
+ * @fileoverview Waiting Room component for mobile players before game start
+ * 
+ * This component provides:
+ * - Player identification with avatar and editable name
+ * - Name change functionality with validation
+ * - Real-time updates via Socket.IO for game start events
+ * - Smooth transition to game screen with proper timing
+ * - Player disconnection handling
+ * 
+ * @module Components/Mobile/ScreensBetweenRounds/WaitingRoom
+ */
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Avatar, TextField, Button, Snackbar, Alert } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -6,16 +18,38 @@ import { getSocket, getServerTime } from '../../../utils/socket';
 import Loading from './Loading';
 import { DRAWER_EXTRA_TIME } from '../../../constants/quizValidation';
 
+/**
+ * Waiting Room component for pre-game lobby
+ * 
+ * Provides a waiting area for players before the game starts,
+ * with player identification and name editing functionality.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.playerName - Initial player name
+ * @param {string} props.playerColor - Player's avatar color
+ * @param {Function} props.onReset - Handler for game reset
+ * @returns {JSX.Element} The rendered waiting room
+ */
 function WaitingRoom({ playerName: initialPlayerName, playerColor, onReset }) {
   const navigate = useNavigate();
   const socket = getSocket();
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState("Počkejte, než začne hra.");
+  const message = "Počkejte, než začne hra.";
   const [playerName, setPlayerName] = useState(initialPlayerName);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState(initialPlayerName);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
+  /**
+   * Handles game start event from server
+   * 
+   * Calculates appropriate timing for transition to game screen,
+   * with special handling for drawer role in drawing games.
+   * 
+   * @function handleGameStart
+   * @param {Object} data - Game start data from server
+   */
   const handleGameStart = (data) => {
     setIsLoading(true);
     const now = getServerTime();
@@ -24,7 +58,7 @@ function WaitingRoom({ playerName: initialPlayerName, playerColor, onReset }) {
     setTimeout(() => {
       navigate('/mobile-game', { 
         state: { 
-          playerName,  // Use the current state value, which may have been updated
+          playerName,
           gameData: data,
           teamName: data.team,
           activeTeam: data.active_team,
@@ -35,6 +69,14 @@ function WaitingRoom({ playerName: initialPlayerName, playerColor, onReset }) {
     }, data.is_drawer ? Math.max(0, delay - DRAWER_EXTRA_TIME) : delay);
   };
   
+  /**
+   * Handles player name change
+   * 
+   * Validates the new name, submits change to server,
+   * and updates Socket.IO room association.
+   * 
+   * @function handleNameChange
+   */
   const handleNameChange = () => {
     if (newName.trim().length < 3 || newName.trim().length > 16) {
       setSnackbar({
@@ -88,17 +130,35 @@ function WaitingRoom({ playerName: initialPlayerName, playerColor, onReset }) {
       });
   };
 
+  /**
+   * Closes snackbar notification
+   * 
+   * @function handleCloseSnackbar
+   */
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  /**
+   * Sets up Socket.IO event listeners and page unload handler
+   * 
+   * Listens for game start and reset events, and sends player
+   * leaving notification when page is unloaded.
+   */
   useEffect(() => {
     socket.on('game_started_mobile', handleGameStart);
     socket.on('game_reset', () => {
       onReset();  // Call the reset function from parent
     });
 
-    // Add event listener for page unload/refresh
+    /**
+     * Handles page unload event
+     * 
+     * Sends player leaving notification to server
+     * to ensure proper cleanup of player state.
+     * 
+     * @function handleBeforeUnload
+     */
     const handleBeforeUnload = () => {
       socket.emit('player_leaving', { player_name: playerName });
     };

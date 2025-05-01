@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Math Quiz Form component for creating and editing math equation sequences
+ * 
+ * This component provides:
+ * - Drag-and-drop interface for ordering math equation sequences
+ * - Dynamic addition and removal of equation sequences
+ * - Validation for equation content and numeric answers
+ * - Time limit configuration for each sequence
+ * - Visual feedback during sequence reordering
+ * 
+ * @module Components/Desktop/CreateQuiz/MathQuiz/MathQuizForm
+ */
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -16,9 +28,8 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragOverlay // Add this import
+  DragOverlay
 } from '@dnd-kit/core';
-// Remove the modifiers import since we'll use DragOverlay instead
 import {
   SortableContext,
   verticalListSortingStrategy
@@ -26,8 +37,22 @@ import {
 import { arrayMove } from '@dnd-kit/sortable';
 import SortableSequence from './SortableSequence';
 
+/**
+ * Math Quiz Form component for creating math equation sequences
+ * 
+ * Provides a drag-and-drop interface for ordering multiple math equation sequences,
+ * each with its own equation, answer, and time limit. Supports validation and dynamic
+ * addition/removal of sequences while maintaining proper ordering.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onSubmit - Callback when form is submitted
+ * @param {Object} props.editQuestion - Question data when editing existing question
+ * @param {Object} ref - Forwarded ref for parent access to form methods
+ * @returns {JSX.Element} The rendered form component
+ */
 const MathQuizForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) => {
-  // Create initial form data with 3 sequences instead of 1
+  // Create initial form data with 3 sequences
   const initialFormData = editQuestion || {
     sequences: Array(QUIZ_VALIDATION.MIN_SEQUENCES).fill().map(() => ({ 
       id: Date.now() + Math.random(), 
@@ -47,28 +72,36 @@ const MathQuizForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Add a small distance threshold to prevent accidental drags
+        distance: 8, // Small distance threshold to prevent accidental drags
       }
     }),
     useSensor(KeyboardSensor)
   );
 
-  // Handle editing
+  // Handle editing - populate form with existing question data
   useEffect(() => {
     if (editQuestion) {
       setFormData({
         sequences: editQuestion.sequences?.length > 0 
           ? editQuestion.sequences.map(seq => ({
               ...seq,
-              id: seq.id || Date.now() + Math.random(), // Ensure each has a unique ID
-              length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT // Ensure each sequence has a length
+              id: seq.id || Date.now() + Math.random(),
+              length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT
             }))
           : [{ id: Date.now(), equation: '', answer: '', length: QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT }],
       });
     }
   }, [editQuestion]);
 
-  // Validate form
+  /**
+   * Validates form data against quiz constraints
+   * 
+   * Checks for minimum sequence count, required equation and answer fields,
+   * numeric answer values, and valid time limits for each sequence.
+   * 
+   * @function validateForm
+   * @returns {boolean} True if validation passes, false otherwise
+   */
   const validateForm = () => {
     const newErrors = {
       sequences: Array(formData.sequences.length).fill(''),
@@ -112,6 +145,13 @@ const MathQuizForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     return isValid;
   };
 
+  /**
+   * Adds a new equation sequence to the form
+   * 
+   * Creates a new sequence with default values and adds it to the sequence list.
+   * 
+   * @function handleAddSequence
+   */
   const handleAddSequence = () => {
     setFormData(prev => ({
       ...prev,
@@ -125,9 +165,17 @@ const MathQuizForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     }));
   };
 
+  /**
+   * Removes a sequence from the form at the specified index
+   * 
+   * Prevents removal if only one sequence remains.
+   * 
+   * @function handleRemoveSequence
+   * @param {number} indexToRemove - Index of sequence to remove
+   */
   const handleRemoveSequence = (indexToRemove) => {
     if (formData.sequences.length <= 1) {
-      return; // Don't remove if we're at minimum
+      return; // Don't remove if we're at minimum, although minimum is 3, but this is more user-friendly
     }
     
     setFormData(prev => ({
@@ -142,6 +190,14 @@ const MathQuizForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     }));
   };
 
+  /**
+   * Updates a field value in a specific sequence
+   * 
+   * @function handleSequenceChange
+   * @param {number} index - Index of the sequence to update
+   * @param {string} field - Field name to update (equation, answer, length)
+   * @param {*} value - New value for the field
+   */
   const handleSequenceChange = (index, field, value) => {
     const updatedSequences = [...formData.sequences];
     updatedSequences[index] = {
@@ -155,7 +211,14 @@ const MathQuizForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     }));
   };
 
-  // Handle drag end to reorder sequences
+  /**
+   * Handles the end of a drag operation for sequence reordering
+   * 
+   * Reorders sequences based on drag result and updates error mapping.
+   * 
+   * @function handleDragEnd
+   * @param {Object} event - Drag end event data
+   */
   const handleDragEnd = (event) => {
     const { active, over } = event;
     
@@ -184,11 +247,23 @@ const MathQuizForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     setActiveId(null);
   };
 
-  // Set active ID when drag starts
+  /**
+   * Tracks the active sequence during drag operations
+   * 
+   * @function handleDragStart
+   * @param {Object} event - Drag start event data
+   */
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
   };
 
+  /**
+   * Handles form submission after validation
+   * 
+   * Validates form data, formats values for submission, and calls onSubmit.
+   * 
+   * @function handleSubmit
+   */
   const handleSubmit = () => {
     if (!validateForm()) return;
 
@@ -197,7 +272,7 @@ const MathQuizForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
       ...formData,
       sequences: formData.sequences.map(seq => ({
         equation: seq.equation,
-        answer: seq.answer, // Don't convert - let backend handle it
+        answer: seq.answer,
         length: Number(seq.length)
       }))
     };
@@ -206,6 +281,11 @@ const MathQuizForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     resetForm();
   };
 
+  /**
+   * Resets form to default values
+   * 
+   * @function resetForm
+   */
   const resetForm = () => {
     setFormData({
       sequences: Array(QUIZ_VALIDATION.MIN_SEQUENCES).fill().map(() => ({ 
@@ -221,6 +301,12 @@ const MathQuizForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
     });
   };
 
+  /**
+   * Exposes form methods to parent component
+   * 
+   * Provides external access to form submission and reset functionality
+   * through the forwarded ref.
+   */
   React.useImperativeHandle(ref, () => ({
     submitForm: handleSubmit,
     resetForm

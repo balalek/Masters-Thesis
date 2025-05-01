@@ -1,14 +1,38 @@
+/**
+ * @fileoverview Guess A Number Form component for creating and editing guess-a-number questions
+ * 
+ * This component provides:
+ * - Form for configuring guess-a-number quiz questions
+ * - Numeric answer field with validation
+ * - Time limit configuration via slider
+ * - Category selection with autocomplete
+ * - Support for editing existing questions
+ * 
+ * @module Components/Desktop/CreateQuiz/GuessANumberForm
+ */
 import React, { useState, useEffect } from 'react';
 import {
   Box,
   TextField,
   Autocomplete,
   Typography,
-  Alert,
   Slider,
 } from '@mui/material';
 import { QUIZ_VALIDATION, QUIZ_CATEGORIES } from '../../../../constants/quizValidation';
 
+/**
+ * Guess A Number Form component for creating and editing guess-a-number questions
+ * 
+ * Provides a form with numeric answer field, question text, category selection,
+ * and time limit configuration for guess-a-number questions.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onSubmit - Callback function when form is submitted
+ * @param {Object} props.editQuestion - Question data when editing an existing question
+ * @param {Object} ref - Forwarded ref for parent control of form submission
+ * @returns {JSX.Element} The rendered form component
+ */
 const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) => {
   const initialFormData = editQuestion || {
     question: '',
@@ -20,7 +44,7 @@ const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, re
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
 
-  // Handle editing
+  // Handle editing - populate form with existing question data
   useEffect(() => {
     if (editQuestion) {
       setFormData({
@@ -32,6 +56,16 @@ const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, re
     }
   }, [editQuestion]);
 
+  /**
+   * Validates form data against content and format rules
+   * 
+   * Ensures question text is provided and within length limits,
+   * answer is a valid number, category is selected, and time limit
+   * is within the acceptable range.
+   * 
+   * @function validateForm
+   * @returns {boolean} True if validation passes, false otherwise
+   */
   const validateForm = () => {
     const newErrors = {};
 
@@ -64,6 +98,14 @@ const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, re
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission after validation
+   * 
+   * Validates form data, converts answer to number type,
+   * and calls the onSubmit callback if validation passes.
+   * 
+   * @function handleSubmit
+   */
   const handleSubmit = () => {
     if (!validateForm()) return;
 
@@ -77,6 +119,14 @@ const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, re
     resetForm();
   };
 
+  /**
+   * Resets form to default state
+   * 
+   * Clears all form fields and errors, returning the form
+   * to its initial state.
+   * 
+   * @function resetForm
+   */
   const resetForm = () => {
     setFormData({
       question: '',
@@ -87,6 +137,12 @@ const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, re
     setErrors({});
   };
 
+  /**
+   * Exposes form methods to parent component
+   * 
+   * Provides the parent component with access to form submission
+   * and reset functionality through the forwarded ref.
+   */
   React.useImperativeHandle(ref, () => ({
     submitForm: handleSubmit,
     resetForm

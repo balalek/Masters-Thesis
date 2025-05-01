@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>pages/desktop/createQuiz/components/existingQuestions/AddExistingQuestionDialog.js - Home Quiz Documentation</title>
+    
+    <meta name="description" content="Documentation for the Home Quiz application" />
+    
+        <meta name="keywords" content="react, quiz, documentation" />
+        <meta name="keyword" content="react, quiz, documentation" />
+    
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-App.html">App</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-App.html#~App">App</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_BlindMap_AnagramUtils.html">Components/Desktop/CreateQuiz/BlindMap/AnagramUtils</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_AnagramUtils.html#~fixAnagram">fixAnagram</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_AnagramUtils.html#~generateAnagram">generateAnagram</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_AnagramUtils.html#~isValidAnagram">isValidAnagram</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_BlindMap_BlindMapForm.html">Components/Desktop/CreateQuiz/BlindMap/BlindMapForm</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_BlindMapForm.html#~handleClueChange">handleClueChange</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_BlindMapForm.html#~handleGenerateAnagram">handleGenerateAnagram</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_BlindMapForm.html#~handleMapTypeChange">handleMapTypeChange</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_BlindMapForm.html#~handleRadiusChange">handleRadiusChange</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_BlindMapForm.html#~handleSelectLocation">handleSelectLocation</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_BlindMapForm.html#~handleSubmit">handleSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_BlindMapForm.html#~rearrangeClues">rearrangeClues</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_BlindMapForm.html#~resetForm">resetForm</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_BlindMapForm.html#~validateForm">validateForm</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_BlindMap_CluesSection.html">Components/Desktop/CreateQuiz/BlindMap/CluesSection</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_CluesSection.html#~CluesSection">CluesSection</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_BlindMap_MapSelector.html">Components/Desktop/CreateQuiz/BlindMap/MapSelector</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_MapSelector.html#~MapSelector">MapSelector</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_MapSelector.html#~closeMapModal">closeMapModal</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_MapSelector.html#~confirmLocationSelection">confirmLocationSelection</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_MapSelector.html#~getCurrentMapImage">getCurrentMapImage</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_MapSelector.html#~handleMapClick">handleMapClick</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_MapSelector.html#~handleMapLoad">handleMapLoad</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_MapSelector.html#~handleRadiusPresetChange">handleRadiusPresetChange</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_BlindMap_MapSelector.html#~openMapSelector">openMapSelector</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_DrawingForm.html">Components/Desktop/CreateQuiz/DrawingForm</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_DrawingForm.html#~handleSubmit">handleSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_DrawingForm.html#~resetForm">resetForm</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_DrawingForm.html#~validateForm">validateForm</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_AddExistingQuestionDialog.html">Components/Desktop/CreateQuiz/ExistingQuestions/AddExistingQuestionDialog</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_AddExistingQuestionDialog.html#~AddExistingQuestionDialog">AddExistingQuestionDialog</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_AddExistingQuestionDialog.html#~fetchQuestions">fetchQuestions</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_AddExistingQuestionDialog.html#~handleAddExistingQuestions">handleAddExistingQuestions</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_AddExistingQuestionDialog.html#~handleAddSelected">handleAddSelected</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_AddExistingQuestionDialog.html#~handleLoadMore">handleLoadMore</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_AddExistingQuestionDialog.html#~handleQuestionSourceChange">handleQuestionSourceChange</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_AddExistingQuestionDialog.html#~handleQuestionTypesChange">handleQuestionTypesChange</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_AddExistingQuestionDialog.html#~handleSearchChange">handleSearchChange</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_AddExistingQuestionDialog.html#~handleToggleQuestion">handleToggleQuestion</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_QuestionCard.html">Components/Desktop/CreateQuiz/ExistingQuestions/QuestionCard</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_QuestionCard.html#~QuestionCard">QuestionCard</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_QuestionCard.html#~getQuestionTypeLabel">getQuestionTypeLabel</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_QuestionCard.html#~handleExpandClick">handleExpandClick</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_ExistingQuestions_QuestionCard.html#~renderContent">renderContent</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_GuessANumberForm.html">Components/Desktop/CreateQuiz/GuessANumberForm</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_GuessANumberForm.html#~handleSubmit">handleSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_GuessANumberForm.html#~resetForm">resetForm</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_GuessANumberForm.html#~validateForm">validateForm</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_MathQuiz_MathQuizForm.html">Components/Desktop/CreateQuiz/MathQuiz/MathQuizForm</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_MathQuizForm.html#~handleAddSequence">handleAddSequence</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_MathQuizForm.html#~handleDragEnd">handleDragEnd</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_MathQuizForm.html#~handleDragStart">handleDragStart</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_MathQuizForm.html#~handleRemoveSequence">handleRemoveSequence</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_MathQuizForm.html#~handleSequenceChange">handleSequenceChange</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_MathQuizForm.html#~handleSubmit">handleSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_MathQuizForm.html#~resetForm">resetForm</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_MathQuizForm.html#~validateForm">validateForm</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_MathQuiz_SortableSequence.html">Components/Desktop/CreateQuiz/MathQuiz/SortableSequence</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_SortableSequence.html#~SortableSequence">SortableSequence</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_SortableSequence.html#~handleEquationBlur">handleEquationBlur</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_SortableSequence.html#~handleEquationChange">handleEquationChange</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_SortableSequence.html#~handleTimeChange">handleTimeChange</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_MathQuiz_SortableSequence.html#~validateEquation">validateEquation</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_OpenAnswerForm.html">Components/Desktop/CreateQuiz/OpenAnswerForm</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_OpenAnswerForm.html#~handleFileSelect">handleFileSelect</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_OpenAnswerForm.html#~handleSubmit">handleSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_OpenAnswerForm.html#~resetForm">resetForm</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_OpenAnswerForm.html#~validateForm">validateForm</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_QuestionForm.html">Components/Desktop/CreateQuiz/QuestionForm</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_QuestionForm.html#~checkQuestionWithBackend">checkQuestionWithBackend</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_QuestionForm.html#~resetForm">resetForm</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_QuestionForm.html#~validateForm">validateForm</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_QuestionPreview_QuestionPreview.html">Components/Desktop/CreateQuiz/QuestionPreview/QuestionPreview</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_QuestionPreview_QuestionPreview.html#~QuestionPreview">QuestionPreview</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_QuestionPreview_SortableQuestion.html">Components/Desktop/CreateQuiz/QuestionPreview/SortableQuestion</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_QuestionPreview_SortableQuestion.html#~SortableQuestion">SortableQuestion</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_QuestionPreview_SortableQuestion.html#~renderQuestionContent">renderQuestionContent</a></li></ul></li><li><a href="module-Components_Desktop_CreateQuiz_WordChainForm.html">Components/Desktop/CreateQuiz/WordChainForm</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_WordChainForm.html#~handleSubmit">handleSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_WordChainForm.html#~resetForm">resetForm</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_CreateQuiz_WordChainForm.html#~validateForm">validateForm</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_GameCountdown.html">Components/Desktop/Miscellaneous/GameCountdown</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_GameCountdown.html#~GameCountdown">GameCountdown</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html">Components/Desktop/Miscellaneous/ImageBlockReveal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~ImageBlockReveal">ImageBlockReveal</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~getContainerStyle">getContainerStyle</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_ImageBlockReveal.html#~handleImageLoad">handleImageLoad</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html">Components/Desktop/Miscellaneous/Leaderboard</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html#~Leaderboard">Leaderboard</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_Leaderboard.html#~renderPlayer">renderPlayer</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_QuestionPreview.html">Components/Desktop/Miscellaneous/QuestionPreview</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuestionPreview.html#~QuestionPreview">QuestionPreview</a></li></ul></li><li><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html">Components/Desktop/Miscellaneous/QuickPlayModal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html#~QuickPlayModal">QuickPlayModal</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Miscellaneous_QuickPlayModal.html#~handleStartGame">handleStartGame</a></li></ul></li><li><a href="module-Components_Desktop_Room_ConnectionInfo.html">Components/Desktop/Room/ConnectionInfo</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_ConnectionInfo.html#~ConnectionInfo">ConnectionInfo</a></li></ul></li><li><a href="module-Components_Desktop_Room_PlayersList.html">Components/Desktop/Room/PlayersList</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_PlayersList.html#~PlayersList">PlayersList</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_PlayersList.html#~distributePlayersInColumns">distributePlayersInColumns</a></li></ul></li><li><a href="module-Components_Desktop_Room_StartGameTooltip.html">Components/Desktop/Room/StartGameTooltip</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_StartGameTooltip.html#~StartGameTooltip">StartGameTooltip</a></li></ul></li><li><a href="module-Components_Desktop_Room_TeamMode.html">Components/Desktop/Room/TeamMode</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_TeamMode.html#~TeamContainer">TeamContainer</a></li><li data-type='method' style='display: none;'><a href="module-Components_Desktop_Room_TeamMode.html#~TeamMode">TeamMode</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_BlindMapPhaseTransitionMobile.html">Components/Mobile/ScreensBetweenRounds/BlindMapPhaseTransitionMobile</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_BlindMapPhaseTransitionMobile.html#~BlindMapPhaseTransitionMobile">BlindMapPhaseTransitionMobile</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_CorrectAnswer.html">Components/Mobile/ScreensBetweenRounds/CorrectAnswer</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_CorrectAnswer.html#~CorrectAnswer">CorrectAnswer</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_DrawerResultScreen.html">Components/Mobile/ScreensBetweenRounds/DrawerResultScreen</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_DrawerResultScreen.html#~DrawerResultScreen">DrawerResultScreen</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_GuessANumberPlacement.html">Components/Mobile/ScreensBetweenRounds/GuessANumberPlacement</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_GuessANumberPlacement.html#~GuessANumberPlacement">GuessANumberPlacement</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_IncorrectAnswer.html">Components/Mobile/ScreensBetweenRounds/IncorrectAnswer</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_IncorrectAnswer.html#~IncorrectAnswer">IncorrectAnswer</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_Loading.html">Components/Mobile/ScreensBetweenRounds/Loading</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_Loading.html#~Loading">Loading</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_MathQuizCorrectAnswer.html">Components/Mobile/ScreensBetweenRounds/MathQuizCorrectAnswer</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_MathQuizCorrectAnswer.html#~MathQuizCorrectAnswer">MathQuizCorrectAnswer</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_MathQuizEliminatedAnswer.html">Components/Mobile/ScreensBetweenRounds/MathQuizEliminatedAnswer</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_MathQuizEliminatedAnswer.html#~MathQuizEliminatedAnswer">MathQuizEliminatedAnswer</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_MobileFinalScore.html">Components/Mobile/ScreensBetweenRounds/MobileFinalScore</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_MobileFinalScore.html#~MobileFinalScore">MobileFinalScore</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_PhaseTransitionMobile.html">Components/Mobile/ScreensBetweenRounds/PhaseTransitionMobile</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_PhaseTransitionMobile.html#~PhaseTransitionMobile">PhaseTransitionMobile</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_TeamWaitingScreen.html">Components/Mobile/ScreensBetweenRounds/TeamWaitingScreen</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_TeamWaitingScreen.html#~TeamWaitingScreen">TeamWaitingScreen</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_TooLateAnswer.html">Components/Mobile/ScreensBetweenRounds/TooLateAnswer</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_TooLateAnswer.html#~TooLateAnswer">TooLateAnswer</a></li></ul></li><li><a href="module-Components_Mobile_ScreensBetweenRounds_WaitingRoom.html">Components/Mobile/ScreensBetweenRounds/WaitingRoom</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_WaitingRoom.html#~WaitingRoom">WaitingRoom</a></li><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_WaitingRoom.html#~handleBeforeUnload">handleBeforeUnload</a></li><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_WaitingRoom.html#~handleCloseSnackbar">handleCloseSnackbar</a></li><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_WaitingRoom.html#~handleGameStart">handleGameStart</a></li><li data-type='method' style='display: none;'><a href="module-Components_Mobile_ScreensBetweenRounds_WaitingRoom.html#~handleNameChange">handleNameChange</a></li></ul></li><li><a href="module-Constants_QuizValidation.html">Constants/QuizValidation</a></li><li><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html">Pages/Desktop/CreateQuiz/CreateQuizPage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~CreateQuizPage">CreateQuizPage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~cleanupAutosave">cleanupAutosave</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~deleteAutosave">deleteAutosave</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleAddExistingQuestions">handleAddExistingQuestions</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleAddExistingQuestions">handleAddExistingQuestions</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleAddQuestion">handleAddQuestion</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleBackToHome">handleBackToHome</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleCloseSnackbar">handleCloseSnackbar</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleCreateQuiz">handleCreateQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleDeleteQuestion">handleDeleteQuestion</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleDragEnd">handleDragEnd</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleDragStart">handleDragStart</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleEditQuestion">handleEditQuestion</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~handleMoveQuestion">handleMoveQuestion</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~hasDrawingQuestion">hasDrawingQuestion</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~hasWordChainQuestion">hasWordChainQuestion</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~performAutosave">performAutosave</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~resetAutosaveId">resetAutosaveId</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_CreateQuiz_CreateQuizPage.html#~toggleQuestionType">toggleQuestionType</a></li></ul></li><li><a href="module-Pages_Desktop_Game_GamePage.html">Pages/Desktop/Game/GamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_GamePage.html#~GamePage">GamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_GamePage.html#~renderQuizType">renderQuizType</a></li></ul></li><li><a href="module-Pages_Desktop_Game_RemoteGamePage.html">Pages/Desktop/Game/RemoteGamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_RemoteGamePage.html#~RemoteGamePage">RemoteGamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Game_RemoteGamePage.html#~handleCountdownComplete">handleCountdownComplete</a></li></ul></li><li><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html">Pages/Desktop/HomePage/DesktopHomePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~DesktopHomePage">DesktopHomePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~QuizTypeButton">QuizTypeButton</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~continueUnfinishedQuiz">continueUnfinishedQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~deleteUnfinishedQuiz">deleteUnfinishedQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~fetchQuizzes">fetchQuizzes</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~fetchUnfinishedQuizzes">fetchUnfinishedQuizzes</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleCloseSnackbar">handleCloseSnackbar</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleCreateCopy">handleCreateCopy</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleDeleteQuiz">handleDeleteQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleEditPublicQuiz">handleEditPublicQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleEditQuiz">handleEditQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleQuickPlayClick">handleQuickPlayClick</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleStartQuickPlay">handleStartQuickPlay</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~handleToggleShare">handleToggleShare</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_DesktopHomePage.html#~loadMore">loadMore</a></li></ul></li><li><a href="module-Pages_Desktop_HomePage_QuizListItem.html">Pages/Desktop/HomePage/QuizListItem</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~QuizListItem">QuizListItem</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~handleEdit">handleEdit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_HomePage_QuizListItem.html#~handleStartQuiz">handleStartQuiz</a></li></ul></li><li><a href="module-Pages_Desktop_Room_RoomPage.html">Pages/Desktop/Room/RoomPage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~RoomPage">RoomPage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~getConnectionUrl">getConnectionUrl</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~getRemoteGameUrl">getRemoteGameUrl</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleChangeBlueTeamCaptain">handleChangeBlueTeamCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleChangeRedTeamCaptain">handleChangeRedTeamCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleCloseQuiz">handleCloseQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleCountdownComplete">handleCountdownComplete</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleModeChange">handleModeChange</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleSelectCaptain">handleSelectCaptain</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleStartGame">handleStartGame</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleStartGameOnAnotherScreen">handleStartGameOnAnotherScreen</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_Room_RoomPage.html#~handleSwitchTeam">handleSwitchTeam</a></li></ul></li><li><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html">Pages/Desktop/ScorePage/FinalScorePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html#~FinalScorePage">FinalScorePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_FinalScorePage.html#~handleCloseQuiz">handleCloseQuiz</a></li></ul></li><li><a href="module-Pages_Desktop_ScorePage_ScorePage.html">Pages/Desktop/ScorePage/ScorePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~ScorePage">ScorePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~handleCloseQuiz">handleCloseQuiz</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Desktop_ScorePage_ScorePage.html#~renderAnswers">renderAnswers</a></li></ul></li><li><a href="module-Pages_Mobile_Game_MobileGamePage.html">Pages/Mobile/Game/MobileGamePage</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~MobileGamePage">MobileGamePage</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleAnswer">handleAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleBlindMapAnswer">handleBlindMapAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleCaptainChoice">handleCaptainChoice</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleDrawingSubmit">handleDrawingSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleMathAnswer">handleMathAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleMoreLessVote">handleMoreLessVote</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleNumberGuess">handleNumberGuess</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleOpenAnswer">handleOpenAnswer</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleWordChainSubmit">handleWordChainSubmit</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~handleWordSelected">handleWordSelected</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_Game_MobileGamePage.html#~renderQuizType">renderQuizType</a></li></ul></li><li><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html">Pages/Mobile/JoinQuizRoom/MobileJoinQuizRoom</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~MobileJoinQuizRoom">MobileJoinQuizRoom</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleJoinGame">handleJoinGame</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleNameChange">handleNameChange</a></li><li data-type='method' style='display: none;'><a href="module-Pages_Mobile_JoinQuizRoom_MobileJoinQuizRoom.html#~handleReset">handleReset</a></li></ul></li><li><a href="module-Themes.html">Themes</a></li><li><a href="module-Utils_LetterReveal.html">Utils/LetterReveal</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_LetterReveal.html#~createInitialMask">createInitialMask</a></li><li data-type='method' style='display: none;'><a href="module-Utils_LetterReveal.html#~shouldRevealLetter">shouldRevealLetter</a></li></ul></li><li><a href="module-Utils_MathRenderer.html">Utils/MathRenderer</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_MathRenderer.html#~renderMathEquation">renderMathEquation</a></li></ul></li><li><a href="module-Utils_ScrollbarStyle.html">Utils/ScrollbarStyle</a></li><li><a href="module-Utils_Socket.html">Utils/Socket</a><ul class='methods'><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~getServerTime">getServerTime</a></li><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~getSocket">getSocket</a></li><li data-type='method' style='display: none;'><a href="module-Utils_Socket.html#~synchronizeTime">synchronizeTime</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#MathQuiz">MathQuiz</a></li><li><a href="global.html#WordChainQuiz">WordChainQuiz</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">pages/desktop/createQuiz/components/existingQuestions/AddExistingQuestionDialog.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @fileoverview Dialog for adding existing questions to a quiz
+ * 
+ * This component provides:
+ * - Search functionality for finding existing questions
+ * - Filtering options by source (own/public) and question type
+ * - Question selection and preview
+ * - Pagination for browsing large sets of questions
+ * - Data transformation for consistent question format
+ * 
+ * @module Components/Desktop/CreateQuiz/ExistingQuestions/AddExistingQuestionDialog
+ */
+import React, { useState, useEffect } from 'react';
+import { 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions, 
+  TextField, 
+  Button, 
+  Box, 
+  FormControl, 
+  Typography, 
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  InputAdornment,
+  Select,
+  MenuItem,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import { QUESTION_TYPES } from '../../../../../constants/quizValidation';
+import QuestionCard from './QuestionCard';
+import { scrollbarStyle } from '../../../../../utils/scrollbarStyle';
+import { QUIZ_VALIDATION } from '../../../../../constants/quizValidation';
+
+/**
+ * Dialog component for searching and adding existing questions
+ * 
+ * Allows users to search, filter and select existing questions from their own
+ * collection or public questions. Provides pagination, previews, and handles
+ * data transformation for consistent question formats.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {boolean} props.open - Whether the dialog is open
+ * @param {Function} props.onClose - Handler for dialog close
+ * @param {Function} props.onAddQuestions - Callback for adding selected questions
+ * @returns {JSX.Element} The rendered dialog component
+ */
+const AddExistingQuestionDialog = ({ open, onClose, onAddQuestions }) => {
+  const [search, setSearch] = useState('');
+  const [questionSource, setQuestionSource] = useState('others');
+  const [questionTypes, setQuestionTypes] = useState('all');
+  const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [expandedQuestionId, setExpandedQuestionId] = useState(null);
+  
+  // Reset expanded question when the dialog closes or filters change
+  useEffect(() => {
+    setExpandedQuestionId(null);
+  }, [open, search, questionSource, questionTypes]);
+
+  /**
+   * Fetch questions from the server with current filters
+   * 
+   * Retrieves questions based on current search, source, and type filters.
+   * Handles pagination and appending results to existing list.
+   * 
+   * @async
+   * @function fetchQuestions
+   * @param {number} pageNum - Page number to fetch
+   * @param {boolean} append - Whether to append results to existing list
+   */
+  const fetchQuestions = async (pageNum = 1, append = false) => {
+    try {
+      setLoading(true);
+      
+      const params = new URLSearchParams({
+        type: questionSource,
+        questionType: questionTypes,
+        search: search,
+        page: pageNum
+      });
+      
+      const response = await fetch(`/get_existing_questions?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch questions');
+      }
+      
+      const data = await response.json();
+      
+      const newQuestions = data.questions.map(q => {
+        // Make sure answers are always properly formatted
+        let answers = q.answers;
+        if (!answers &amp;&amp; q.type === QUESTION_TYPES.OPEN_ANSWER) {
+          answers = [{ text: `Správná odpověď: ${q.open_answer || ''}`, isCorrect: true }];
+        } else if (!answers &amp;&amp; q.type === QUESTION_TYPES.GUESS_A_NUMBER) {
+          answers = [{ text: `Správná odpověď: ${q.number_answer || '0'}`, isCorrect: true }];
+        } else if (!answers &amp;&amp; q.type === QUESTION_TYPES.BLIND_MAP) {
+          answers = [{ text: `Správná odpověď: ${q.city_name || q.cityName || 'Není uvedeno'}`, isCorrect: true }];
+        } else if (!answers &amp;&amp; q.options) {
+          answers = q.options.map((text, index) => ({
+            text,
+            isCorrect: index === q.answer
+          }));
+        }
+        
+        // Ensure we preserve all important fields for open answers
+        const questionData = {
+          ...q,
+          id: q._id,
+          text: q.question,
+          answers: answers
+        };
+        
+        // Make sure specific question type fields are properly included
+        if (q.type === QUESTION_TYPES.OPEN_ANSWER) {
+          questionData.answer = q.open_answer;
+          questionData.mediaType = q.media_type;
+          questionData.mediaUrl = q.media_url;
+          questionData.showImageGradually = q.show_image_gradually;
+          questionData.fileName = q.media_url ? q.media_url.split('/').pop() : '';
+        } else if (q.type === QUESTION_TYPES.GUESS_A_NUMBER) {
+          questionData.answer = q.number_answer || 0;
+        } else if (q.type === QUESTION_TYPES.BLIND_MAP) {
+          questionData.cityName = q.city_name || q.cityName || '';
+          questionData.city_name = q.city_name || q.cityName || '';
+          questionData.anagram = q.anagram || '';
+          questionData.locationX = q.location_x || q.locationX || 0;
+          questionData.locationY = q.location_y || q.locationY || 0;
+          questionData.mapType = q.map_type || q.mapType || 'cz';
+          questionData.radiusPreset = q.radius_preset || q.radiusPreset || 'HARD';
+          questionData.clue1 = q.clue1 || '';
+          questionData.clue2 = q.clue2 || '';
+          questionData.clue3 = q.clue3 || '';
+        }
+        
+        return questionData;
+      });
+
+      setQuestions(append ? [...questions, ...newQuestions] : newQuestions);
+      setHasMore(data.hasMore);
+      setTotalCount(data.totalCount);
+    } catch (err) {
+      console.error('Error fetching questions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Load more questions when user clicks "Load More" button
+   * 
+   * Increments the page counter and fetches the next page of results,
+   * appending them to the existing list.
+   * 
+   * @function handleLoadMore
+   */
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchQuestions(nextPage, true);
+  };
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    if (open) {
+      setPage(1);
+      fetchQuestions(1, false);
+    }
+  }, [open, search, questionSource, questionTypes]);
+
+  // Reset states when dialog opens
+  useEffect(() => {
+    if (open) {
+      setSearch('');
+      setQuestionSource('others');
+      setQuestionTypes('all');
+      setSelectedQuestions([]);
+    }
+  }, [open]);
+
+  /**
+   * Handle search text changes
+   * 
+   * Updates the search query state when user types in the search field.
+   * 
+   * @function handleSearchChange
+   * @param {Object} event - Change event from the search input
+   */
+  const handleSearchChange = (event) => {
+    setSearch(event.target.value);
+  };
+
+  /**
+   * Handle change in question source filter
+   * 
+   * Toggles between showing user's own questions or public questions.
+   * 
+   * @function handleQuestionSourceChange
+   * @param {Object} event - Change event from the source select
+   */
+  const handleQuestionSourceChange = (event) => {
+    setQuestionSource(event.target.value);
+  };
+
+  /**
+   * Handle change in question type filter
+   * 
+   * Updates the type filter to show specific question types or all types.
+   * 
+   * @function handleQuestionTypesChange
+   * @param {Object} event - Change event from the type select
+   */
+  const handleQuestionTypesChange = (event) => {
+    setQuestionTypes(event.target.value);
+  };
+
+  /**
+   * Toggle a question's selection state
+   * 
+   * Adds or removes a question from the selected questions array.
+   * 
+   * @function handleToggleQuestion
+   * @param {Object} question - Question to toggle selection
+   */
+  const handleToggleQuestion = (question) => {
+    const currentIndex = selectedQuestions.findIndex(q => q.id === question.id);
+    const newSelected = [...selectedQuestions];
+
+    if (currentIndex === -1) {
+      newSelected.push(question);
+    } else {
+      newSelected.splice(currentIndex, 1);
+    }
+
+    setSelectedQuestions(newSelected);
+  };
+
+  /**
+   * Handle adding selected questions to the quiz
+   * 
+   * Processes selected questions, transforms them to the proper format,
+   * and calls the onAddQuestions callback before closing the dialog.
+   * 
+   * @function handleAddSelected
+   */
+  const handleAddSelected = () => {
+    // Use the transformation logic before adding questions
+    handleAddExistingQuestions(selectedQuestions);
+    onClose();
+  };
+
+  /**
+   * Transform and prepare selected questions for adding to quiz
+   * 
+   * Handles type-specific transformations to ensure questions are
+   * properly formatted for the quiz editor.
+   * 
+   * @function handleAddExistingQuestions
+   * @param {Array} selectedQuestions - Questions selected by the user
+   */
+  const handleAddExistingQuestions = (selectedQuestions) => {
+    
+    const newQuestions = selectedQuestions.map(question => {
+      // Create base question with all original fields
+      const baseQuestion = {
+        question: question.text || question.question || '',
+        type: question.type,
+        timeLimit: question.length || question.timeLimit || 30,
+        category: question.category || '',
+        id: Date.now() + Math.random(),
+        copy_of: question.copy_of || question._id || question.id,
+        is_copy: true
+      };
+      // Specific transformations based on question type
+      if (question.type === QUESTION_TYPES.BLIND_MAP) {
+        return {
+          ...baseQuestion,
+          text: "Slepá mapa",
+          cityName: question.cityName || question.city_name || '',
+          anagram: question.anagram || '',
+          locationX: question.coords ? question.coords[0] : (question.locationX || question.location_x || 0),
+          locationY: question.coords ? question.coords[1] : (question.locationY || question.location_y || 0),
+          mapType: question.mapType || question.map_type || 'cz',
+          radiusPreset: question.radiusPreset || question.radius_preset || 'HARD',
+          clue1: question.clue1 || '',
+          clue2: question.clue2 || '',
+          clue3: question.clue3 || '',
+          length: question.length || question.timeLimit || 30,
+        };
+      } else if (question.type === QUESTION_TYPES.OPEN_ANSWER) {
+        return {
+          ...baseQuestion,
+          answer: question.answer || question.open_answer || '',
+          mediaType: question.mediaType || question.media_type || '',
+          mediaUrl: question.mediaUrl || question.media_url || '',
+          showImageGradually: question.showImageGradually || question.show_image_gradually || false,
+          fileName: question.fileName || (question.mediaUrl ? question.mediaUrl.split('/').pop() : '')
+        };
+      } else if (question.type === QUESTION_TYPES.GUESS_A_NUMBER) {
+        return {
+          ...baseQuestion,
+          answer: question.number_answer || question.answer || 0,
+        };
+      } else if (question.type === QUESTION_TYPES.MATH_QUIZ) {
+        return {
+          ...baseQuestion,
+          sequences: question.sequences?.map(seq => ({
+            id: Date.now() + Math.random(),
+            equation: seq.equation || '',
+            answer: seq.answer !== undefined &amp;&amp; seq.answer !== null ? seq.answer : '',
+            length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT
+          })) || []
+        };
+      } else if (question.type === QUESTION_TYPES.ABCD || question.type === QUESTION_TYPES.TRUE_FALSE) {
+        // Don't transform just directly use the answers as they are
+        return {
+          ...baseQuestion,
+          answers: Array.isArray(question.answers) 
+            ? question.answers.map(a => a.text)
+            : [],
+          correctAnswer: Array.isArray(question.answers) 
+            ? question.answers.findIndex(a => a.isCorrect) 
+            : 0
+        };
+      }
+      
+      // Default case - return the base question with all original properties
+      return baseQuestion;
+    });
+    onAddQuestions(newQuestions);
+  };
+
+  const filteredQuestions = questions.filter(question => {
+    if (!question) return false;
+    
+    const matchesSearch = question.text &amp;&amp; question.text.toLowerCase().includes(search.toLowerCase());
+    const matchesSource = 
+      (questionSource === 'mine' &amp;&amp; question.isMyQuestion) ||
+      (questionSource === 'others' &amp;&amp; !question.isMyQuestion);
+    const matchesType = 
+      questionTypes === 'all' || question.type === questionTypes;
+      
+    return matchesSearch &amp;&amp; matchesSource &amp;&amp; matchesType;
+  });
+
+  return (
+    &lt;Dialog 
+      open={open} 
+      onClose={onClose} 
+      fullWidth 
+      maxWidth="md"
+      slotProps={{
+        paper: {
+          sx: {
+            height: '80vh',
+            maxHeight: '800px',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+        },
+      }}
+    >
+      &lt;DialogTitle>Přidat existující otázku&lt;/DialogTitle>
+      &lt;DialogContent sx={{ 
+        flex: 1,
+        overflow: 'hidden', // Prevent content scroll
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        &lt;Box sx={{ 
+          mb: 3,
+          display: 'flex',
+          gap: 2,
+          alignItems: 'center'
+        }}>
+          &lt;TextField
+            sx={{ flexGrow: 1 }}
+            placeholder="Hledat otázky..."
+            value={search}
+            onChange={handleSearchChange}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  &lt;InputAdornment position="start">
+                    &lt;SearchIcon />
+                  &lt;/InputAdornment>
+                )
+              }
+            }}
+            size="medium"
+          />
+          
+          &lt;FormControl sx={{ minWidth: 150 }}>
+            &lt;Select
+              value={questionSource}
+              onChange={handleQuestionSourceChange}
+              sx={{ height: '56px' }} // Match TextField height
+            >
+              &lt;MenuItem value="mine">Moje otázky&lt;/MenuItem>
+              &lt;MenuItem value="others">Veřejné otázky&lt;/MenuItem>
+            &lt;/Select>
+          &lt;/FormControl>
+
+          &lt;FormControl sx={{ minWidth: 150 }}>
+            &lt;Select
+              value={questionTypes}
+              onChange={handleQuestionTypesChange}
+              sx={{ height: '56px' }} // Match TextField height
+            >
+              &lt;MenuItem value="all">Všechny typy&lt;/MenuItem>
+              &lt;MenuItem value={QUESTION_TYPES.ABCD}>ABCD&lt;/MenuItem>
+              &lt;MenuItem value={QUESTION_TYPES.TRUE_FALSE}>Pravda/Lež&lt;/MenuItem>
+              &lt;MenuItem value={QUESTION_TYPES.OPEN_ANSWER}>Otevřená odpověď&lt;/MenuItem>
+              &lt;MenuItem value={QUESTION_TYPES.GUESS_A_NUMBER}>Hádej číslo&lt;/MenuItem>
+              &lt;MenuItem value={QUESTION_TYPES.MATH_QUIZ}>Matematické rovnice&lt;/MenuItem>
+              &lt;MenuItem value={QUESTION_TYPES.BLIND_MAP}>Slepá mapa&lt;/MenuItem>
+            &lt;/Select>
+          &lt;/FormControl>
+        &lt;/Box>
+
+        &lt;Divider sx={{ my: 2 }} />
+
+        &lt;Box sx={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          overflow: 'hidden'
+        }}>
+          {selectedQuestions.length > 0 &amp;&amp; (
+            &lt;>
+              &lt;Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Vybrané otázky ({selectedQuestions.length})
+              &lt;/Typography>
+              &lt;List sx={{ 
+                mb: 2,
+                border: '1px solid',
+                borderColor: 'primary.main',
+                borderRadius: 1,
+                bgcolor: 'primary.lighter',
+                maxHeight: '30%',
+                overflow: 'auto',
+                ...scrollbarStyle
+              }}>
+                {selectedQuestions.map((question) => (
+                  &lt;QuestionCard
+                    key={question.id}
+                    question={question}
+                    isSelected={true}
+                    onToggleSelect={handleToggleQuestion}
+                    expandedQuestionId={expandedQuestionId}
+                    onExpandToggle={setExpandedQuestionId}
+                  />
+                ))}
+              &lt;/List>
+              &lt;Divider sx={{ mb: 2 }} />
+            &lt;/>
+          )}
+
+          &lt;Typography variant="subtitle1" sx={{ mb: 1 }}>
+            Nalezeno {totalCount} otázek 
+            {questions.length &lt; totalCount &amp;&amp; ` (zobrazeno ${questions.length})`}
+          &lt;/Typography>
+
+          &lt;List sx={{ 
+            flex: 1,
+            overflow: 'auto',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 1,
+            ...scrollbarStyle
+          }}>
+            {filteredQuestions
+              .filter(q => !selectedQuestions.some(sq => sq.id === q.id)) // Don't show already selected questions
+              .map((question) => (
+                &lt;QuestionCard
+                  key={question.id}
+                  question={question}
+                  isSelected={false}
+                  onToggleSelect={handleToggleQuestion}
+                  expandedQuestionId={expandedQuestionId}
+                  onExpandToggle={setExpandedQuestionId}
+                />
+              ))}
+            {filteredQuestions.length === 0 &amp;&amp; (
+              &lt;ListItem>
+                &lt;ListItemText primary="Žádné výsledky nevyhovují zadaným filtrům" />
+              &lt;/ListItem>
+            )}
+            {hasMore &amp;&amp; (
+              &lt;ListItem sx={{ justifyContent: 'center', py: 2 }}>
+                &lt;Button
+                  onClick={handleLoadMore}
+                  disabled={loading}
+                  variant="outlined"
+                >
+                  {loading ? 'Načítání...' : 'Zobrazit další'}
+                &lt;/Button>
+              &lt;/ListItem>
+            )}
+          &lt;/List>
+        &lt;/Box>
+      &lt;/DialogContent>
+      &lt;DialogActions sx={{ 
+        px: 3,
+        py: 2,
+        borderTop: '1px solid',
+        borderColor: 'divider'
+      }}>
+        &lt;Button onClick={onClose}>Zrušit&lt;/Button>
+        &lt;Button 
+          variant="contained" 
+          onClick={handleAddSelected}
+          disabled={selectedQuestions.length === 0}
+        >
+          Přidat {selectedQuestions.length > 0 ? `(${selectedQuestions.length})` : ''} otázky
+        &lt;/Button>
+      &lt;/DialogActions>
+    &lt;/Dialog>
+  );
+};
+
+export default AddExistingQuestionDialog;</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.4</a> using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+<script src="scripts/collapse.js" defer></script>
+
+
+</body>
+</html>

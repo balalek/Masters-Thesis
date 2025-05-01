@@ -1,4 +1,16 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * @fileoverview Question Card component for displaying existing questions
+ * 
+ * This component provides:
+ * - Collapsible question preview with toggle functionality
+ * - Selectable interface for adding questions to quiz
+ * - Type-specific content displays for different question types
+ * - Visual feedback for correct/incorrect answers
+ * - Compact display of question metadata
+ * 
+ * @module Components/Desktop/CreateQuiz/ExistingQuestions/QuestionCard
+ */
+import React from 'react';
 import { 
   ListItem,
   ListItemText,
@@ -7,14 +19,29 @@ import {
   IconButton,
   Collapse,
   Box,
-  Stack,
-  Chip
+  Stack
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { QUESTION_TYPES } from '../../../../../constants/quizValidation';
 
+/**
+ * Question Card component for displaying individual quiz questions
+ * 
+ * Renders a collapsible card with question details, expandable content based on
+ * question type, and a checkbox for selection. Handles various question types with
+ * custom display formats.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data to display
+ * @param {boolean} props.isSelected - Whether this question is selected
+ * @param {Function} props.onToggleSelect - Handler for selection toggle
+ * @param {string|null} props.expandedQuestionId - ID of currently expanded question
+ * @param {Function} props.onExpandToggle - Handler for expand/collapse toggle
+ * @returns {JSX.Element} The rendered question card
+ */
 const QuestionCard = ({ 
   question, 
   isSelected, 
@@ -24,12 +51,27 @@ const QuestionCard = ({
 }) => {
   const isExpanded = expandedQuestionId === question.id;
   
+  /**
+   * Handle card expansion toggle
+   * 
+   * Toggles between expanded and collapsed states for question details.
+   * 
+   * @function handleExpandClick
+   * @param {Event} event - Click event
+   */
   const handleExpandClick = (event) => {
     event.stopPropagation();
     onExpandToggle(isExpanded ? null : question.id);
   };
 
-  // Determine question type label
+  /**
+   * Get human-readable question type label
+   * 
+   * Converts internal question type to user-friendly display name.
+   * 
+   * @function getQuestionTypeLabel
+   * @returns {string} Human-readable question type
+   */
   const getQuestionTypeLabel = () => {
     switch(question.type) {
       case QUESTION_TYPES.ABCD: 
@@ -49,10 +91,20 @@ const QuestionCard = ({
     }
   };
 
-  // Render appropriate content based on question type
+  /**
+   * Render type-specific question content
+   * 
+   * Displays different content formats based on question type:
+   * - Math Quiz: Shows equation sequences
+   * - Blind Map: Shows city anagram and map information
+   * - Multiple Choice: Shows answer options with correct/incorrect indicators
+   * - Open Answer: Shows answer and media type information
+   * 
+   * @function renderContent
+   * @returns {JSX.Element} Type-specific question content
+   */
   const renderContent = () => {
     if (question.type === QUESTION_TYPES.MATH_QUIZ) {
-      // Improved, more compact display for Math Quiz questions
       return (
         <Box sx={{ 
           p: 2, 
@@ -156,7 +208,7 @@ const QuestionCard = ({
                 variant="body2"
                 sx={{
                   fontWeight: answer.isCorrect ? 500 : 400,
-                  color: 'text.primary' // Ensure text is using default color
+                  color: 'text.primary'
                 }}
               >
                 {answer.text}
@@ -179,6 +231,7 @@ const QuestionCard = ({
 
   return (
     <>
+      {/* Question Card Header */}
       <ListItem 
         sx={{ 
           borderBottom: '1px solid',

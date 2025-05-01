@@ -1,7 +1,29 @@
+/**
+ * @fileoverview Team Waiting Screen for mobile players during team games
+ * 
+ * This component provides:
+ * - Waiting screen display during team-based turn games
+ * - Loading spinner with customizable waiting message
+ * - Phase-specific default messages when waiting for team turns
+ * 
+ * @module Components/Mobile/ScreensBetweenRounds/TeamWaitingScreen
+ */
 import React from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 
-const TeamWaitingScreen = ({ message, phase, teamName }) => {
+/**
+ * Team Waiting Screen component for displaying waiting state in team games
+ * 
+ * Shows a loading screen with appropriate messaging when players need to
+ * wait during team-based turn games.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.message - Optional custom waiting message
+ * @param {number} props.phase - Current game phase (affects default message)
+ * @returns {JSX.Element} The rendered waiting screen
+ */
+const TeamWaitingScreen = ({ message, phase }) => {
   
   return (
     <Box 

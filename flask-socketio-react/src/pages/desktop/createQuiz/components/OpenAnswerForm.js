@@ -1,4 +1,17 @@
-import React, { useState, useEffect } from 'react'; // Add useEffect import
+/**
+ * @fileoverview Open Answer Form component for creating and editing open-answer questions
+ * 
+ * This component provides:
+ * - Form fields for question text and correct answer
+ * - Media attachment support for images and audio
+ * - Progressive image reveal option for images
+ * - Time limit configuration via slider
+ * - Validation for all fields with error display
+ * - Support for editing existing questions
+ * 
+ * @module Components/Desktop/CreateQuiz/OpenAnswerForm
+ */
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -8,10 +21,24 @@ import {
   Button,
   Typography,
   Alert,
-  Slider, // Add this import
+  Slider,
 } from '@mui/material';
 import { QUIZ_VALIDATION, QUIZ_CATEGORIES } from '../../../../constants/quizValidation';
 
+/**
+ * Open Answer Form component for creating and editing open-ended questions
+ * 
+ * Provides a form with fields for question text, answer, category, and time limit.
+ * Supports media attachments with image and audio formats, including an option
+ * for progressive image reveal during gameplay.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onSubmit - Callback function when form is submitted
+ * @param {Object} props.editQuestion - Question data when editing an existing question
+ * @param {Object} ref - Forwarded ref for parent control of form submission
+ * @returns {JSX.Element} The rendered form component
+ */
 const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) => {
   const initialFormData = editQuestion || {
     question: '',
@@ -28,7 +55,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
   const [mediaFile, setMediaFile] = useState(null);
   const [fileName, setFileName] = useState('');
 
-  // Add this useEffect to handle editing
+  // Handle editing - populate form with existing question data
   useEffect(() => {
     if (editQuestion) {
       setFormData({
@@ -46,6 +73,15 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
     }
   }, [editQuestion]);
 
+  /**
+   * Validates form data against content and format rules
+   * 
+   * Checks question text, answer, category, and time limit against constraints.
+   * Also validates media file size if a file is selected.
+   * 
+   * @function validateForm
+   * @returns {boolean} True if validation passes, false otherwise
+   */
   const validateForm = () => {
     const newErrors = {};
 
@@ -78,6 +114,15 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles file selection for media attachments
+   * 
+   * Validates file type and size, updates form state with file information,
+   * and determines media type (image or audio).
+   * 
+   * @function handleFileSelect
+   * @param {Event} event - File input change event
+   */
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -104,13 +149,21 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       ...prev,
       mediaType: isImage ? 'image' : 'audio',
       mediaUrl: null,
-      oldMediaUrl: prev.mediaUrl, // Store old URL to be cleaned up later
+      oldMediaUrl: prev.mediaUrl,
       showImageGradually: isImage ? prev.showImageGradually : false
     }));
 
     setErrors({ ...errors, media: null });
   };
 
+  /**
+   * Handles form submission after validation
+   * 
+   * Validates form data and calls the onSubmit callback with question data
+   * including any media file to be uploaded.
+   * 
+   * @function handleSubmit
+   */
   const handleSubmit = () => {
     if (!validateForm()) return;
 
@@ -124,7 +177,13 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
     resetForm();
   };
 
-  // Reset form should also ensure showImageGradually is false if no media
+  /**
+   * Resets form to default state
+   * 
+   * Clears all form fields and errors, and resets media file selection.
+   * 
+   * @function resetForm
+   */
   const resetForm = () => {
     setFormData({
       question: '',
@@ -133,14 +192,14 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
       category: '',
       mediaType: null,
       mediaUrl: null,
-      showImageGradually: false,  // Always reset to false
+      showImageGradually: false,
     });
     setMediaFile(null);
     setFileName('');
     setErrors({});
   };
 
-  // Update ref implementation to include isUploading state
+  // This allows the parent component to call submitForm and resetForm directly
   React.useImperativeHandle(ref, () => ({
     submitForm: handleSubmit,
     resetForm
@@ -231,7 +290,7 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
           ]}
           sx={{
             '& .MuiSlider-markLabel': {
-              transform: 'translateX(-50%)', // Center the labels under marks
+              transform: 'translateX(-50%)',
             }
           }}
         />

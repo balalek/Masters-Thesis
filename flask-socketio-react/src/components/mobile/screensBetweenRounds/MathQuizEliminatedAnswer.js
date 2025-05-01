@@ -1,8 +1,35 @@
+/**
+ * @fileoverview Math Quiz Elimination Screen for mobile players
+ * 
+ * This component provides:
+ * - Feedback display when a player is eliminated from the Math Quiz
+ * - Different messaging for team mode vs individual play
+ * - Sequence counter showing which equation caused elimination
+ * - Points display with running total
+ * 
+ * @module Components/Mobile/ScreensBetweenRounds/MathQuizEliminatedAnswer
+ */
 import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CancelIcon from '@mui/icons-material/Cancel';
 
+/**
+ * Math Quiz Eliminated Answer component
+ * 
+ * Displays a failure screen when a player is eliminated from 
+ * the Math Quiz game after answering incorrectly.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {number} props.points_earned - Points earned before elimination
+ * @param {number} props.total_points - Player's/team's total score
+ * @param {number} props.currentSequence - The sequence number when eliminated
+ * @param {number} props.totalSequences - Total number of sequences in the quiz
+ * @param {boolean} props.isTeamMode - Whether game is in team mode
+ * @param {string} props.teamName - Team name ('blue' or 'red') when in team mode
+ * @returns {JSX.Element} The rendered elimination screen
+ */
 const MathQuizEliminatedAnswer = ({ points_earned, total_points, currentSequence, totalSequences, isTeamMode, teamName }) => {
   return (
     <Box

@@ -1,3 +1,14 @@
+/**
+ * @fileoverview Guess A Number Placement screen for mobile players
+ * 
+ * This component provides:
+ * - Visual feedback about guess accuracy with different icons and colors
+ * - Score display with points earned and running total
+ * - Comparison between player's guess and correct answer
+ * - Special celebration display for exact guesses
+ * 
+ * @module Components/Mobile/ScreensBetweenRounds/GuessANumberPlacement
+ */
 import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -5,6 +16,21 @@ import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import StarIcon from '@mui/icons-material/Star';
 import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 
+/**
+ * Guess A Number Placement component for showing guess accuracy results
+ * 
+ * Displays a screen with feedback about the player's numerical guess,
+ * showing different visuals based on how close they were to the correct answer.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {number} props.points_earned - Points earned for this guess
+ * @param {number} props.total_points - Player's total score after this guess
+ * @param {string} props.accuracy - Textual description of guess accuracy
+ * @param {number} props.yourGuess - The player's guess value
+ * @param {number} props.correctAnswer - The correct answer value
+ * @returns {JSX.Element} The rendered guess accuracy screen
+ */
 const GuessANumberPlacement = ({ points_earned, total_points, accuracy, yourGuess, correctAnswer }) => {
   // Simple check for exact match based on accuracy text
   const isExactMatch = accuracy === "Přesně!";

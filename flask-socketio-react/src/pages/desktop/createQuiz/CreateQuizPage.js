@@ -1,5 +1,18 @@
+/**
+ * @fileoverview Create Quiz Page component for quiz creation and editing
+ * 
+ * This module provides:
+ * - Quiz creation with multiple question types
+ * - Question editing and reordering functionality
+ * - Media attachment support for open answer question types
+ * - Autosave functionality for work-in-progress
+ * - Support for importing questions from existing quizzes
+ * - Drag-and-drop question reordering
+ * 
+ * @module Pages/Desktop/CreateQuiz/CreateQuizPage
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useLocation, useBeforeUnload } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, TextField, Select, MenuItem, Typography, Button, Container, Snackbar, Alert } from '@mui/material';
 import QuestionForm from './components/QuestionForm';
 import QuestionPreview from './components/questionPreview/QuestionPreview';
@@ -22,6 +35,19 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { QUIZ_VALIDATION, QUIZ_TYPES, QUESTION_TYPES } from '../../../constants/quizValidation';
 import { scrollbarStyle } from '../../../utils/scrollbarStyle';
 
+/**
+ * Create Quiz Page component for quiz creation and management
+ * 
+ * Provides a comprehensive UI for:
+ * - Creating quizzes with various question types
+ * - Editing existing quizzes
+ * - Managing quiz questions (add, edit, delete, reorder)
+ * - Autosaving work in progress
+ * - Media attachments and specialized question forms
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered create quiz page component
+ */
 const CreateQuizPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -55,16 +81,14 @@ const CreateQuizPage = () => {
     useSensor(KeyboardSensor)
   );
 
-  useBeforeUnload(
-    React.useCallback((event) => {
-      if (questions.length > 0) {
-        event.preventDefault();
-        return (event.returnValue = 'You have unsaved changes. Are you sure you want to leave?');
-      }
-    }, [questions])
-  );
-
-  // Update the performAutosave function to check isEditing before attempting to save
+  /**
+   * Performs autosave of quiz in progress
+   * 
+   * Saves current quiz state to server for later continuation,
+   * but skips when in editing mode or when no questions exist.
+   * 
+   * @function performAutosave
+   */
   const performAutosave = useCallback(() => {
     // Skip autosaving entirely when editing
     if (isEditing || questions.length === 0) return;
@@ -104,6 +128,7 @@ const CreateQuizPage = () => {
     });
   }, [quizName, questions, selectedQuizType, isEditing, quizId, autosaveId]);
 
+  // Set up autosave interval
   useEffect(() => {
     if (autosaveIntervalRef.current) {
       clearInterval(autosaveIntervalRef.current);
@@ -118,6 +143,7 @@ const CreateQuizPage = () => {
     };
   }, [performAutosave]);
 
+  // Trigger autosave when questions change
   useEffect(() => {
     if (questions.length > 0) {
       performAutosave();
@@ -168,15 +194,13 @@ const CreateQuizPage = () => {
         return;
       }
       
-      console.log("Fetching quiz data for editing:", quizId);
-      
       fetch(`/quiz/${quizId}`)
         .then(response => response.json())
         .then(quiz => {
-          console.log("Loaded quiz data:", quiz);
           setQuizName(quiz.name);
           
           if (quiz.type === QUIZ_TYPES.COMBINED_QUIZ) {
+            // Default to ABCD for combined quizzes
             setSelectedQuizType(QUIZ_TYPES.ABCD);
           } else {
             setSelectedQuizType(quiz.type);
@@ -187,10 +211,10 @@ const CreateQuizPage = () => {
             const baseQuestion = {
               id: q._id,
               _id: q._id,
-              question: q.question || '', // Default empty string for math quiz
+              question: q.question || '',
               type: q.type,
-              length: q.length,  // Use length consistently
-              category: q.category || '', // Default empty string for math quiz
+              length: q.length,
+              category: q.category || '',
               copy_of: q.copy_of,
               modified: false
             };
@@ -211,36 +235,31 @@ const CreateQuizPage = () => {
                 answer: q.number_answer || 0
               };
             } else if (q.type === QUESTION_TYPES.MATH_QUIZ) {
-              // Handle math quiz questions
               return {
                 ...baseQuestion,
                 sequences: q.sequences?.map(seq => ({
                   id: Date.now() + Math.random(),
                   equation: seq.equation || '',
-                  // Fix: Use nullish coalescing to preserve zero values
                   answer: seq.answer !== undefined && seq.answer !== null ? seq.answer : '',
                   length: seq.length || QUIZ_VALIDATION.MATH_SEQUENCES_TIME_LIMIT.DEFAULT
                 })) || []
               };
             } else if (q.type === QUESTION_TYPES.WORD_CHAIN) {
-              // Add special handling for Word Chain question type
               return {
                 ...baseQuestion,
                 length: q.length || QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_TIME,
                 rounds: q.rounds || QUIZ_VALIDATION.WORD_CHAIN.DEFAULT_ROUNDS
               };
             } else if (q.type === QUESTION_TYPES.DRAWING) {
-              // Add special handling for Drawing question type
               return {
                 ...baseQuestion,
                 length: q.length || QUIZ_VALIDATION.DRAWING.DEFAULT_TIME,
                 rounds: q.rounds || QUIZ_VALIDATION.DRAWING.DEFAULT_ROUNDS
               };
             } else if (q.type === QUESTION_TYPES.BLIND_MAP) {
-              // Rearrange clues to avoid gaps when editing blind map questions
               const nonEmptyClues = [q.clue1, q.clue2, q.clue3]
                 .filter(clue => clue && clue.trim() !== '')
-                .concat(['', '', '']); // Add empty placeholders
+                .concat(['', '', '']);
               
               return {
                 ...baseQuestion,
@@ -265,7 +284,6 @@ const CreateQuizPage = () => {
             return baseQuestion; // Fallback case
           });
           
-          console.log("Transformed questions:", transformedQuestions);
           setQuestions(transformedQuestions);
           setDataLoaded(true); // Mark data as loaded after successful fetch
         })
@@ -276,7 +294,11 @@ const CreateQuizPage = () => {
     }
   }, [isEditing, quizId, navigate, dataLoaded]);
 
-  // Update the cleanupAutosave function to use autosaveId
+  /**
+   * Cleans up autosave data after quiz is successfully saved
+   * 
+   * @function cleanupAutosave
+   */
   const cleanupAutosave = useCallback(() => {
     if (autosaveId) {
       fetch(`/unfinished_quizzes/${autosaveId}?keep_files=true`, {
@@ -287,10 +309,13 @@ const CreateQuizPage = () => {
     }
   }, [autosaveId]);
 
-  // Add a helper function to delete autosave
+  /**
+   * Deletes autosave data for empty or completed quizzes
+   * 
+   * @function deleteAutosave
+   */
   const deleteAutosave = useCallback(() => {
     if (autosaveId) {
-      console.log("Deleting autosave for empty quiz");
       fetch(`/unfinished_quizzes/${autosaveId}`, {
         method: 'DELETE'
       }).catch(error => {
@@ -301,10 +326,19 @@ const CreateQuizPage = () => {
     }
   }, [autosaveId]);
 
+  /**
+   * Adds a new question or updates an existing one
+   * 
+   * Handles media uploads, question creation for all supported types,
+   * and updates the questions array accordingly.
+   * 
+   * @async
+   * @function handleAddQuestion
+   * @param {Object} question - Question data from the form
+   */
   const handleAddQuestion = async (question) => {
     // Explicitly check and delete old media URL if present and a new file is being uploaded
     if (question.oldMediaUrl && question.mediaFile) {
-      console.log("Deleting old media file:", question.oldMediaUrl);
       try {
         const deleteResponse = await fetch('/delete_media', {
           method: 'POST',
@@ -314,9 +348,7 @@ const CreateQuizPage = () => {
         
         if (!deleteResponse.ok) {
           console.error('Failed to delete old media file');
-        } else {
-          console.log('Successfully deleted old media file');
-        }
+        } 
       } catch (error) {
         console.error('Error deleting old media:', error);
       }
@@ -354,7 +386,7 @@ const CreateQuizPage = () => {
       setIsUploading(false);
     }
     
-    // Now continue with the original logic to add the question
+    // Now continue with the logic to add the question for each quiz type
     if (selectedQuizType === QUIZ_TYPES.OPEN_ANSWER) {
       const newQuestion = {
         ...question,
@@ -363,7 +395,6 @@ const CreateQuizPage = () => {
         type: QUIZ_TYPES.OPEN_ANSWER,
         modified: editingQuestion ? true : false,
         copy_of: editingQuestion && editingQuestion.modified ? null : editingQuestion?.copy_of || null,
-        // No need to include mediaFile in the saved question
         fileName: question.fileName,
         answer: question.answer,
         mediaType: question.mediaType,
@@ -425,7 +456,6 @@ const CreateQuizPage = () => {
         formRef.current.resetForm();
       }
     } else if (selectedQuizType === QUIZ_TYPES.WORD_CHAIN) {
-      // Add handler for Word Chain
       const newQuestion = {
         ...question,
         id: editingQuestion ? editingQuestion.id : Date.now(),
@@ -447,7 +477,6 @@ const CreateQuizPage = () => {
         formRef.current.resetForm();
       }
     } else if (selectedQuizType === QUIZ_TYPES.DRAWING) {
-      // Add handler for Drawing
       const newQuestion = {
         ...question,
         id: editingQuestion ? editingQuestion.id : Date.now(),
@@ -523,6 +552,16 @@ const CreateQuizPage = () => {
     }
   };
 
+  /**
+   * Deletes a question from the quiz
+   * 
+   * Removes the question from the array, cleans up associated media,
+   * and tracks deleted question IDs for server-side deletion.
+   * 
+   * @async
+   * @function handleDeleteQuestion
+   * @param {number|string} id - ID of the question to delete
+   */
   const handleDeleteQuestion = async (id) => {
     const questionToDelete = questions.find(q => q.id === id);
     
@@ -566,6 +605,15 @@ const CreateQuizPage = () => {
     }
   };
 
+  /**
+   * Loads a question into the editing form
+   * 
+   * Sets the appropriate question type and populates form fields
+   * with the selected question's data.
+   * 
+   * @function handleEditQuestion
+   * @param {Object} questionToEdit - Question to be edited
+   */
   const handleEditQuestion = (questionToEdit) => {
     if (questionToEdit.type === QUIZ_TYPES.OPEN_ANSWER) {
       setEditingQuestion(questionToEdit);
@@ -592,6 +640,13 @@ const CreateQuizPage = () => {
     }
   };
 
+  /**
+   * Moves a question to a new position in the list
+   * 
+   * @function handleMoveQuestion
+   * @param {number} fromIndex - Starting position
+   * @param {number} toIndex - Target position
+   */
   const handleMoveQuestion = (fromIndex, toIndex) => {
     const updatedQuestions = [...questions];
     const [removed] = updatedQuestions.splice(fromIndex, 1);
@@ -599,6 +654,14 @@ const CreateQuizPage = () => {
     setQuestions(updatedQuestions);
   };
 
+  /**
+   * Handles drag-and-drop action completion
+   * 
+   * Reorders questions based on drag result when items are dropped.
+   * 
+   * @function handleDragEnd
+   * @param {Object} event - Drag event data
+   */
   const handleDragEnd = (event) => {
     const { active, over } = event;
     
@@ -613,21 +676,44 @@ const CreateQuizPage = () => {
     }
   };
 
+  /**
+   * Handles drag start event
+   * 
+   * Sets up the drag-and-drop context for reordering questions.
+   * 
+   * @function handleDragStart
+   * @param {Object} event - Drag event data
+   * @param {Object} event.active - Active drag item
+   */
   const handleDragStart = (event) => {
     if (!event.active) return;
   };
 
+  /**
+   * Toggles the question type between ABCD and True/False
+   * 
+   * @function toggleQuestionType
+   */
   const toggleQuestionType = () => {
     setIsAbcd(!isAbcd);
   };
 
+  /**
+   * Handles the addition of question to the quiz
+   * 
+   * @function handleAddExistingQuestions
+   */
   const handleAddQuestionClick = () => {
     if (formRef.current) {
       formRef.current.submitForm();
     }
   };
 
-  // Update the back-to-home handler to skip autosave when editing
+  /**
+   * Update the back-to-home handler to skip autosave when editing
+   * 
+   * @function handleBackToHome
+   */
   const handleBackToHome = () => {
     // Existing logic
     if (questions.length > 0 && !isEditing) {
@@ -640,7 +726,11 @@ const CreateQuizPage = () => {
     }
   };
 
-  // Reset autosaveId when creating a new quiz or quiz is saved
+  /**
+   * Reset everything, including autosaveId when creating a new quiz or quiz is saved
+   * 
+   * @function resetAutosaveId
+   */
   const resetState = () => {
     setQuizName('');
     setQuestions([]);
@@ -649,16 +739,30 @@ const CreateQuizPage = () => {
     setQuizNameHelperText('');
     setSelectedQuizType(QUIZ_TYPES.ABCD);
     setIsAbcd(true);
-    setAutosaveId(null); // Reset the autosave ID
+    setAutosaveId(null);
     if (formRef.current) {
       formRef.current.resetForm();
     }
   };
 
+  /**
+   * Handles snackbar close event
+   * 
+   * @function handleCloseSnackbar 
+   */
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  /**
+   * Creates or updates a quiz on the server
+   * 
+   * Validates quiz data, determines quiz type based on questions,
+   * and sends the complete quiz to the server.
+   * 
+   * @async
+   * @function handleCreateQuiz
+   */
   const handleCreateQuiz = async () => {
     if (!quizName.trim()) {
       setQuizNameError(true);
@@ -671,7 +775,7 @@ const CreateQuizPage = () => {
       return;
     }
 
-    // Add validation for standalone Word Chain quiz
+    // Validation for standalone Word Chain quiz
     const allWordChain = questions.every(q => q.type === "WORD_CHAIN");
     if (allWordChain && questions.length === 1) {
       setSnackbar({
@@ -682,7 +786,7 @@ const CreateQuizPage = () => {
       return;
     }
 
-    // Add validation for standalone Drawing quiz
+    // Validation for standalone Drawing quiz
     const allDrawing = questions.every(q => q.type === "DRAWING");
     if (allDrawing && questions.length === 1) {
       setSnackbar({
@@ -709,15 +813,16 @@ const CreateQuizPage = () => {
         !(q._id && deletedQuestionIds.has(q._id))
       );
       
+      // Determine the quiz type based on the questions
       if (activeQuestions.length > 0) {
         const uniqueQuestionTypes = new Set(activeQuestions.map(q => q.type).filter(Boolean));
         
         if (uniqueQuestionTypes.size === 2 && 
             uniqueQuestionTypes.has(QUESTION_TYPES.ABCD) && 
             uniqueQuestionTypes.has(QUESTION_TYPES.TRUE_FALSE)) {
-              finalQuizType = QUIZ_TYPES.ABCD;
+              finalQuizType = QUIZ_TYPES.ABCD; // True/False is a subset of ABCD
         } else if (uniqueQuestionTypes.size > 1) {
-          finalQuizType = QUIZ_TYPES.COMBINED_QUIZ;
+          finalQuizType = QUIZ_TYPES.COMBINED_QUIZ; // Any other combination is combined quiz
         } else {
           const firstType = Array.from(uniqueQuestionTypes)[0];
           if (firstType === QUESTION_TYPES.TRUE_FALSE) {
@@ -728,6 +833,7 @@ const CreateQuizPage = () => {
         }
       }
 
+      // Create or update the quiz
       const endpoint = isEditing ? `/quiz/${quizId}/update` : '/create_quiz';
       const response = await fetch(endpoint, {
         method: isEditing ? 'PUT' : 'POST',
@@ -765,18 +871,40 @@ const CreateQuizPage = () => {
     }
   };
 
+  /**
+   * Handles adding existing questions from the dialog
+   * 
+   * @function handleAddExistingQuestions
+   * @param {Array} selectedQuestions - Array of selected questions to add
+   */
   const handleAddExistingQuestions = (selectedQuestions) => {
     // The questions are already transformed by AddExistingQuestionDialog
     // Don't process them again, just add them directly to the questions state
     setQuestions([...questions, ...selectedQuestions]);
   };
 
-  // Add this function near other helper functions to check if Word Chain already exists
+  /**
+   * Checks if the quiz already contains a Word Chain question
+   * 
+   * This is used to prevent adding a new Word Chain question if one already exists.
+   * 
+   * @function hasWordChainQuestion
+   * @param {Array} questions - Array of existing questions
+   * @returns {boolean} - True if a Word Chain question exists, false otherwise
+   */
   const hasWordChainQuestion = (questions) => {
     return questions.some(q => q.type === QUIZ_TYPES.WORD_CHAIN);
   };
 
-  // Add this function near other helper functions to check if Drawing question already exists
+  /**
+   * Checks if the quiz already contains a Drawing question
+   * 
+   * This is used to prevent adding a new Drawing question if one already exists.
+   * 
+   * @function hasDrawingQuestion
+   * @param {Array} questions - Array of existing questions
+   * @returns {boolean} - True if a Drawing question exists, false otherwise
+   */
   const hasDrawingQuestion = (questions) => {
     return questions.some(q => q.type === QUIZ_TYPES.DRAWING);
   };
@@ -814,7 +942,7 @@ const CreateQuizPage = () => {
             value={selectedQuizType}
             onChange={(e) => setSelectedQuizType(e.target.value)}
             sx={{ minWidth: 200 }}
-            disabled={!!editingQuestion} // Disable when editing a question
+            disabled={!!editingQuestion} // Disable changing question type when editing a question
           >
             <MenuItem value={QUIZ_TYPES.ABCD}>ABCD, Pravda/lež</MenuItem>
             <MenuItem value={QUIZ_TYPES.OPEN_ANSWER}>Otevřená odpověď</MenuItem>
@@ -967,7 +1095,7 @@ const CreateQuizPage = () => {
                   variant="contained" 
                   fullWidth
                   onClick={handleAddQuestionClick}
-                  // Use direct ref check to see if file is uploading, and disable if already have Word Chain
+                  // Use direct ref check to see if file is uploading, and disable if already have Word Chain/Drawing question, which can only be one per quiz
                   disabled={isUploading || loading || 
                     ((selectedQuizType === QUIZ_TYPES.WORD_CHAIN && hasWordChainQuestion(questions) && !editingQuestion) ||
                      (selectedQuizType === QUIZ_TYPES.DRAWING && hasDrawingQuestion(questions) && !editingQuestion))}

@@ -1,6 +1,31 @@
+/**
+ * @fileoverview Phase Transition screen for mobile devices for team guess a number question type
+ * 
+ * This component provides:
+ * - Display for the transition between game phases
+ * - Team-specific messaging based on active team
+ * - Display of the opponent's initial answer
+ * - Visual cues for waiting vs. active states
+ * 
+ * @module Components/Mobile/ScreensBetweenRounds/PhaseTransitionMobile
+ */
 import React from 'react';
 import { Box, Typography, Paper, CircularProgress } from '@mui/material';
 
+/**
+ * Phase Transition component for mobile devices
+ * 
+ * Displays transition information between game phases,
+ * showing different content based on whether the player's team
+ * is currently active or waiting.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.firstTeamAnswer - The answer provided by the first team
+ * @param {string} props.activeTeam - The currently active team ('blue' or 'red')
+ * @param {string} props.teamName - The current player's team name
+ * @returns {JSX.Element} The rendered phase transition screen
+ */
 const PhaseTransitionMobile = ({ firstTeamAnswer, activeTeam, teamName }) => {
   const isActiveTeam = teamName === activeTeam;
   const teamColor = activeTeam === 'blue' ? '#186CF6' : '#EF4444';

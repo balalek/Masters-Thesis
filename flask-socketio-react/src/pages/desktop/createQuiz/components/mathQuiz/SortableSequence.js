@@ -1,3 +1,16 @@
+/**
+ * @fileoverview Sortable Sequence component for Math Quiz creation
+ * 
+ * This component provides:
+ * - Drag-and-drop functionality for reordering equations
+ * - Input fields for math equation and expected answer
+ * - Time limit configuration via slider
+ * - Equation validation with operator requirements
+ * - Visual feedback during dragging operations
+ * - Tooltips with equation syntax guidelines
+ * 
+ * @module Components/Desktop/CreateQuiz/MathQuiz/SortableSequence
+ */
 import React, { useState } from 'react';
 import {
   Box,
@@ -15,6 +28,23 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { QUIZ_VALIDATION } from '../../../../../constants/quizValidation';
 
+/**
+ * Sortable Sequence component for Math Quiz equation management
+ * 
+ * Provides a draggable sequence container with equation input, answer field,
+ * and time limit configuration with validation and tooltip helpers.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.sequence - Sequence data with equation, answer and length
+ * @param {number} props.index - Index of this sequence in the sequence list
+ * @param {Function} props.onRemove - Callback to remove this sequence
+ * @param {Function} props.onChange - Callback for sequence field changes
+ * @param {string} props.errors - Error message for this sequence
+ * @param {boolean} props.disabled - Whether removing/dragging is disabled
+ * @param {boolean} props.isDragging - Whether this sequence is being dragged
+ * @returns {JSX.Element} The rendered sortable sequence component
+ */
 const SortableSequence = ({ 
   sequence, 
   index, 
@@ -46,7 +76,16 @@ const SortableSequence = ({
     width: '100%',
   };
 
-  // Validate equation on blur
+  /**
+   * Validates equation string for mathematical correctness
+   * 
+   * Ensures equation contains at least one mathematical operator
+   * and is not empty.
+   * 
+   * @function validateEquation
+   * @param {string} equation - The equation to validate
+   * @returns {string} Error message or empty string if valid
+   */
   const validateEquation = (equation) => {
     // Check if equation contains at least one mathematical operator
     const mathOperators = ['+', '-', '*', '/', '^', '√', 'sqrt(', '!'];
@@ -63,6 +102,14 @@ const SortableSequence = ({
     return '';
   };
   
+  /**
+   * Handles equation input changes
+   * 
+   * Updates equation value and clears error state while typing.
+   * 
+   * @function handleEquationChange
+   * @param {Object} e - Change event
+   */
   const handleEquationChange = (e) => {
     const value = e.target.value;
     onChange(index, 'equation', value);
@@ -71,13 +118,29 @@ const SortableSequence = ({
     if (equationError) setEquationError('');
   };
   
+  /**
+   * Validates equation when input loses focus
+   * 
+   * Performs equation validation and sets error state.
+   * 
+   * @function handleEquationBlur
+   * @param {Object} e - Blur event
+   */
   const handleEquationBlur = (e) => {
     const value = e.target.value;
     const error = validateEquation(value);
     setEquationError(error);
   };
 
-  // Helper function to ensure time values are rounded to nearest 5 seconds
+  /**
+   * Rounds time limit values to nearest 5 seconds
+   * 
+   * Ensures time limits are set in 5-second increments for
+   * better usability and consistency.
+   * 
+   * @function handleTimeChange
+   * @param {number} newValue - New time value from slider
+   */
   const handleTimeChange = (newValue) => {
     // Round to the nearest 5
     const roundedValue = Math.round(newValue / 5) * 5;
@@ -125,7 +188,7 @@ const SortableSequence = ({
             error={!!errors}
           />
           
-          {/* Time limit slider next to answer field - updated with 5s steps */}
+          {/* Time limit slider next to answer field with 5s steps */}
           <Box sx={{ width: '40%' }}>
             <Typography variant="body2" id={`time-slider-${sequence.id}`} sx={{ mb: 0.5 }}>
               Časový limit: {sequence.length}s
@@ -136,7 +199,7 @@ const SortableSequence = ({
               aria-labelledby={`time-slider-${sequence.id}`}
               min={QUIZ_VALIDATION.TIME_LIMIT.MIN}
               max={60}
-              step={5}  // Set step to 5 seconds
+              step={5}
               marks  // Show marks at each step
               valueLabelDisplay="auto"
               size="small"

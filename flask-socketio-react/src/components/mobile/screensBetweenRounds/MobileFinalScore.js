@@ -1,6 +1,35 @@
+/**
+ * @fileoverview Mobile Final Score component for game conclusion screen
+ * 
+ * This component provides:
+ * - Final score display for both team and individual game modes
+ * - Placement indicator for individual players
+ * - Team comparison scores in team mode
+ * - Visual win/lose/draw indicators for team games
+ * - Player-specific color theming
+ * 
+ * @module Components/Mobile/ScreensBetweenRounds/MobileFinalScore
+ */
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 
+/**
+ * Mobile Final Score component for displaying end-of-game results
+ * 
+ * Shows a personalized final score screen with either team comparison
+ * or individual placement results based on game mode.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.playerName - Name of the current player
+ * @param {number} props.score - Player's or team's final score
+ * @param {number} props.placement - Player's final ranking position (individual mode)
+ * @param {string} props.color - Player's color for theming
+ * @param {boolean} props.isTeamMode - Whether the game was in team mode
+ * @param {string} props.teamName - Player's team name ('blue' or 'red')
+ * @param {Object} props.teamScores - Team score object with blue and red properties
+ * @returns {JSX.Element} The rendered final score screen
+ */
 const MobileFinalScore = ({ 
   playerName, 
   score, 

@@ -1,5 +1,27 @@
 /**
+ * @fileoverview Utility functions for anagram generation and validation
+ * 
+ * This module provides:
+ * - Validation of anagrams against original city names
+ * - Generation of randomized anagrams preserving space patterns
+ * - Fixing of anagrams to match space patterns of original text
+ * - Case insensitive character frequency comparisons
+ * 
+ * @module Components/Desktop/CreateQuiz/BlindMap/AnagramUtils
+ */
+
+/**
  * Checks if an anagram is valid compared to the original city name
+ * 
+ * Validates that the anagram:
+ * - Has the same space pattern as the original
+ * - Contains the same characters (ignoring case)
+ * - Is a permutation of the original text
+ * 
+ * @function isValidAnagram
+ * @param {string} cityName - The original city name
+ * @param {string} anagram - The anagram to validate
+ * @returns {boolean} True if anagram is valid, false otherwise
  */
 export const isValidAnagram = (cityName, anagram) => {
   if (!cityName || !anagram) return false;
@@ -25,12 +47,12 @@ export const isValidAnagram = (cityName, anagram) => {
   
   if (cityChars.length !== anagramChars.length) return false;
   
-  // Count characters in city name (in lowercase)
+  // Count characters in city name
   for (const char of cityChars) {
     cityFreq.set(char, (cityFreq.get(char) || 0) + 1);
   }
   
-  // Count characters in anagram (in lowercase)
+  // Count characters in anagram
   for (const char of anagramChars) {
     anagramFreq.set(char, (anagramFreq.get(char) || 0) + 1);
   }
@@ -47,6 +69,15 @@ export const isValidAnagram = (cityName, anagram) => {
 
 /**
  * Generates a valid anagram from the city name, preserving spaces and converting to lowercase
+ * 
+ * Creates a randomized permutation of the city name's characters while:
+ * - Preserving spaces in the same positions
+ * - Converting all letters to lowercase
+ * - Ensuring all original characters are included
+ * 
+ * @function generateAnagram
+ * @param {string} cityName - The city name to generate an anagram from
+ * @returns {string} A randomized anagram of the city name
  */
 export const generateAnagram = (cityName) => {
   if (!cityName) return '';
@@ -79,6 +110,14 @@ export const generateAnagram = (cityName) => {
 
 /**
  * Fixes anagram spacing to match the city name's space pattern
+ * 
+ * Adjusts the provided anagram to ensure it has spaces in the same positions
+ * as the original city name.
+ * 
+ * @function fixAnagram
+ * @param {string} cityName - The original city name with correct spacing
+ * @param {string} anagram - The anagram to fix
+ * @returns {string} The anagram with corrected spacing
  */
 export const fixAnagram = (cityName, anagram) => {
   if (!cityName || !anagram) return anagram;

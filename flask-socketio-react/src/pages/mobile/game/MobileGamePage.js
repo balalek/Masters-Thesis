@@ -75,7 +75,6 @@ const MobileGamePage = () => {
   const [activeTeam, setActiveTeam] = useState(location.state?.activeTeam);
   const [showPhaseTransition, setShowPhaseTransition] = useState(false);
   const [exactGuess, setExactGuess] = useState(false);
-  const [guessResult, setGuessResult] = useState(null);
   // States for drawing quiz
   const [selectedWord, setSelectedWord] = useState(null);
   const [drawerStats, setDrawerStats] = useState(null);
@@ -231,13 +230,8 @@ const MobileGamePage = () => {
       // This avoids interfering with the free-for-all mode logic
       if (data.exactGuess) {
         setExactGuess(true);
-        setGuessResult(data.guessResult);
       } else {
         setExactGuess(false);
-        // Only clear guessResult if not in placement mode
-        if (!showGuessPlacement) {
-          setGuessResult(null);
-        }
       }
       
       // Always show result for correct answers, regardless of question type
@@ -699,8 +693,7 @@ const MobileGamePage = () => {
     // If player is not on the drawer's team and not the drawer, show waiting screen
     if (teamName !== drawerTeam && !isDrawer) {
       return <TeamWaitingScreen 
-        phase={2} // For the message 
-        teamName={teamName}
+        phase={2} // For the message
       />;
     }
   }
@@ -747,7 +740,6 @@ const MobileGamePage = () => {
               points_earned={pointsEarned}
               total_points={totalPoints}
               exactGuess={false}
-              guessResult={null}
               customTitle="Váš tým vyhrál!"
               customMessage="Gratulujeme k vítězství!"
             />
@@ -759,7 +751,6 @@ const MobileGamePage = () => {
               points_earned={pointsEarned}
               total_points={totalPoints}
               exactGuess={false}
-              guessResult={null}
               customTitle="Bomba vybuchla!"
               customMessage="Příště to vyjde!"
             />
@@ -799,15 +790,13 @@ const MobileGamePage = () => {
       <CorrectAnswer 
         points_earned={pointsEarned} 
         total_points={totalPoints} 
-        exactGuess={exactGuess} 
-        guessResult={guessResult}
+        exactGuess={exactGuess}
         customTitle={customTitle}
       /> : 
       <IncorrectAnswer 
         points_earned={pointsEarned} 
         total_points={totalPoints} 
-        exactGuess={exactGuess} 
-        guessResult={guessResult} 
+        exactGuess={exactGuess}
         customTitle={customTitle}
       />;
   }
@@ -913,8 +902,7 @@ const MobileGamePage = () => {
         } else {
           // Show the waiting screen for inactive teams
           return <TeamWaitingScreen 
-            phase={quizPhase} 
-            teamName={teamName}
+            phase={quizPhase}
             message={quizPhase === 1 
               ? "Čekej, až bude tvůj tým na řadě" 
               : "Čekej, nyní hraje druhý tým"}

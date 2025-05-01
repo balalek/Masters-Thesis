@@ -1,8 +1,35 @@
+/**
+ * @fileoverview Math Quiz Success Screen for mobile players
+ * 
+ * This component provides:
+ * - Success feedback after completing math equations
+ * - Statistics showing correct answers vs total problems
+ * - Team-specific or individual feedback based on game mode
+ * - Points display with total score update
+ * 
+ * @module Components/Mobile/ScreensBetweenRounds/MathQuizCorrectAnswer
+ */
 import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
+/**
+ * Math Quiz Success Screen component
+ * 
+ * Displays a celebratory screen after completing the math quiz challenge,
+ * showing statistics on performance and points earned.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {number} props.points_earned - Points earned in this math quiz
+ * @param {number} props.total_points - Player's/team's total score
+ * @param {number} props.correctCount - Number of equations solved correctly
+ * @param {number} props.totalCount - Total number of equations in the quiz
+ * @param {boolean} props.isTeamMode - Whether game is in team mode
+ * @param {string} props.teamName - Team name ('blue' or 'red') when in team mode
+ * @returns {JSX.Element} The rendered success screen
+ */
 const MathQuizCorrectAnswer = ({ points_earned, total_points, correctCount, totalCount, isTeamMode, teamName }) => {
   return (
     <Box

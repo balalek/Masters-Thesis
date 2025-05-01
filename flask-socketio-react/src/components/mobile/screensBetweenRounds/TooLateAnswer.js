@@ -1,8 +1,31 @@
+/**
+ * @fileoverview Too Late Answer screen for mobile players
+ * 
+ * This component provides:
+ * - Visual feedback when player answers after time has expired
+ * - Score display showing zero or minimal points earned
+ * - Total score tracking despite time expiration
+ * - Consistent styling with other result screens
+ * 
+ * @module Components/Mobile/ScreensBetweenRounds/TooLateAnswer
+ */
 import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import TimerOffIcon from '@mui/icons-material/TimerOff';  // Using timer icon for "too late"
+import TimerOffIcon from '@mui/icons-material/TimerOff';
 
+/**
+ * Too Late Answer component for displaying timeout feedback
+ * 
+ * Shows a screen indicating that the player answered too late,
+ * displaying their current score and any consolation points awarded.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {number} props.total_points - Player's total score after this answer
+ * @param {number} props.points_earned - Points earned (usually 0) for late answer
+ * @returns {JSX.Element} The rendered too late screen
+ */
 const TooLateAnswer = ({ total_points, points_earned = 0 }) => {
   return (
     <Box
