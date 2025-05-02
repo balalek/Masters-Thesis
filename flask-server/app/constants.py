@@ -40,8 +40,8 @@ PREVIEW_TIME = 5000
 PREVIEW_TIME_DRAWING = 8000
 START_GAME_TIME = 2000
 PHASE_TRANSITION_TIME = 5000
-WAITING_TIME = 13 # 8 score page + 5 question preview
-WAITING_TIME_DRAWING = 16 # 8 score page + 8 word selection
+WAITING_TIME = 17 # 12 score page + 5 question preview
+WAITING_TIME_DRAWING = 20 # 12 score page + 8 word selection
 
 # Points for ABCD, True/False, Open Answer questions
 POINTS_FOR_CORRECT_ANSWER = 100

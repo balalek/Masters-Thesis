@@ -157,6 +157,11 @@ const GuessANumberForm = React.forwardRef(({ onSubmit, editQuestion = null }, re
         onChange={(e) => setFormData({ ...formData, question: e.target.value })}
         error={!!errors.question}
         helperText={errors.question || `${(formData.question || '').length}/${QUIZ_VALIDATION.QUESTION_MAX_LENGTH}`}
+        slotProps={{
+          htmlInput: {
+            maxLength: QUIZ_VALIDATION.QUESTION_MAX_LENGTH
+          }
+        }}
         sx={{ 
           '& .MuiInputLabel-root': {
             px: 0.5

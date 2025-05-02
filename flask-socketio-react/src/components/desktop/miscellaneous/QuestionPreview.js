@@ -12,6 +12,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { getServerTime } from '../../../utils/socket';
+import { QUESTION_TYPES, QUESTION_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
 
 /**
  * Question Preview component for pre-question display
@@ -56,6 +57,23 @@ const QuestionPreview = ({ question, onPreviewComplete, showAt }) => {
       gap: 4,
       padding: 4
     }}>
+      {/* Question type display for specific question types */}
+      {question?.type && 
+       question.type !== QUESTION_TYPES.BLIND_MAP &&
+       question.type !== QUESTION_TYPES.MATH_QUIZ && (
+        <Typography 
+          variant="h4" 
+          component="div" 
+          sx={{
+            color: '#3B82F6',
+            fontWeight: 'medium',
+            mb: -2
+          }}
+        >
+          {QUESTION_TYPE_TRANSLATIONS[question.type]}
+        </Typography>
+      )}
+      
       <Typography 
         variant="h2" 
         component="div" 
@@ -65,7 +83,9 @@ const QuestionPreview = ({ question, onPreviewComplete, showAt }) => {
           whiteSpace: 'pre-line'
         }}
       >
-        {question}
+        {question?.type === QUESTION_TYPES.BLIND_MAP 
+          ? `${question?.question} - ${question?.map_type === 'cz' ? 'Česká republika' : 'Evropa'}`
+          : question?.question}
       </Typography>
       <Typography variant="h1" sx={{
         fontSize: '5rem',

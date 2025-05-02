@@ -214,6 +214,11 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
         onChange={(e) => setFormData({ ...formData, question: e.target.value })}
         error={!!errors.question}
         helperText={errors.question || `${(formData.question || '').length}/${QUIZ_VALIDATION.QUESTION_MAX_LENGTH}`}
+        slotProps={{ 
+          htmlInput: { 
+            maxLength: QUIZ_VALIDATION.QUESTION_MAX_LENGTH
+          } 
+        }}
         sx={{ 
           '& .MuiInputLabel-root': {
             px: 0.5
@@ -228,6 +233,11 @@ const OpenAnswerForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref)
         onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
         error={!!errors.answer}
         helperText={errors.answer || `${(formData.answer || '').length}/${QUIZ_VALIDATION.ANSWER_MAX_LENGTH}`}
+        slotProps={{ 
+          htmlInput: { 
+            maxLength: QUIZ_VALIDATION.ANSWER_MAX_LENGTH
+          } 
+        }}
         sx={{ 
           '& .MuiInputLabel-root': {
             px: 0.5

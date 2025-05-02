@@ -1,8 +1,29 @@
+/**
+ * @fileoverview True/False Answers component for displaying binary answer results in score page
+ * 
+ * This module provides:
+ * - Visual representation of true/false (binary) options with distinctive shapes
+ * - Highlighting of the correct answer option
+ * - Display of answer counts for each option
+ * - Consistent styling with other answer types
+ * 
+ * @module Components/Desktop/AnswerTypes/TrueFalseAnswers
+ */
 import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import SquareIcon from '@mui/icons-material/SquareOutlined';
 import CircleIcon from '@mui/icons-material/CircleOutlined';
 
+/**
+ * True/False Answers component for displaying binary choice results
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data containing options
+ * @param {number} props.correctAnswer - Index of the correct answer (0-1)
+ * @param {Array<number>} props.answerCounts - Count of players who selected each option
+ * @returns {JSX.Element} The rendered true/false answers component
+ */
 const TrueFalseAnswers = ({ question, correctAnswer, answerCounts }) => {
   return (
     <Box sx={{ 

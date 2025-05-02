@@ -1,9 +1,30 @@
+/**
+ * @fileoverview Math Quiz Results component for displaying math quiz performance statistics in score page
+ * 
+ * This module provides:
+ * - Summary of player performance in mathematical sequence quizzes
+ * - Identification and display of the best-performing player ("Matematik kola")
+ * - Identification and display of the first eliminated player
+ * - Visual representation of player success rates
+ * 
+ * @module Components/Desktop/AnswerTypes/MathQuizResults
+ */
 import React, { useMemo } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDissatisfied';
 
-const MathQuizResults = ({ sequences, eliminatedPlayers, isTeamMode, playerAnswers }) => {
+/**
+ * Math Quiz Results component for displaying player statistics after math quizzes
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Array} props.sequences - Mathematical sequences used in the quiz
+ * @param {Array} props.eliminatedPlayers - List of players who were eliminated
+ * @param {Object} props.playerAnswers - Player answers organized by sequence
+ * @returns {JSX.Element} The rendered math quiz results component
+ */
+const MathQuizResults = ({ sequences, eliminatedPlayers, playerAnswers }) => {
   // Calculate player statistics - keeping this for determining correct answers count
   const playerStats = useMemo(() => {
     const stats = {};
@@ -22,7 +43,7 @@ const MathQuizResults = ({ sequences, eliminatedPlayers, isTeamMode, playerAnswe
     return stats;
   }, [playerAnswers]);
   
-  // Find MVP (player with most correct answers) - keep this logic unchanged
+  // Find MVP (player with most correct answers)
   const mvpPlayer = useMemo(() => {
     let mvp = null;
     let maxCorrect = -1;

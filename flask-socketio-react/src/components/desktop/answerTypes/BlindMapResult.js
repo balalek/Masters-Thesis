@@ -1,46 +1,43 @@
-import React, { useEffect } from 'react';
-import { Box, Typography, Paper } from '@mui/material';
-import StarIcon from '@mui/icons-material/Star'; // Import a star icon for captain
+/**
+ * @fileoverview Blind Map Result component for displaying map quiz results in score page
+ * 
+ * This module provides:
+ * - Visualization of player/team guess locations on a map
+ * - Display of the correct location with appropriate radius circle
+ * - Support for both Czech Republic and Europe maps
+ * - Team-specific styling for guesses in team mode
+ * - Special indicators for team captains
+ * 
+ * @module Components/Desktop/AnswerTypes/BlindMapResult
+ */
+import React from 'react';
+import { Box } from '@mui/material';
+import StarIcon from '@mui/icons-material/Star';
 import czMapImage from '../../../assets/maps/cz.png';
 import europeMapImage from '../../../assets/maps/europe.png';
-import { QUIZ_VALIDATION } from '../../../constants/quizValidation';
 
-const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locations, is_team_mode, winning_team }) => {
-  // Add more detailed debug logging
-  useEffect(() => {
-    console.log('BlindMapResult FULL PROPS:', { question, team_guesses, captain_guesses, player_locations, is_team_mode, winning_team });
-    console.log('Receiving team mode?', is_team_mode);
-    console.log('Team guesses from props:', team_guesses);
-    console.log('Team guesses from results:', question?.blind_map_state?.results?.team_guesses);
-  }, [question, team_guesses, captain_guesses, player_locations, winning_team]);
-  
-  // Extract data with proper fallbacks for nested properties
-  const city_name = question?.city_name || 'Neznámé město';
+/**
+ * Blind Map Result component for displaying geography quiz results
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data including location coordinates and map type
+ * @param {Object} props.team_guesses - Team guesses with player locations
+ * @param {Object} props.captain_guesses - Guesses from team captains
+ * @param {Array} props.player_locations - Individual player guess locations
+ * @param {boolean} props.is_team_mode - Whether the game is in team mode
+ * @returns {JSX.Element} The rendered blind map result component
+ */
+const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locations, is_team_mode }) => {
+
   const map_type = question?.map_type || 'cz';
-  
-  // First check if the data is in the blind_map_state.results
+
   let correct_location;
-  let blind_map_data = question?.blind_map_state?.results || {};
   const radius_preset = question?.radius_preset || 'EASY'; // Default to EASY if not provided
 
   if (question?.location_x !== undefined && question?.location_y !== undefined) {
-    // Fallback to question data
     correct_location = { x: question.location_x, y: question.location_y };
   }
-
-  // Log the extracted location for debugging
-  console.log('Using correct_location:', correct_location);
-  
-  // Log all available data sources for team information
-  console.log('TEAM DATA SOURCES:');
-  console.log('- is_team_mode from blind_map_data:', is_team_mode);
-  console.log('- team_guesses prop:', team_guesses);
-  console.log('- team_guesses from blind_map_data:', blind_map_data?.team_guesses);
-  console.log('- captain_guesses prop:', captain_guesses);
-  console.log('- captain_guesses from blind_map_data:', blind_map_data?.captain_guesses);
-
-  // Add debug logs to check what data we're receiving
-  console.log('Player locations:', player_locations);
 
   return (
     <Box sx={{ width: '100%', px: 2 }}>
@@ -52,7 +49,6 @@ const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locati
         maxWidth: '600px',
         margin: '0 auto',
         overflow: 'hidden',
-        // Remove negative bottom margin - this was making the leaderboard too big
         marginBottom: 0
       }}>
         {/* Wrapper for map and pins */}
@@ -60,9 +56,7 @@ const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locati
           position: 'relative',
           transform: map_type === 'europe' ? 'scale(0.7)' : 'none',
           transformOrigin: 'bottom center',
-          // Use a more moderate negative margin - just enough to remove empty space
           marginTop: map_type === 'europe' ? '-30%' : 0,
-          // Keep inline-block to wrap content
           display: 'inline-block',
           width: '100%'
         }}>
@@ -77,7 +71,7 @@ const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locati
               objectFit: 'contain',
               borderRadius: 2,
               boxShadow: 3,
-              display: 'block' // Ensures no extra space below the image
+              display: 'block'
             }}
           />
 
@@ -86,7 +80,7 @@ const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locati
             sx={{
               position: 'absolute',
               left: `${correct_location.x * 100}%`,
-              top: `${correct_location.y * 101}%`, // Keep the y-adjustment of 101%
+              top: `${correct_location.y * 101}%`,
               transform: 'translate(-50%, -50%)'
             }}
           >
@@ -108,21 +102,16 @@ const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locati
             />
           </Box>
 
-          {/* Team guesses - also enhance visibility similarly */}
+          {/* Team guesses */}
           {is_team_mode && Object.entries(team_guesses || {}).map(([team, guesses]) => {
-            console.log(`Rendering team ${team} guesses:`, guesses);
-            console.log(`Is Array? ${Array.isArray(guesses)}, Length: ${guesses ? guesses.length : 0}`);
             
             // Identify captain's playerName to filter it out from team guesses
             const captainName = captain_guesses && captain_guesses[team] ? captain_guesses[team].playerName : null;
             
             return Array.isArray(guesses) && guesses.map((guess, index) => {
-              console.log(`Guess ${index}:`, guess);
-              console.log(`Has coordinates? x: ${guess?.x}, y: ${guess?.y}`);
               
               // Skip rendering this guess if it belongs to the captain (to avoid duplicate dots)
               if (captainName && guess.playerName === captainName) {
-                console.log(`Skipping captain ${captainName}'s guess from team guesses`);
                 return null;
               }
               
@@ -134,15 +123,14 @@ const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locati
                     left: `${guess.x * 100}%`,
                     top: `${guess.y * 100}%`,
                     transform: 'translate(-50%, -50%)',
-                    width: '20px', // Increased from 15px
-                    height: '20px', // Increased from 15px
-                    bgcolor: team === 'blue' ? '#186CF6' : '#EF4444', // Use player color or fallback to team color
+                    width: '20px',
+                    height: '20px',
+                    bgcolor: team === 'blue' ? '#186CF6' : '#EF4444',
                     borderRadius: '50%',
-                    border: `2px solid white`, // Team color border
-                    boxShadow: '0 0 8px rgba(0,0,0,0.7)', // Enhanced shadow
-                    zIndex: 15, // Increased z-index
-                    opacity: 1, // Full opacity
-                    // Add tooltip-like label with player name
+                    border: `2px solid white`,
+                    boxShadow: '0 0 8px rgba(0,0,0,0.7)',
+                    zIndex: 15,
+                    opacity: 1,
                     '&:hover::after': {
                       content: `"${guess.playerName || team}"`,
                       position: 'absolute',
@@ -162,7 +150,7 @@ const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locati
             });
           })}
 
-          {/* Individual player guesses - enhanced visibility */}
+          {/* Individual player guesses */}
           {!is_team_mode && Array.isArray(player_locations) && player_locations.map((location, index) => 
             location && typeof location.x === 'number' && typeof location.y === 'number' && (
               <Box
@@ -172,15 +160,14 @@ const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locati
                   left: `${location.x * 100}%`,
                   top: `${location.y * 100}%`,
                   transform: 'translate(-50%, -50%)',
-                  width: '20px', // Increased from 15px
-                  height: '20px', // Increased from 15px
+                  width: '20px',
+                  height: '20px',
                   bgcolor: location.color || 'gray',
                   borderRadius: '50%',
-                  border: '2px solid white', // Thicker border
-                  boxShadow: '0 0 8px rgba(0,0,0,0.7)', // Enhanced shadow
-                  zIndex: 15, // Higher z-index to ensure visibility
-                  opacity: 1, // Full opacity instead of 0.7
-                  // Add tooltip-like label with player name
+                  border: '2px solid white',
+                  boxShadow: '0 0 8px rgba(0,0,0,0.7)',
+                  zIndex: 15,
+                  opacity: 1,
                   '&:hover::after': {
                     content: `"${location.playerName || 'Player'}"`,
                     position: 'absolute',
@@ -212,8 +199,7 @@ const BlindMapResult = ({ question, team_guesses, captain_guesses, player_locati
                   left: `${guess.x * 100}%`,
                   top: `${guess.y * 100}%`,
                   transform: 'translate(-50%, -50%)',
-                  zIndex: 25, // Higher z-index to stay on top
-                  // Add tooltip-like label with player name
+                  zIndex: 25,
                   '&:hover::after': {
                     content: `"${team === 'blue' ? 'Modrý' : 'Červený'} kapitán"`,
                     position: 'absolute',

@@ -1,8 +1,27 @@
+/**
+ * @fileoverview Drawing Answer Result component for displaying drawing quiz results in score page
+ * 
+ * This module provides:
+ * - Display of the correct answer for drawing quizzes
+ * - Visual summary of correct and incorrect guesses
+ * - Showcase of interesting incorrect answers
+ * - Indication of the player who was drawing
+ * 
+ * @module Components/Desktop/AnswerTypes/DrawingAnswerResult
+ */
 import React from 'react';
-import { Box, Typography, Paper, Avatar, Divider, Chip } from '@mui/material';
+import { Box, Typography, Paper, Avatar, Divider } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
+/**
+ * Drawing Answer Result component for displaying drawing quiz outcomes
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data including correct answer and player answers
+ * @returns {JSX.Element} The rendered drawing answer result component
+ */
 const DrawingAnswerResult = ({ question }) => {
   const correctAnswer = question.correctAnswer || '';
   const playerAnswers = question.playerAnswers || [];
@@ -16,13 +35,13 @@ const DrawingAnswerResult = ({ question }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Drawer and correct answer with count - styled like ABCD quiz */}
+      {/* Drawer and correct answer with count */}
       <Paper
         elevation={3}
         sx={{
           p: 3,
           mb: 2,
-          backgroundColor: '#14A64A', // Green color like in ABCD
+          backgroundColor: '#14A64A', // Green color as usual for correct answers
           color: 'white',
           display: 'flex',
           justifyContent: 'space-between',
@@ -50,7 +69,7 @@ const DrawingAnswerResult = ({ question }) => {
       
       <Divider sx={{ my: 3 }} />
       
-      {/* Interesting answers section - larger and more prominent */}
+      {/* Interesting answers section */}
       {incorrectAnswers.length > 0 && (
         <Box>
           <Typography variant="h5" gutterBottom>
@@ -90,7 +109,6 @@ const DrawingAnswerResult = ({ question }) => {
                   {answer.player_name.charAt(0).toUpperCase()}
                 </Avatar>
                 <Box sx={{ ml: 1, flex: 1 }}>
-                  {/* Make the incorrect answer more prominent than the player name */}
                   <Typography variant="h4" fontWeight="bold" sx={{ mb: 0.5 }}>
                     "{answer.answer}"
                   </Typography>

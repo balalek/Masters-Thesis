@@ -1,35 +1,64 @@
+/**
+ * @fileoverview Blind Map Quiz Mobile component for anagram-solving phase
+ * 
+ * This component provides:
+ * - User interface for solving city name anagrams
+ * - Real-time feedback on submitted answers via Socket.IO
+ * - Success state display when correct answer is submitted
+ * - Auto-focus text input for improved mobile usability
+ * - Phase-aware messaging during waiting periods
+ * 
+ * @module Components/Mobile/GameSpecificScreens/BlindMapQuizMobile
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, TextField, Button, Alert, Paper, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { getSocket } from '../../../utils/socket';
 
+/**
+ * Blind Map Quiz Mobile component for the anagram-solving phase
+ * 
+ * Allows players to submit their guesses for city name anagrams,
+ * with real-time feedback and progression to success state on correct answers.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onAnswer - Callback function when answer is submitted
+ * @param {number} props.phase - Current game phase (1 for anagram solving, 2+ for later phases)
+ * @returns {JSX.Element} The rendered blind map quiz component
+ */
 const BlindMapQuizMobile = ({ onAnswer, phase = 1 }) => {
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
   const [feedbackSeverity, setFeedbackSeverity] = useState('info');
   const [isCorrect, setIsCorrect] = useState(false);
-  const [correctAnswer, setCorrectAnswer] = useState('');
   const inputRef = useRef(null);
   const socket = getSocket();
 
-  // Keep input focused
+  /**
+   * Keep input field focused for better user experience
+   */
   useEffect(() => {
-    // Focus the input field initially and after any feedback
     if (inputRef.current && !isCorrect) {
       inputRef.current.focus();
     }
   }, [feedback, isCorrect]);
 
+  /**
+   * Listen for server feedback on submitted answers
+   * 
+   * Sets feedback message, handles correct answers,
+   * and manages temporary error messaging.
+   */
   useEffect(() => {
-    // Listen for feedback on answers
+
     socket.on('blind_map_feedback', (data) => {
       setFeedback(data.message);
       setFeedbackSeverity(data.severity);
       
       if (data.isCorrect) {
         setIsCorrect(true);
-        setCorrectAnswer(data.correctAnswer || '');
       }
       
       // Clear feedback after a timeout if not correct
@@ -49,15 +78,28 @@ const BlindMapQuizMobile = ({ onAnswer, phase = 1 }) => {
     };
   }, [socket]);
 
+  /**
+   * Handle form submission
+   * 
+   * Submits the player's answer and clears the input field.
+   * 
+   * @function handleSubmit
+   * @param {React.FormEvent} e - Form submission event
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!answer.trim()) return;
     
-    // Submit the answer and clear the input field
     onAnswer(answer);
     setAnswer('');
   };
 
+  /**
+   * Handle keyboard Enter key press for form submission
+   * 
+   * @function handleKeyDown
+   * @param {React.KeyboardEvent} e - Keyboard event
+   */
   const handleKeyDown = (e) => {
     // Submit the form when Enter key is pressed
     if (e.key === 'Enter') {

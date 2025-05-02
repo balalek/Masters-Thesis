@@ -1,12 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react';
+/**
+ * @fileoverview Team Captain Guess Number Mobile component for captains to submit final team answers
+ * 
+ * This module provides:
+ * - Interface for team captains to select a final answer in guess-a-number games
+ * - Options to choose from team member guesses or captain's own guess
+ * - Real-time team member guess updates via Socket.IO
+ * - Automatic average calculation of team guesses
+ * - Feedback mechanism for captain's actions
+ * 
+ * @module Components/Mobile/GameSpecificScreens/TeamCaptainGuessNumberMobile
+ */
+import React, { useState, useEffect } from 'react';
 import { 
-  Box, TextField, Button, Typography, Paper, List, 
-  ListItem, ListItemText, Divider, Radio, RadioGroup,
+  Box, TextField, Button, Typography, Paper, 
+  Divider, Radio, RadioGroup,
   FormControlLabel, FormControl, Alert
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { getSocket } from '../../../utils/socket';
 
+/**
+ * Team Captain Guess Number Mobile component for captain's final answer submission
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onAnswer - Callback function for submitting the captain's final answer
+ * @param {string} props.teamName - Name of the captain's team
+ * @returns {JSX.Element} The rendered team captain guess number component
+ */
 const TeamCaptainGuessNumberMobile = ({ onAnswer, teamName }) => {
   const [customAnswer, setCustomAnswer] = useState('');
   const [selectedOption, setSelectedOption] = useState('custom');
@@ -14,10 +35,14 @@ const TeamCaptainGuessNumberMobile = ({ onAnswer, teamName }) => {
   const [feedbackSeverity, setFeedbackSeverity] = useState('info');
   const [teamGuesses, setTeamGuesses] = useState([]);
   const [averageGuess, setAverageGuess] = useState(null);
-  const inputRef = useRef(null);
   const socket = getSocket();
 
-  // Listen for team member guesses
+  /**
+   * Listen for team member guesses and feedback messages
+   * 
+   * Updates the team guesses state and calculates the average when new guesses are received.
+   * Also handles feedback messages from the server.
+   */
   useEffect(() => {
     socket.on('team_guesses_update', (data) => {
       if (data.teamName === teamName) {
@@ -46,6 +71,17 @@ const TeamCaptainGuessNumberMobile = ({ onAnswer, teamName }) => {
     };
   }, [socket, teamName]);
 
+  /**
+   * Handle form submission for captain's final answer
+   * 
+   * Validates and processes the selected answer option:
+   * - Custom answer entered by the captain
+   * - Team average guess
+   * - Individual team member guess
+   * 
+   * @function
+   * @param {Event} e - Form submit event
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     

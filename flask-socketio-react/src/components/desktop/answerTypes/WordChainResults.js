@@ -1,10 +1,32 @@
+/**
+ * @fileoverview Word Chain Results component for displaying word chain game statistics
+ * 
+ * This module provides:
+ * - Overall word chain game statistics visualization
+ * - Display of the winning player or team
+ * - Recognition of special player roles (Slovní stratég, Slovní pacifista)
+ * - Statistics like total word count, longest word, and player contributions
+ * 
+ * @module Components/Desktop/AnswerTypes/WordChainResults
+ */
 import React, { useMemo } from 'react';
 import { Box, Typography, Paper, Divider } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects';
-import PeaceIcon from '@mui/icons-material/EmojiFoodBeverage'; // Peace icon for Slovní pacifista
-import SlowMotionVideoIcon from '@mui/icons-material/SlowMotionVideo'; // Alternative icon option
+import PeaceIcon from '@mui/icons-material/EmojiFoodBeverage';
 
+/**
+ * Word Chain Results component for displaying word chain game statistics
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Array} props.wordChain - Array of words played in the game
+ * @param {Array} props.eliminatedPlayers - Players who were eliminated
+ * @param {boolean} props.isTeamMode - Whether the game was played in team mode
+ * @param {string} props.winningTeam - Name of winning team if in team mode
+ * @param {string} props.lastPlayer - Name of last player standing (winner in free-for-all)
+ * @returns {JSX.Element} The rendered word chain results component
+ */
 const WordChainResults = ({ wordChain = [], eliminatedPlayers = [], isTeamMode = false, winningTeam, lastPlayer }) => {
   // Calculate some interesting statistics
   const stats = useMemo(() => {
@@ -91,7 +113,7 @@ const WordChainResults = ({ wordChain = [], eliminatedPlayers = [], isTeamMode =
     });
     
     const playerWordLengths = {};
-    
+  
     playerWords.forEach(item => {
       if (!playerWordLengths[item.player]) {
         playerWordLengths[item.player] = { total: 0, count: 0 };
@@ -134,14 +156,14 @@ const WordChainResults = ({ wordChain = [], eliminatedPlayers = [], isTeamMode =
       <Paper 
         elevation={3} 
         sx={{ 
-          p: 3, // Reduced from p: 4
+          p: 3,
           bgcolor: 'background.paper',
           position: 'relative',
-          mx: 'auto'  // Kept the auto margin for horizontal centering
+          mx: 'auto'
         }}
       >
         {/* Winner information at the top */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}> {/* Reduced from mb: 3 */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
           <EmojiEventsIcon sx={{ fontSize: 48, color: 'warning.main', mr: 2 }} />
           <Typography variant="h3" fontWeight="bold" color="primary">
             {isTeamMode && winningTeam ? (
@@ -152,32 +174,32 @@ const WordChainResults = ({ wordChain = [], eliminatedPlayers = [], isTeamMode =
           </Typography>
         </Box>
         
-        <Divider sx={{ mb: 3 }} /> {/* Reduced from mb: 4 */}
+        <Divider sx={{ mb: 3 }} />
         
-        {/* Stats with larger fonts - improved layout */}
+        {/* Stats with larger fonts */}
         <Box sx={{ 
           display: 'flex', 
           flexWrap: 'wrap', 
           justifyContent: 'space-between',
           width: '100%',
-          gap: 2 // Added gap for more controlled spacing
+          gap: 2
         }}>
           <Box sx={{ 
             flex: '1 1 0', 
             minWidth: { xs: '100%', sm: '45%', md: '22%' }, 
             textAlign: 'center',
             px: 2,
-            mb: { xs: 2, md: 0 }, // Reduced from mb: { xs: 4, md: 0 }
+            mb: { xs: 2, md: 0 },
             display: 'flex',
             flexDirection: 'column',
             height: '100%',
             justifyContent: 'space-between'
           }}>
-            <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}> {/* Reduced from mb: 2 */}
+            <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
               Počet zahraných slov
             </Typography>
             <Typography variant="h2" color="primary" fontWeight="bold">{stats.totalWords}</Typography>
-            <Box sx={{ mt: 1 }}></Box> {/* Reduced from mt: 2 */}
+            <Box sx={{ mt: 1 }}></Box>
           </Box>
           
           {stats.longestWord && (
@@ -186,19 +208,19 @@ const WordChainResults = ({ wordChain = [], eliminatedPlayers = [], isTeamMode =
               minWidth: { xs: '100%', sm: '45%', md: '22%' }, 
               textAlign: 'center',
               px: 2,
-              mb: { xs: 2, md: 0 }, // Reduced from mb: { xs: 4, md: 0 }
+              mb: { xs: 2, md: 0 },
               display: 'flex',
               flexDirection: 'column',
               height: '100%',
               justifyContent: 'space-between'
             }}>
-              <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}> {/* Reduced from mb: 2 */}
+              <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                 Nejdélší slovo
               </Typography>
               <Typography variant="h3" color="primary" fontWeight="bold">
                 {stats.longestWord}
               </Typography>
-              <Typography variant="h5" color="text.secondary" sx={{ mt: 1 }}> {/* Reduced from mt: 2 */}
+              <Typography variant="h5" color="text.secondary" sx={{ mt: 1 }}>
                 ({stats.longestWordLength} znaků)
               </Typography>
             </Box>

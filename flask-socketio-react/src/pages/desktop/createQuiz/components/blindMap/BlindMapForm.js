@@ -335,7 +335,7 @@ const BlindMapForm = React.forwardRef(({ onSubmit, editQuestion = null }, ref) =
         error={!!errors.cityName}
         helperText={errors.cityName || `${(formData.cityName || '').length}/50`}
         slotProps={{ 
-          input: { 
+          htmlInput: { 
             maxLength: 50 
           } 
         }}

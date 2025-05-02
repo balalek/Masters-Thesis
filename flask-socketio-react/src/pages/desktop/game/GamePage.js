@@ -152,7 +152,7 @@ function GamePage() {
   if (showQuestionPreview) {
     return (
       <QuestionPreview 
-        question={question?.question} 
+        question={question} 
         onPreviewComplete={() => setShowQuestionPreview(false)} 
         showAt={showGameAt}
       />
@@ -210,8 +210,7 @@ function GamePage() {
         />;
       case 'MATH_QUIZ':
         return <MathQuiz 
-          question={question} 
-          question_end_time={location.state?.question_end_time}
+          question={question}
         />;
       case 'BLIND_MAP':
         return <BlindMapQuiz 

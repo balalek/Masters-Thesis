@@ -1,3 +1,14 @@
+/**
+ * @fileoverview Word Chain Result component for displaying player performance after word chain game
+ * 
+ * This module provides:
+ * - Role-based result displays (strategist, pacifist, winner, participant)
+ * - Player statistics visualization (words contributed, average word length)
+ * - Team victory or individual victory recognition
+ * - Points earned visualization 
+ * 
+ * @module Components/Mobile/GameSpecificScreens/WordChainResult
+ */
 import React, { useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
@@ -5,18 +16,30 @@ import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects';
 import PeaceIcon from '@mui/icons-material/EmojiFoodBeverage';
 import PersonIcon from '@mui/icons-material/Person';
 
+/**
+ * Word Chain Result component for showing game outcomes
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Array} props.wordChain - Array of words played in the game
+ * @param {string} props.winningTeam - Name of team that won (if team mode)
+ * @param {boolean} props.isTeamMode - Whether the game was played in team mode
+ * @param {number} props.pointsEarned - Points earned in this game
+ * @param {number} props.totalPoints - Total points for player/team
+ * @param {string} props.playerName - Current player's name
+ * @param {string} props.winner - Name of winning player (in free-for-all mode)
+ * @returns {JSX.Element} The rendered word chain result component
+ */
 const WordChainResult = ({ 
   wordChain = [], 
-  explodedTeam, 
-  winningTeam, 
-  explodedPlayer, 
+  winningTeam,
   isTeamMode, 
   pointsEarned = 50, 
   totalPoints = 0,
   playerName = '',
-  winner = ''  // Added winner prop
+  winner = ''
 }) => {
-  // Determine player role and team status
+  // Determine player role and team status based on gameplay data
   const playerRole = useMemo(() => {
     if (!wordChain || wordChain.length === 0 || !playerName) {
       return { role: 'participant', isWinner: false, stats: { words: 0, letters: 0, avgLength: 0 } };
@@ -95,9 +118,14 @@ const WordChainResult = ({
     } else {
       return { role: 'participant', isWinner: isOnWinningTeam, stats: playerOwnStats };
     }
-  }, [wordChain, playerName, isTeamMode, winningTeam, winner]); // Add winner to dependencies
+  }, [wordChain, playerName, isTeamMode, winningTeam, winner]);
 
-  // Get display content based on role
+  /**
+   * Get display content based on player's role
+   * 
+   * @function
+   * @returns {Object} Visual elements and styling based on player role
+   */
   const getDisplayContent = () => {
     switch (playerRole.role) {
       case 'strategist':

@@ -1,3 +1,14 @@
+/**
+ * @fileoverview ABCD Answers component for displaying multiple choice answers in score page
+ * 
+ * This module provides:
+ * - Visual representation of the four possible answers in ABCD quiz format
+ * - Distinctive styling for each answer option with unique shapes and colors
+ * - Answer counts display showing how many players chose each option
+ * - Highlighting of the correct answer
+ * 
+ * @module Components/Desktop/AnswerTypes/ABCDAnswers
+ */
 import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import StarIcon from '@mui/icons-material/StarBorderOutlined';
@@ -5,6 +16,16 @@ import SquareIcon from '@mui/icons-material/SquareOutlined';
 import PentagonIcon from '@mui/icons-material/PentagonOutlined';
 import CircleIcon from '@mui/icons-material/CircleOutlined';
 
+/**
+ * ABCD Answers component for displaying multiple choice answers on the desktop
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data containing options
+ * @param {number} props.correctAnswer - Index of the correct answer (0-3)
+ * @param {Array<number>} props.answerCounts - Count of players who selected each option
+ * @returns {JSX.Element} The rendered ABCD answers component
+ */
 const ABCDAnswers = ({ question, correctAnswer, answerCounts }) => {
   return (
     <Box sx={{ 

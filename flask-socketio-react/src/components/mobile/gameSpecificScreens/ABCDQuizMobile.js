@@ -1,3 +1,14 @@
+/**
+ * @fileoverview ABCD Quiz Mobile component for multiple-choice questions
+ * 
+ * This component provides:
+ * - Four large colorful buttons for answer selection on mobile devices
+ * - Distinct icons for each answer option to enhance visual recognition
+ * - Full-screen responsive layout optimized for mobile gameplay
+ * - Simple callback mechanism for answer submission
+ * 
+ * @module Components/Mobile/GameSpecificScreens/ABCDQuizMobile
+ */
 import React from 'react';
 import { Box, Button } from '@mui/material';
 import StarIcon from '@mui/icons-material/StarBorderOutlined';
@@ -5,6 +16,17 @@ import SquareIcon from '@mui/icons-material/SquareOutlined';
 import PentagonIcon from '@mui/icons-material/PentagonOutlined';
 import CircleIcon from '@mui/icons-material/CircleOutlined';
 
+/**
+ * ABCD Quiz Mobile component for multiple-choice question interface
+ * 
+ * Renders a four-button grid layout for answering multiple-choice questions,
+ * with each button representing one possible answer (A, B, C, or D).
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onAnswer - Callback function called with the selected answer index (0-3)
+ * @returns {JSX.Element} The rendered ABCD quiz mobile interface
+ */
 const ABCDQuizMobile = ({ onAnswer }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignItems: 'center', gap: 2 }}>

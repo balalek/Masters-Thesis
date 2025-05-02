@@ -1,7 +1,33 @@
+/**
+ * @fileoverview Blind Map Phase Transition component for geography quiz phase changes
+ * 
+ * This module provides:
+ * - Visual transition between blind map quiz phases 
+ * - Countdown timer between phases
+ * - Visualization of which team is active
+ * - Display of the correct city name during transition
+ * - Support for both team mode and free-for-all gameplay
+ * 
+ * @module Components/Desktop/QuizTypes/BlindMapPhaseTransition
+ */
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import { getServerTime } from '../../../utils/socket';
 
+/**
+ * Blind Map Phase Transition component for displaying phase changes in geography quiz
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.correctAnswer - Name of the city or location to find
+ * @param {string} props.activeTeam - Currently active team ('blue' or 'red')
+ * @param {number} props.transitionEndTime - Server timestamp when transition should end
+ * @param {Function} props.onTransitionComplete - Callback for when transition completes
+ * @param {number} props.phase - Current phase number (1 or 2)
+ * @param {string} props.mapType - Type of map ('cz' or 'europe')
+ * @param {boolean} props.isTeamMode - Whether the game is in team mode
+ * @returns {JSX.Element} The rendered blind map phase transition component
+ */
 const BlindMapPhaseTransition = ({ 
   correctAnswer, 
   activeTeam, 
@@ -9,11 +35,11 @@ const BlindMapPhaseTransition = ({
   onTransitionComplete,
   phase = 2,
   mapType = 'cz',
-  previousGuesses = [],
   isTeamMode = false
 }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);
 
+  // Manage countdown timer and trigger transition completion
   useEffect(() => {
     if (transitionEndTime) {
       const timer = setInterval(() => {

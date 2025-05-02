@@ -1,8 +1,31 @@
+/**
+ * @fileoverview Guess Number Result component for displaying number guessing quiz results in score page
+ * 
+ * This module provides:
+ * - Display of correct answer in number guessing games
+ * - Team mode visualization with first team guess and second team vote
+ * - Free-for-all mode visualization with closest player guesses
+ * - Winner highlighting for team mode competitions
+ * 
+ * @module Components/Desktop/AnswerTypes/GuessNumberResult
+ */
 import React from 'react';
 import { Box, Typography, Paper, Avatar, Chip } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
+/**
+ * Guess Number Result component for showing numerical guessing game outcomes
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {number} props.correctAnswer - The correct answer value
+ * @param {Array} props.playerGuesses - Player guesses with player information
+ * @param {boolean} props.teamMode - Whether the game was played in team mode
+ * @param {number} props.firstTeamAnswer - First team's numerical guess
+ * @param {string} props.secondTeamVote - Second team's vote ('more' or 'less')
+ * @returns {JSX.Element} The rendered guess number result component
+ */
 const GuessNumberResult = ({ correctAnswer, playerGuesses, teamMode, firstTeamAnswer, secondTeamVote }) => {
   // Sort guesses by distance from correct answer if in free-for-all mode
   const sortedGuesses = teamMode ? 

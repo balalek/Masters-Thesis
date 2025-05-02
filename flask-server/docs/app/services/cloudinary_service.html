@@ -85,7 +85,19 @@ transformations, deletion, and existence checks.</p>
         CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
         &#34;&#34;&#34;
         # Cloudinary automatically reads from CLOUDINARY_URL environment variable
-        cloudinary.config(secure=True)
+        if not os.getenv(&#39;CLOUDINARY_URL&#39;):
+            # Direct configuration instead of using environment variable
+            cloudinary.config(
+                cloud_name=&#34;djvm1yshu&#34;,
+                api_key=&#34;125389736487381&#34;,
+                api_secret=&#34;yDLNb4nE2zAeG_jKRMPJ37BCavc&#34;,
+                secure=True
+            )
+        else:
+            # This will automatically read from the environment variable
+            cloudinary.config(
+                secure=True  # Use HTTPS for all URLs
+            )
         
     @staticmethod
     def upload_file(file_data, folder=&#34;quiz_media&#34;, resource_type=&#34;auto&#34;, 
@@ -404,7 +416,19 @@ def initialize():
     CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
     &#34;&#34;&#34;
     # Cloudinary automatically reads from CLOUDINARY_URL environment variable
-    cloudinary.config(secure=True)</code></pre>
+    if not os.getenv(&#39;CLOUDINARY_URL&#39;):
+        # Direct configuration instead of using environment variable
+        cloudinary.config(
+            cloud_name=&#34;djvm1yshu&#34;,
+            api_key=&#34;125389736487381&#34;,
+            api_secret=&#34;yDLNb4nE2zAeG_jKRMPJ37BCavc&#34;,
+            secure=True
+        )
+    else:
+        # This will automatically read from the environment variable
+        cloudinary.config(
+            secure=True  # Use HTTPS for all URLs
+        )</code></pre>
 </details>
 <div class="desc"><p>Initialize Cloudinary with environment variables</p>
 <p>Place your Cloudinary URL in environment variables or .env file:

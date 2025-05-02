@@ -48,7 +48,7 @@ const CluesSection = ({
         error={!!errors.clue1}
         helperText={errors.clue1 || `${(clue1 || '').length}/100`}
         slotProps={{ 
-          input: { 
+          htmlInput: { 
             maxLength: 100 
           } 
         }}
@@ -62,7 +62,7 @@ const CluesSection = ({
         error={!!errors.clue2}
         helperText={errors.clue2 || `${(clue2 || '').length}/100`}
         slotProps={{ 
-          input: { 
+          htmlInput: { 
             maxLength: 100 
           } 
         }}
@@ -76,7 +76,7 @@ const CluesSection = ({
         error={!!errors.clue3}
         helperText={errors.clue3 || `${(clue3 || '').length}/100`}
         slotProps={{ 
-          input: { 
+          htmlInput: { 
             maxLength: 100 
           } 
         }}

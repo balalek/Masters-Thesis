@@ -968,6 +968,11 @@ const CreateQuizPage = () => {
                 ? `Název kvízu nesmí být delší než ${QUIZ_VALIDATION.QUIZ_NAME_MAX_LENGTH} znaků` 
                 : '')
             }
+            slotProps={{ 
+              htmlInput: { 
+                maxLength: QUIZ_VALIDATION.QUIZ_NAME_MAX_LENGTH
+              } 
+            }}
             sx={{
               '& .MuiInputLabel-shrink': {
                 transform: 'translate(14px, -4px) scale(0.75)',

@@ -1,10 +1,33 @@
+/**
+ * @fileoverview Guess A Number Quiz component for desktop numerical guessing games
+ * 
+ * This module provides:
+ * - Two-phase number guessing game interface for team competitions
+ * - First phase for team numerical guesses with captain decision
+ * - Second phase for opposing team to vote higher or lower
+ * - Real-time vote counting and guess tracking
+ * - Phase transition animations
+ * - Support for both team mode and free-for-all gameplay
+ * 
+ * @module Components/Desktop/QuizTypes/GuessANumberQuiz
+ */
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Button } from '@mui/material';
+import { Box, Typography, Button } from '@mui/material';
 import { getSocket, getServerTime } from '../../../utils/socket';
 import PhaseTransitionScreen from './PhaseTransitionScreen';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
+/**
+ * Guess A Number Quiz component for displaying numerical guessing game
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.activeTeam - Currently active team ('blue' or 'red')
+ * @param {Object} props.question - Question data including text and quiz settings
+ * @param {number} props.question_end_time - Server timestamp when question will end
+ * @returns {JSX.Element} The rendered guess a number quiz component
+ */
 const GuessANumberQuiz = ({ activeTeam, question, question_end_time }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [currentTeam, setCurrentTeam] = useState(activeTeam); // 'blue' or 'red' or null
@@ -12,13 +35,13 @@ const GuessANumberQuiz = ({ activeTeam, question, question_end_time }) => {
   const [firstTeamAnswer, setFirstTeamAnswer] = useState(null);
   const [secondTeamVotes, setSecondTeamVotes] = useState({ more: 0, less: 0 });
   const [guessCount, setGuessCount] = useState(0);
-  const [teamGuesses, setTeamGuesses] = useState([]); // For displaying team member guesses
+  const [teamGuesses, setTeamGuesses] = useState([]);
   const [showTransition, setShowTransition] = useState(false);
   const [transitionEndTime, setTransitionEndTime] = useState(null);
-  const [phaseEndTime, setPhaseEndTime] = useState(question_end_time); // Track phase-specific end time
+  const [phaseEndTime, setPhaseEndTime] = useState(question_end_time);
   const socket = getSocket();
 
-  // Timer effect - now uses phaseEndTime instead of question_end_time
+  // Timer effect for phase end time
   useEffect(() => {
     if (phaseEndTime) {
       const timer = setInterval(() => {
@@ -38,7 +61,7 @@ const GuessANumberQuiz = ({ activeTeam, question, question_end_time }) => {
     }
   }, [phaseEndTime, socket]);
 
-  // Socket listeners
+  // Socket listeners for team guesses and phase transitions
   useEffect(() => {
     // Listen for team guesses in phase 1
     socket.on('team_guess_submitted', (data) => {
@@ -47,7 +70,6 @@ const GuessANumberQuiz = ({ activeTeam, question, question_end_time }) => {
       }
     });
 
-    // Add this listener for phase transition
     socket.on('phase_transition', (data) => {
       setCurrentTeam(data.activeTeam);
       setPhase(2);
@@ -82,6 +104,12 @@ const GuessANumberQuiz = ({ activeTeam, question, question_end_time }) => {
     };
   }, [socket, question]);
 
+  /**
+   * Render the first phase content with team guesses
+   * 
+   * @function renderPhase1Content
+   * @returns {JSX.Element} The rendered phase 1 content
+   */
   const renderPhase1Content = () => (
     <Box sx={{ textAlign: 'center' }}>
       {teamGuesses.length > 0 && (
@@ -94,7 +122,7 @@ const GuessANumberQuiz = ({ activeTeam, question, question_end_time }) => {
             justifyContent: 'center',
             gap: 2,
             flexWrap: 'nowrap', // Ensure items stay on one line
-            overflow: 'visible' // Allow content to extend beyond container
+            overflow: 'visible'
           }}>
             {teamGuesses.map((guess, index) => (
               <Box 
@@ -130,6 +158,12 @@ const GuessANumberQuiz = ({ activeTeam, question, question_end_time }) => {
     </Box>
   );
 
+  /**
+   * Render the second phase content with higher/lower question
+   * 
+   * @function
+   * @returns {JSX.Element} The rendered phase 2 content
+   */
   const renderPhase2Content = () => (
     <Box sx={{ textAlign: 'center', mt: 4 }}>
       <Typography variant="h3" sx={{ mb: 5, px: 2 }}>
@@ -178,7 +212,7 @@ const GuessANumberQuiz = ({ activeTeam, question, question_end_time }) => {
         </Box>
       )}
 
-      {/* Center content grid - exactly like TrueFalseQuiz */}
+      {/* Center content grid */}
       <Box sx={{ 
         display: 'grid',
         gridTemplateColumns: 'auto 1fr auto',
@@ -222,8 +256,6 @@ const GuessANumberQuiz = ({ activeTeam, question, question_end_time }) => {
               Zadej svůj tip na svém telefonu
             </Typography>
           )}
-          
-          {/* Place phase 2 content directly under the question */}
           {currentTeam && phase === 2 && renderPhase2Content()}
         </Box>
 

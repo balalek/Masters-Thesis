@@ -19,7 +19,6 @@ import PlayersList from '../../../components/desktop/room/PlayersList';
 import TeamMode from '../../../components/desktop/room/TeamMode';
 import ConnectionInfo from '../../../components/desktop/room/ConnectionInfo';
 import StartGameTooltip from '../../../components/desktop/room/StartGameTooltip';
-import { QUIZ_TYPE_TRANSLATIONS } from '../../../constants/quizValidation';
 
 /**
  * Room Page component for setting up and starting games
@@ -131,7 +130,7 @@ const RoomPage = () => {
     });
     
     socket.on('player_name_changed', (data) => {
-      const { old_name, new_name, color } = data;
+      const { old_name, new_name } = data;
       
       // Update players array if in free-for-all mode
       if (selectedMode === 'freeforall') {

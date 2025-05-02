@@ -192,14 +192,17 @@ def next_question():
     # For Guess a Number in team mode, initialize the phase
     if game_state.is_team_mode and next_question.get(&#39;type&#39;) == &#39;GUESS_A_NUMBER&#39;:
         game_state.number_guess_phase = 1
+        print(f&#34;team active? {game_state.active_team}&#34;)
         
         # Make sure active_team is set before switching
         if game_state.active_team is None:
             # Start with blue team if no active team is set
             game_state.active_team = &#39;blue&#39;
         else:
-            # Switch active team from the previous question
-            game_state.active_team = &#39;red&#39; if game_state.active_team == &#39;blue&#39; else &#39;blue&#39;
+            # Switch active team from the previous question (it&#39;s like this, because we have two phases)
+            # In the first phase active is for example blue, in second red, 
+            # so in first phase in next question will start red -&gt; meaning this is correct code!!
+            game_state.active_team = &#39;red&#39; if game_state.active_team == &#39;red&#39; else &#39;blue&#39;
 
     # Send the next question to all players devices
     socketio.emit(&#39;next_question&#39;, {

@@ -1,18 +1,36 @@
+/**
+ * @fileoverview Open Answer Quiz component for text-based answer quiz displays
+ * 
+ * This module provides:
+ * - Progressive letter reveal for text-based answers
+ * - Media display support (images and audio)
+ * - Gradual image reveal mode for visual clues
+ * - Real-time tracking of correct answer submissions
+ * - Synchronized countdown timer with server time
+ * 
+ * @module Components/Desktop/QuizTypes/OpenAnswerQuiz
+ */
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import { getSocket, getServerTime } from '../../../utils/socket';
 import { createInitialMask, shouldRevealLetter } from '../../../utils/letterReveal';
 import ImageBlockReveal from '../miscellaneous/ImageBlockReveal';
 
+/**
+ * Open Answer Quiz component for displaying text-based quizzes on the host screen
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data including correct answer and media
+ * @param {number} props.question_end_time - Server timestamp when question will end
+ * @returns {JSX.Element} The rendered open answer quiz component
+ */
 const OpenAnswerQuiz = ({ question, question_end_time }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [letterMask, setLetterMask] = useState('');
   const [correctCount, setCorrectCount] = useState(0);
-  const [totalPlayers, setTotalPlayers] = useState(0);
   const [lastReveal, setLastReveal] = useState(0);
   const socket = getSocket();
-
-  // Add a ref for the audio element
   const audioRef = React.useRef(null);
 
   // Create initial mask with underscores and spaces using the utility function
@@ -76,7 +94,6 @@ const OpenAnswerQuiz = ({ question, question_end_time }) => {
           if (playAttempt !== undefined) {
             playAttempt.catch(error => {
               console.warn('Autoplay prevented:', error);
-              // Add a visible play button or notification if autoplay is blocked
             });
           }
         } catch (error) {
@@ -88,7 +105,7 @@ const OpenAnswerQuiz = ({ question, question_end_time }) => {
     }
   }, [question]);
 
-  // Listen for letter reveals
+  // Listen for letter reveals and correct answer submissions from the server
   useEffect(() => {
     socket.on('open_answer_letter_revealed', (data) => {
       setLetterMask(data.mask);
@@ -96,7 +113,6 @@ const OpenAnswerQuiz = ({ question, question_end_time }) => {
 
     socket.on('open_answer_submitted', (data) => {
       setCorrectCount(data.correct_count);
-      setTotalPlayers(data.player_count);
     });
 
     return () => {
@@ -105,7 +121,15 @@ const OpenAnswerQuiz = ({ question, question_end_time }) => {
     };
   }, [socket]);
 
-  // Display the masked answer
+  /**
+   * Render the masked answer display
+   * 
+   * This function creates a visual representation of the answer with letters revealed
+   * and underscores for unrevealed letters.
+   * 
+   * @function renderMaskedAnswer
+   * @returns {JSX.Element|null} Rendered masked answer display or null if no mask is set
+   */
   const renderMaskedAnswer = () => {
     if (!letterMask) return null;
     
@@ -129,7 +153,6 @@ const OpenAnswerQuiz = ({ question, question_end_time }) => {
               alignItems: 'center',
               backgroundColor: char === '_' ? 'grey.200' : 'primary.light',
               visibility: char === ' ' ? 'hidden' : 'visible',
-              // Make underscore placeholders slightly bigger
               ...(char === '_' && { 
                 width: '42px',
                 border: '1px dashed grey' 
@@ -153,7 +176,7 @@ const OpenAnswerQuiz = ({ question, question_end_time }) => {
       justifyContent: 'space-between', 
       p: 2 
     }}>
-      {/* Center content grid - updated to match ABCDQuiz layout */}
+      {/* Center content grid */}
       <Box sx={{ 
         display: 'grid',
         gridTemplateColumns: 'auto 1fr auto',
@@ -204,8 +227,8 @@ const OpenAnswerQuiz = ({ question, question_end_time }) => {
             <Box sx={{ 
               mb: 4, 
               width: '100%', 
-              maxWidth: '800px',
-              maxHeight: '60vh', // Adding max height to prevent very tall images from overflowing
+              maxWidth: '800px', // Added max width to prevent very wide images from overflowing
+              maxHeight: '60vh', // Added max height to prevent very tall images from overflowing
               display: 'flex',
               justifyContent: 'center'
             }}>

@@ -1,9 +1,31 @@
+/**
+ * @fileoverview Word Chain Quiz Mobile component for word-based chain games
+ * 
+ * This module provides:
+ * - Interactive word chain gameplay interface
+ * - Real-time turn management and player state tracking
+ * - Validation for word submissions based on starting letter rules
+ * - Player elimination visualization and waiting screens
+ * - Support for Czech diacritics in word validation
+ * 
+ * @module Components/Mobile/GameSpecificScreens/WordChainQuizMobile
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, TextField, Button, Typography, Paper, Alert, CircularProgress } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { getSocket } from '../../../utils/socket';
 import WordChainWaitingScreen from './WordChainWaitingScreen';
 
+/**
+ * Word Chain Quiz Mobile component for word chain gameplay
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onAnswer - Callback function for submitting player's word
+ * @param {Object} props.question - Question data with initial game state
+ * @param {string} props.playerName - Current player's name
+ * @returns {JSX.Element} The rendered word chain quiz component
+ */
 const WordChainQuizMobile = ({ onAnswer, question, playerName }) => {
   const [word, setWord] = useState('');
   const [error, setError] = useState('');
@@ -12,15 +34,13 @@ const WordChainQuizMobile = ({ onAnswer, question, playerName }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [lastAddedWord, setLastAddedWord] = useState(question?.first_word || '');
-  const [isEliminated, setIsEliminated] = useState(false); // New state to track elimination
-  const [eliminatedPlayers, setEliminatedPlayers] = useState([]); // Track all eliminated players
+  const [isEliminated, setIsEliminated] = useState(false);
   const inputRef = useRef(null);
   
   // Initialize from question prop if available
   useEffect(() => {
     if (question?.first_letter) {
       setCurrentLetter(question.first_letter);
-      console.log("Initialized current letter from question:", question.first_letter);
     }
     if (question?.current_player) {
       setCurrentPlayer(question.current_player);
@@ -37,7 +57,7 @@ const WordChainQuizMobile = ({ onAnswer, question, playerName }) => {
     }
   }, [feedback, currentPlayer, playerName]);
   
-  // Add a new effect specifically for focusing after errors
+  // Focus after errors
   useEffect(() => {
     // If there's an error and it's the player's turn, focus the input field
     if (error && isPlayerTurn() && inputRef.current) {
@@ -48,10 +68,10 @@ const WordChainQuizMobile = ({ onAnswer, question, playerName }) => {
     }
   }, [error]);
   
+  // Listen for word chain updates and feedback
   useEffect(() => {
     const socket = getSocket();
     
-    // Listen for word chain updates
     socket.on('word_chain_update', (data) => {
       if (data.current_letter) {
         setCurrentLetter(data.current_letter);
@@ -68,14 +88,12 @@ const WordChainQuizMobile = ({ onAnswer, question, playerName }) => {
       
       // Check if this player is in the eliminated list
       if (data.eliminated_players) {
-        setEliminatedPlayers(data.eliminated_players);
         if (data.eliminated_players.includes(playerName)) {
           setIsEliminated(true);
         }
       }
     });
     
-    // Listen for feedback on word submissions
     socket.on('word_chain_feedback', (data) => {
       setIsSubmitting(false);
       
@@ -102,11 +120,24 @@ const WordChainQuizMobile = ({ onAnswer, question, playerName }) => {
     };
   }, [playerName]);
   
-  // Helper function to check if it's this player's turn
+  /**
+   * Check if it's the current player's turn
+   * 
+   * @function
+   * @returns {boolean} True if it's this player's turn and they're not eliminated
+   */
   const isPlayerTurn = () => {
     return playerName === currentPlayer && !isEliminated;
   };
   
+  /**
+   * Handle word submission
+   * 
+   * Validates word input and submits to server if valid
+   * 
+   * @function
+   * @param {Event} e - Form submit event
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -128,15 +159,27 @@ const WordChainQuizMobile = ({ onAnswer, question, playerName }) => {
     onAnswer(word.trim());
   };
   
+  /**
+   * Handle keyboard input events
+   * 
+   * @function
+   * @param {KeyboardEvent} e - Keyboard event
+   */
   const handleKeyDown = (e) => {
-    // Submit the form when Enter key is pressed
     if (e.key === 'Enter') {
       e.preventDefault();
       handleSubmit(e);
     }
   };
   
-  // Helper function to check if word starts with letter, accounting for diacritics
+  /**
+   * Check if word starts with specified letter, accounting for diacritics
+   * 
+   * @function
+   * @param {string} word - Word to check
+   * @param {string} letter - Starting letter to verify
+   * @returns {boolean} True if word starts with the letter (with or without diacritics)
+   */
   const startsWithLetter = (word, letter) => {
     if (!word || !letter) return false;
     

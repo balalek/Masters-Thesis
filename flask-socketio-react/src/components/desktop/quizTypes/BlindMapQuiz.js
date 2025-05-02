@@ -1,9 +1,32 @@
+/**
+ * @fileoverview Blind Map Quiz component for geographical quiz display on desktop
+ * 
+ * This module provides:
+ * - Multi-phase geography quiz system with anagram and map location phases
+ * - Dynamic clue reveal system based on elapsed time
+ * - Team mode support with captain-specific functionality
+ * - Free-for-all mode for all players
+ * - Real-time visual feedback of player/team guesses
+ * - Smooth transitions between quiz phases
+ * 
+ * @module Components/Desktop/QuizTypes/BlindMapQuiz
+ */
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Fade, Stack } from '@mui/material';
 import { getSocket, getServerTime } from '../../../utils/socket';
-import TeamMap from './TeamMap'; // Component for team map display
-import BlindMapPhaseTransition from './BlindMapPhaseTransition'; // Replace PhaseTransitionScreen import with this
+import TeamMap from './TeamMap';
+import BlindMapPhaseTransition from './BlindMapPhaseTransition';
 
+/**
+ * Blind Map Quiz component for displaying geography-based quizzes on host screen
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data with location details and clues
+ * @param {number} props.question_end_time - Server timestamp when question will end
+ * @param {boolean} props.isTeamMode - Whether the game is in team mode
+ * @returns {JSX.Element} The rendered blind map quiz component
+ */
 const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [correctCount, setCorrectCount] = useState(0);
@@ -16,14 +39,13 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
   const [teamGuesses, setTeamGuesses] = useState({ blue: [], red: [] });
   const [captainGuesses, setCaptainGuesses] = useState({ blue: null, red: null });
   const [captainPreviews, setCaptainPreviews] = useState({ blue: null, red: null });
-  //const [isTeamMode, setIsTeamMode] = useState(false);
   const [activeTeam, setActiveTeam] = useState(null);
-  const [clueIndex, setClueIndex] = useState(0); // Track current clue index
+  const [clueIndex, setClueIndex] = useState(0);
   const [hasClues, setHasClues] = useState(false);
   const [lastRevealTime, setLastRevealTime] = useState(null);
   const [showTransition, setShowTransition] = useState(false);
   const [transitionEndTime, setTransitionEndTime] = useState(null);
-  const [phaseEndTime, setPhaseEndTime] = useState(question_end_time); // Track phase-specific end time
+  const [phaseEndTime, setPhaseEndTime] = useState(question_end_time);
   const socket = getSocket();
 
   // Timer effect with clue reveal logic
@@ -66,7 +88,7 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
 
       return () => clearInterval(timer);
     }
-  }, [phaseEndTime, socket, phase, clueIndex, lastRevealTime, question, showTransition]); // Add showTransition to dependencies
+  }, [phaseEndTime, socket, phase, clueIndex, lastRevealTime, question, showTransition]);
 
   // Initialize from question data
   useEffect(() => {
@@ -86,7 +108,6 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
       );
 
       setMapType(question.map_type || 'cz');
-      //setIsTeamMode(question.is_team_mode || false);
       setActiveTeam(question.active_team);
     }
   }, [question]);
@@ -120,18 +141,17 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
       setShowTransition(true);
       setTransitionEndTime(data.transitionEndTime);
       
-      // Set phase to 2 after transition
+      // Set the new phase end time
       setTimeout(() => {
         setShowTransition(false);
         
-        // Calculate the new end time for phase 2
+        // Calculate the new end time for next phase
         const newPhaseEndTime = data.transitionEndTime + (question.length * 1000);
         setPhaseEndTime(newPhaseEndTime);
       }, data.transitionEndTime - getServerTime());
     });
 
     socket.on('blind_map_location_submitted', (data) => {
-      console.log('Received blind_map_location_submitted:', data);
       if (data.team) {
         // Team mode
         if (!data.isCaptain) {
@@ -171,7 +191,12 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
     };
   }, [socket, visibleClues, question, phase, isTeamMode]);
 
-  // Render the anagram phase
+  /**
+   * Render the anagram phase content
+   * 
+   * @function
+   * @returns {JSX.Element} The anagram phase UI
+   */
   const renderAnagramPhase = () => (
     <Box sx={{ textAlign: 'center', width: '100%' }}>
       <Typography variant="h3" sx={{ mb: 4, fontWeight: 'bold' }}>
@@ -241,7 +266,12 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
     </Box>
   );
 
-  // Render the map location phase for team mode
+  /**
+   * Render the map location phase for team mode
+   * 
+   * @function
+   * @returns {JSX.Element} The team map phase UI
+   */
   const renderTeamMapPhase = () => (
     <Box sx={{ textAlign: 'center', width: '100%' }}>
       <Typography variant="h3" sx={{ mb: 4, fontWeight: 'bold' }}>
@@ -254,20 +284,25 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
           `Tým ${activeTeam === 'blue' ? 'modrých' : 'červených'} má druhý pokus`
         )}
       </Typography>
-      {/* Add the TeamMap component here */}
+      {/* TeamMap component */}
       <Box sx={{ width: '100%', maxWidth: '600px', mx: 'auto', mt: 2 }}>
         <TeamMap 
           mapType={mapType} 
           teamGuesses={teamGuesses} 
           captainGuesses={captainGuesses} 
-          captainPreviews={captainPreviews}  // Add this prop
+          captainPreviews={captainPreviews}
           activeTeam={activeTeam}
         />
       </Box>
     </Box>
   );
 
-  // Render the map location phase for free-for-all mode
+  /**
+   * Render the map location phase for free-for-all mode
+   * 
+   * @function
+   * @returns {JSX.Element} The free-for-all map phase UI
+   */
   const renderFreeForAllMapPhase = () => (
     <Box sx={{ textAlign: 'center', width: '100%' }}>
       <Typography variant="h3" sx={{ mb: 4, fontWeight: 'bold' }}>
@@ -288,7 +323,6 @@ const BlindMapQuiz = ({ question, question_end_time, isTeamMode }) => {
         onTransitionComplete={() => setShowTransition(false)}
         phase={phase}
         mapType={mapType}
-        previousGuesses={phase === 3 ? teamGuesses[activeTeam === 'blue' ? 'red' : 'blue'] : []}
         isTeamMode={isTeamMode}
       />
     );

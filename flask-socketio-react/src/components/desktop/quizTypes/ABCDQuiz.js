@@ -1,3 +1,14 @@
+/**
+ * @fileoverview ABCD Quiz component for desktop display of multiple choice questions
+ * 
+ * This module provides:
+ * - Display of multiple choice (ABCD) questions with distinctive styling for each option
+ * - Real-time countdown timer synchronized with server time
+ * - Answer count indicator showing how many players have submitted answers
+ * - Visual representation of the four options with unique shapes and colors
+ * 
+ * @module Components/Desktop/QuizTypes/ABCDQuiz
+ */
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import StarIcon from '@mui/icons-material/StarBorderOutlined';
@@ -6,9 +17,20 @@ import PentagonIcon from '@mui/icons-material/PentagonOutlined';
 import CircleIcon from '@mui/icons-material/CircleOutlined';
 import { getServerTime } from '../../../utils/socket';
 
+/**
+ * ABCD Quiz component for displaying multiple choice questions on the host screen
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data with question text and options
+ * @param {number} props.answersCount - Count of answers submitted so far
+ * @param {number} props.question_end_time - Server timestamp when the question will end
+ * @returns {JSX.Element} The rendered ABCD quiz component
+ */
 const ABCDQuiz = ({ question, answersCount, question_end_time }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);
 
+  // Handle countdown timer based on server time
   useEffect(() => {
     if (question_end_time) {
       const timer = setInterval(() => {

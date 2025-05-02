@@ -1,8 +1,34 @@
+/**
+ * @fileoverview Drawing Answer Quiz Mobile component for guessing drawings
+ * 
+ * This component provides:
+ * - Text input interface for submitting drawing guesses
+ * - Real-time feedback for incorrect guesses
+ * - Auto-focus functionality for improved user experience
+ * - Customizable placeholder text and button labels
+ * - Form submission via button or enter key
+ * 
+ * @module Components/Mobile/GameSpecificScreens/DrawingAnswerQuizMobile
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, TextField, Button, Alert, Paper } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { getSocket } from '../../../utils/socket';
 
+/**
+ * Drawing Answer Quiz Mobile component for guessing what's being drawn
+ * 
+ * Renders a form for players to submit their guesses during a drawing round,
+ * with feedback for incorrect answers and customizable UI text.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onAnswer - Callback when answer is submitted
+ * @param {string} props.placeholder - Placeholder text for input field
+ * @param {string} props.buttonText - Label for submit button
+ * @param {string} props.title - Title displayed at the top of the screen
+ * @returns {JSX.Element} The rendered drawing answer component
+ */
 const DrawingAnswerQuizMobile = ({ onAnswer, placeholder = "Co je na obrázku?", buttonText = "Odeslat odpověď", title = "Uhádni co je na obrázku" }) => {
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -10,16 +36,20 @@ const DrawingAnswerQuizMobile = ({ onAnswer, placeholder = "Co je na obrázku?",
   const inputRef = useRef(null);
   const socket = getSocket();
 
-  // Keep input focused
+  /**
+   * Keeps the input field focused for better user experience
+   */
   useEffect(() => {
-    // Focus the input field initially and after any feedback
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, [feedback]);
 
+  /**
+   * Sets up listener for feedback on incorrect answers
+   */
   useEffect(() => {
-    // Listen for feedback on incorrect answers - drawing specific event
+    
     socket.on('drawing_answer_feedback', (data) => {
       setFeedback(data.message);
       setFeedbackSeverity('warning');
@@ -39,6 +69,11 @@ const DrawingAnswerQuizMobile = ({ onAnswer, placeholder = "Co je na obrázku?",
     };
   }, [socket]);
 
+  /**
+   * Handles form submission
+   * 
+   * @param {React.FormEvent} e - Form submission event
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!answer.trim()) return;
@@ -48,8 +83,12 @@ const DrawingAnswerQuizMobile = ({ onAnswer, placeholder = "Co je na obrázku?",
     setAnswer('');
   };
 
+  /**
+   * Handles keyboard input for form submission on Enter key
+   * 
+   * @param {React.KeyboardEvent} e - Keyboard event
+   */
   const handleKeyDown = (e) => {
-    // Submit the form when Enter key is pressed
     if (e.key === 'Enter') {
       e.preventDefault();
       handleSubmit(e);
@@ -82,7 +121,7 @@ const DrawingAnswerQuizMobile = ({ onAnswer, placeholder = "Co je na obrázku?",
       
       {/* Feedback message area - always present but conditionally visible */}
       <Box sx={{ 
-        minHeight: '60px', // Reserve space for feedback
+        minHeight: '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -100,15 +139,15 @@ const DrawingAnswerQuizMobile = ({ onAnswer, placeholder = "Co je na obrázku?",
             {feedback}
           </Alert>
         ) : (
-          <Box sx={{ height: '60px' }} /> // Empty space placeholder when no feedback
+          <Box sx={{ height: '60px' }} /> // Empty space placeholder when no feedback - so it doesn't jump
         )}
       </Box>
       
       {/* Use approx 40% of the screen height - positioned at top */}
       <Box sx={{ 
-        height: '40vh', // Reduced from 50vh to 40vh
+        height: '40vh',
         p: 2,
-        pt: 1, // Reduced top padding
+        pt: 1,
         display: 'flex',
         flexDirection: 'column'
       }}>
@@ -133,7 +172,7 @@ const DrawingAnswerQuizMobile = ({ onAnswer, placeholder = "Co je na obrázku?",
             onKeyDown={handleKeyDown}
             autoFocus
             autoComplete="off"
-            multiline={false} // Explicitly set to false
+            multiline={false}
             sx={{ 
               flex: 3,
               mb: 2,
@@ -143,7 +182,7 @@ const DrawingAnswerQuizMobile = ({ onAnswer, placeholder = "Co je na obrázku?",
               },
               '& .MuiInputBase-input': {
                 height: '100% !important',
-                overflow: 'auto', // Allow scrolling if text is long
+                overflow: 'auto',
                 alignItems: 'flex-start',
                 padding: '14px'
               }

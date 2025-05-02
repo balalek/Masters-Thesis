@@ -1,3 +1,16 @@
+/**
+ * @fileoverview Word Chain Quiz component for desktop display of word chain games
+ * 
+ * This module provides:
+ * - Interactive word chain game visualization with real-time updates
+ * - Player turn management with visual indicators and timers
+ * - Team mode support with team-specific visual effects
+ * - Player rotation visualization for upcoming turns
+ * - Team Timer effects including animations for dramatic tension
+ * - Comprehensive player state tracking (active, eliminated, score)
+ * 
+ * @module Components/Desktop/QuizTypes/WordChainQuiz
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Box, 
@@ -11,7 +24,13 @@ import {
 import { getSocket, getServerTime } from '../../../utils/socket';
 
 /**
- * Component to display a Word Chain quiz game
+ * Word Chain Quiz component for displaying word chain games on the host screen
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data including initial letter and player information
+ * @param {number} props.question_end_time - Server timestamp when question will end
+ * @returns {JSX.Element} The rendered word chain quiz component
  */
 const WordChainQuiz = ({ question, question_end_time }) => {
   const [wordChain, setWordChain] = useState([]);
@@ -45,22 +64,18 @@ const WordChainQuiz = ({ question, question_end_time }) => {
     }
     return {};
   });
-  const [isTeamMode, setIsTeamMode] = useState(question?.is_team_mode || false);
+  const isTeamMode = question?.is_team_mode || false;
   const [bombTicking, setBombTicking] = useState(false);
-  const [sparklesShowing, setSparklesShowing] = useState(false);  // New state for sparkles at 40%
-  const [timeRemaining, setTimeRemaining] = useState(question?.length || 0);
+  const [sparklesShowing, setSparklesShowing] = useState(false);
 
-  // New state for tracking timer status
-  const [activeTimer, setActiveTimer] = useState(question?.current_player || null);
-  const [isPaused, setIsPaused] = useState(false);
+  // States for tracking timer status
   const timerIntervalRef = useRef(null);
   const lastTickTimeRef = useRef(getServerTime());
 
-  // Add ref for auto-scrolling
+  // Ref for auto-scrolling
   const wordChainContainerRef = useRef(null);
   
   const [gameSpecificPoints, setGameSpecificPoints] = useState({});
-
   const [previousPlayers, setPreviousPlayers] = useState([]);
   const [nextPlayers, setNextPlayers] = useState(question?.next_players || []);
 
@@ -75,8 +90,7 @@ const WordChainQuiz = ({ question, question_end_time }) => {
       setCurrentLetter(question.first_letter || '');
       // Set system as the previous player when game starts
       setPreviousPlayers(['system']);
-      setNextPlayers(question?.next_players || []); // Initialize next players from question
-      console.log("Initialized word chain with:", question.first_word, "and letter:", question.first_letter);
+      setNextPlayers(question?.next_players || []);
     }
   }, [question, wordChain.length]);
 
@@ -99,13 +113,7 @@ const WordChainQuiz = ({ question, question_end_time }) => {
     }
 
     socket.on('word_chain_update', (data) => {
-      console.log('word_chain_update received:', {
-        newCurrentPlayer: data.current_player,
-        currentPlayer,
-        timerExists: !!timerIntervalRef.current
-      });
-      
-      // Update state
+      // Update states
       setWordChain(data.word_chain || []);
       setCurrentLetter(data.current_letter || '');
       setEliminatedPlayers(data.eliminated_players || []);
@@ -128,7 +136,6 @@ const WordChainQuiz = ({ question, question_end_time }) => {
         
         // Update states
         setCurrentPlayer(newCurrentPlayer);
-        setActiveTimer(newCurrentPlayer);
         lastTickTimeRef.current = getServerTime();
         
         // Start timer for new player
@@ -145,7 +152,6 @@ const WordChainQuiz = ({ question, question_end_time }) => {
       const timerInterval = setInterval(() => {
         const now = getServerTime();
         const remaining = Math.max(0, question_end_time - now);
-        setTimeRemaining(remaining);
         
         // Calculate time percentage
         const totalTime = question?.length * 1000 || 0;
@@ -175,19 +181,26 @@ const WordChainQuiz = ({ question, question_end_time }) => {
       };
     }
 
+    /**
+     * Start the timer for a specific player
+     * 
+     * @function startTimeForPlayer
+     * @param {string} player - The player whose timer to start
+     */
     function startTimeForPlayer(player) {
-      if (!timerIntervalRef.current && !isPaused) {
+      if (!timerIntervalRef.current) {
         timerIntervalRef.current = setInterval(() => {
           const now = getServerTime();
           const elapsed = now - lastTickTimeRef.current;
           lastTickTimeRef.current = now;
           
+          // Update the timer for the current player
           setPlayerTimers(prevTimers => {
             const newTimers = { ...prevTimers };
             if (newTimers[player]) {
               newTimers[player] = Math.max(0, newTimers[player] - elapsed);
-              //console.log(`Timer update - Player: ${player}, Time: ${Math.floor(newTimers[player] / 1000)}s`);
               
+              // Check if the timer has reached zero
               if (newTimers[player] === 0) {
                 clearInterval(timerIntervalRef.current);
                 timerIntervalRef.current = null;
@@ -207,16 +220,23 @@ const WordChainQuiz = ({ question, question_end_time }) => {
         timerIntervalRef.current = null;
       }
     };
-  }, [currentPlayer, isPaused, question_end_time, isTeamMode, question]);
+  }, [currentPlayer, question_end_time, isTeamMode, question]);
 
-  // Determine if the current player is from the blue team
-  const isCurrentPlayerBlue = isTeamMode && 
-    scores?.blue_team?.includes(currentPlayer);
-
-  // Function to render player timers
+  /**
+   * Render player timers and status indicators
+   * 
+   * @function renderPlayerTimers
+   * @returns {JSX.Element} The rendered player timers or team mode bomb visualization
+   */
   const renderPlayerTimers = () => {
     if (isTeamMode) {
-      // Helper function to render sparkles - reused for both warning states
+
+      /**
+       * Render the bomb timer with sparkles and flashing background
+       * 
+       * @function renderSparkles
+       * @returns {JSX.Element} The rendered sparkles for the bomb timer
+       */
       const renderSparkles = () => (
         [...Array(12)].map((_, i) => (
           <Box
@@ -356,14 +376,12 @@ const WordChainQuiz = ({ question, question_end_time }) => {
               
               // Check if data structure is as expected, otherwise try alternate paths
               const playerColor = scores?.individual?.[playerName]?.color || '#ccc';
-              
-              const playerScore = scores?.individual?.[playerName]?.score || 0;
               const timeRemaining = playerTimers[playerName] || 0;
               const totalTime = question?.length * 1000 || 30000;
               const timePercentage = (timeRemaining / totalTime) * 100;
               
               // Add a pulsing effect when it's a player's turn
-              const isPulsing = isCurrentTurn && !isPaused;
+              const isPulsing = isCurrentTurn;
               
               return (
                 <Box key={playerName}>
@@ -467,7 +485,12 @@ const WordChainQuiz = ({ question, question_end_time }) => {
     }
   };
 
-  // Render the actual word chain
+  /**
+   * Render the word chain with visual transitions between words
+   * 
+   * @function renderWordChain
+   * @returns {JSX.Element} The rendered word chain or waiting message
+   */
   const renderWordChain = () => {
     if (!wordChain.length) {
       return (
@@ -497,13 +520,9 @@ const WordChainQuiz = ({ question, question_end_time }) => {
         }}
       >
         {wordChain.map((item, index) => {
-          const { word, player, team } = item;
-          const playerColor = team 
-            ? (team === 'blue' ? '#186CF6' : '#EF4444')
-            : (scores?.individual?.[player]?.color || '#ccc');
+          const { word } = item;
           
           // For the first word (system word) or last word, use different styles
-          const isSystemWord = player === 'system';
           const isLastWord = index === wordChain.length - 1;
           
           return (
@@ -546,6 +565,12 @@ const WordChainQuiz = ({ question, question_end_time }) => {
     );
   };
 
+  /**
+   * Render player rotation visualization showing previous, current and upcoming players
+   * 
+   * @function renderPlayerRotation
+   * @returns {JSX.Element|null} The rendered player rotation or null if not in team mode
+   */
   const renderPlayerRotation = () => {
     if (!isTeamMode) return null;
 
@@ -561,7 +586,7 @@ const WordChainQuiz = ({ question, question_end_time }) => {
       gap: 1.5,
     };
 
-    // Only keep floating animation keyframes
+    // Floating animation keyframes
     const keyframes = {
       '@keyframes floatCenter': {
         '0%': { transform: 'scale(1.25) translateY(0px)' },
@@ -588,7 +613,14 @@ const WordChainQuiz = ({ question, question_end_time }) => {
         : (wordChain[wordChain.length - 1]?.team === 'blue' ? 'red' : 'blue'))
       : 'blue'; // Default to blue if no words yet
 
-    // Function to get team color
+    /**
+     * Get the color for the team based on the index and direction
+     * 
+     * @function getTeamColor
+     * @param {boolean} isNextDirection - True if the player is in the next direction
+     * @param {number} index - The index of the player in the rotation
+     * @return {string} The color for the team
+     */
     const getTeamColor = (isNextDirection, index) => {
       const startWithTeam = currentPlayerTeam;
       const isEvenIndex = index % 2 === 0;
@@ -654,7 +686,7 @@ const WordChainQuiz = ({ question, question_end_time }) => {
             variant="h6" 
             sx={{
               ...nameStyles,
-              fontSize: '1.1rem', // Slightly smaller to fit better
+              fontSize: '1.1rem',
             }}
           >
             {currentPlayer}
@@ -734,7 +766,7 @@ const WordChainQuiz = ({ question, question_end_time }) => {
       {/* Player timers and scores */}
       <Box sx={{ mt: 'auto' }}>
         {renderPlayerTimers()}
-        {isTeamMode && renderPlayerRotation()} {/* Move player rotation here */}
+        {isTeamMode && renderPlayerRotation()}
       </Box>
     </Box>
   );

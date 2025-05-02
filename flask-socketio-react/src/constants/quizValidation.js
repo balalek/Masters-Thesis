@@ -178,3 +178,21 @@ export const QUIZ_TYPE_TRANSLATIONS = {
   [QUIZ_TYPES.GUESS_A_NUMBER]: 'Hádej číslo',
   [QUIZ_TYPES.COMBINED_QUIZ]: 'Kombinovaný kvíz'
 };
+
+/**
+ * Czech translations of question types for display
+ * 
+ * Maps question type identifiers to human-readable Czech names
+ * for UI presentation.
+ * 
+ * @constant
+ * @type {Object}
+ */
+export const QUESTION_TYPE_TRANSLATIONS = {
+  [QUIZ_TYPES.ABCD]: 'ABCD otázka',
+  [QUIZ_TYPES.TRUE_FALSE]: 'Pravda/lež',
+  [QUIZ_TYPES.OPEN_ANSWER]: 'Otevřená odpověď',
+  [QUIZ_TYPES.GUESS_A_NUMBER]: 'Hádej číslo',
+  [QUIZ_TYPES.DRAWING]: 'Kreslení',
+  [QUIZ_TYPES.WORD_CHAIN]: 'Slovní řetěz'
+}

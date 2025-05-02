@@ -1,8 +1,27 @@
+/**
+ * @fileoverview Open Answer Result component for displaying text-based answer results in score page
+ * 
+ * This module provides:
+ * - Display of the correct text answer
+ * - Count of players who answered correctly
+ * - Showcase of interesting incorrect answers
+ * - Visual distinction between correct and incorrect responses
+ * 
+ * @module Components/Desktop/AnswerTypes/OpenAnswerResult
+ */
 import React from 'react';
-import { Box, Typography, Paper, Avatar, Divider, Chip } from '@mui/material';
+import { Box, Typography, Paper, Avatar, Divider } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
+/**
+ * Open Answer Result component for displaying text-based answer outcomes
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data including correct answer and player answers
+ * @returns {JSX.Element} The rendered open answer result component
+ */
 const OpenAnswerResult = ({ question }) => {
   const correctAnswer = question.correctAnswer || '';
   const playerAnswers = question.playerAnswers || [];
@@ -15,13 +34,13 @@ const OpenAnswerResult = ({ question }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Correct answer with count - styled like ABCD quiz */}
+      {/* Correct answer with count */}
       <Paper
         elevation={3}
         sx={{
           p: 3,
           mb: 4,
-          backgroundColor: '#14A64A', // Green color like in ABCD
+          backgroundColor: '#14A64A', // Green color as usual for correct answers
           color: 'white',
           display: 'flex',
           justifyContent: 'space-between',
@@ -44,7 +63,7 @@ const OpenAnswerResult = ({ question }) => {
       
       <Divider sx={{ my: 3 }} />
       
-      {/* Interesting answers section - larger and more prominent */}
+      {/* Interesting answers section */}
       {incorrectAnswers.length > 0 && (
         <Box>
           <Typography variant="h5" gutterBottom>
@@ -84,7 +103,6 @@ const OpenAnswerResult = ({ question }) => {
                   {answer.player_name.charAt(0).toUpperCase()}
                 </Avatar>
                 <Box sx={{ ml: 1, flex: 1 }}>
-                  {/* Make the incorrect answer more prominent than the player name */}
                   <Typography variant="h4" fontWeight="bold" sx={{ mb: 0.5 }}>
                     "{answer.answer}"
                   </Typography>

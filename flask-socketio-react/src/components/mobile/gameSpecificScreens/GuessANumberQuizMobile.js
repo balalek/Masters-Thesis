@@ -1,22 +1,50 @@
+/**
+ * @fileoverview Guess A Number Quiz Mobile component for numeric guessing
+ * 
+ * This component provides:
+ * - Text input for submitting numeric guesses
+ * - Input validation to ensure only valid numbers are submitted
+ * - Real-time feedback on guess accuracy via Socket.IO
+ * - Automatic input focus for improved user experience
+ * - Numeric keyboard input mode for mobile devices
+ * 
+ * @module Components/Mobile/GameSpecificScreens/GuessANumberQuizMobile
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, TextField, Button, Alert, Paper } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { getSocket } from '../../../utils/socket';
 
-const GuessANumberQuizMobile = ({ onAnswer, playerRole = 'player' }) => {
+/**
+ * Guess A Number Quiz Mobile component for submitting numeric guesses
+ * 
+ * Renders a form for players to submit numeric guesses during a 
+ * Guess A Number question, with feedback and validation.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onAnswer - Callback for submitting answers
+ * @returns {JSX.Element} The rendered guess number input component
+ */
+const GuessANumberQuizMobile = ({ onAnswer }) => {
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
   const [feedbackSeverity, setFeedbackSeverity] = useState('info');
   const inputRef = useRef(null);
   const socket = getSocket();
 
-  // Keep input focused
+  /**
+   * Maintains focus on the input field
+   */
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, [feedback]);
 
+  /**
+   * Sets up Socket.IO event listeners for guess feedback
+   */
   useEffect(() => {
     socket.on('guess_feedback', (data) => {
       setFeedback(data.message);
@@ -35,6 +63,12 @@ const GuessANumberQuizMobile = ({ onAnswer, playerRole = 'player' }) => {
     };
   }, [socket]);
 
+  /**
+   * Handles form submission with numeric validation
+   * 
+   * @function handleSubmit
+   * @param {React.FormEvent} e - Form submission event
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!answer.trim()) return;
@@ -52,6 +86,12 @@ const GuessANumberQuizMobile = ({ onAnswer, playerRole = 'player' }) => {
     setAnswer('');
   };
 
+  /**
+   * Handles Enter key press for form submission
+   * 
+   * @function handleKeyDown
+   * @param {React.KeyboardEvent} e - Keyboard event
+   */
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();

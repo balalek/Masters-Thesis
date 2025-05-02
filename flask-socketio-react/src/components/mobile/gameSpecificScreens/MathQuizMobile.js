@@ -1,36 +1,55 @@
+/**
+ * @fileoverview Math Quiz Mobile component for solving equations
+ * 
+ * This component provides:
+ * - Input field for submitting numeric answers to math equations
+ * - Real-time validation and feedback via Socket.IO
+ * - Visual states for correct answers, errors, and player elimination
+ * - Team synchronization during multiplayer matches
+ * - Automatic input focus for improved usability
+ * 
+ * @module Components/Mobile/GameSpecificScreens/MathQuizMobile
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, TextField, Button, Typography, Paper, Alert, CircularProgress } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { getSocket } from '../../../utils/socket';
 
-const MathQuizMobile = ({ onAnswer, question, playerName }) => {
+/**
+ * Math Quiz Mobile component for solving equation sequences
+ * 
+ * Handles user input for math equation answers, with special behaviors
+ * for team play and player elimination in the "survival" style math quiz.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onAnswer - Callback when answer is submitted
+ * @param {string} props.playerName - Current player's name
+ * @returns {JSX.Element} The rendered math quiz interface
+ */
+const MathQuizMobile = ({ onAnswer, playerName }) => {
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState('');
-  const [currentSequence, setCurrentSequence] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState('');
-  const [isEliminated, setIsEliminated] = useState(false); // Track elimination locally
-  const [eliminationMessage, setEliminationMessage] = useState(''); // Add state for elimination message
-  const [hasCorrectAnswer, setHasCorrectAnswer] = useState(false); // Track if player answered correctly
-  const [playerStatuses, setPlayerStatuses] = useState({}); // Added playerStatuses state
+  const [isEliminated, setIsEliminated] = useState(false);
+  const [eliminationMessage, setEliminationMessage] = useState('');
+  const [hasCorrectAnswer, setHasCorrectAnswer] = useState(false);
   const inputRef = useRef(null);
   
-  // Initialize from question prop if available
-  useEffect(() => {
-    if (question?.sequences && question.sequences.length > 0) {
-      setCurrentSequence(0);
-    }
-  }, [question]);
-  
-  // Keep input focused
+  /**
+   * Keep input field focused for better user experience
+   */
   useEffect(() => {
     if (inputRef.current && !isEliminated) {
       inputRef.current.focus();
     }
   }, [feedback, isEliminated]);
   
-  // Add a new effect specifically for focusing after errors
+  /**
+   * Focus input field after errors occur
+   */
   useEffect(() => {
     // If there's an error, focus the input field
     if (error && inputRef.current && !isEliminated) {
@@ -41,6 +60,15 @@ const MathQuizMobile = ({ onAnswer, question, playerName }) => {
     }
   }, [error, isEliminated]);
   
+  /**
+   * Set up Socket.IO event listeners for math quiz gameplay
+   * 
+   * Handles:
+   * - Feedback on submitted answers
+   * - Sequence changes
+   * - Player status updates for team mode
+   * - Elimination tracking
+   */
   useEffect(() => {
     const socket = getSocket();
     
@@ -52,10 +80,10 @@ const MathQuizMobile = ({ onAnswer, question, playerName }) => {
         setAnswer('');
         setError('');
         setFeedback(data.message || 'Správná odpověď!');
-        setHasCorrectAnswer(true); // Set flag when answer is correct
+        setHasCorrectAnswer(true);
         
         // Don't clear feedback for correct answers - keep the points message visible
-        // (we removed the timeout that was clearing feedback)
+        // (removed the timeout that was clearing feedback)
       } else {
         // Answer was incorrect - check for elimination
         if (data.message.includes('vyřazen')) {
@@ -67,8 +95,7 @@ const MathQuizMobile = ({ onAnswer, question, playerName }) => {
       }
     });
     
-    socket.on('math_sequence_change', (data) => {
-      setCurrentSequence(data.sequence_index);
+    socket.on('math_sequence_change', () => {
       setAnswer('');
       setFeedback('');
       setError('');
@@ -80,10 +107,7 @@ const MathQuizMobile = ({ onAnswer, question, playerName }) => {
       }
     });
     
-    // Add listener for math_quiz_update event
     socket.on('math_quiz_update', (data) => {
-      // Update player statuses from server
-      setPlayerStatuses(data.player_statuses);
       
       // Get current sequence index
       const currentIdx = data.current_sequence;
@@ -105,7 +129,6 @@ const MathQuizMobile = ({ onAnswer, question, playerName }) => {
           // Only show team-related feedback when in team mode
           if (data.is_team_mode) {
             // Check if this player has personally answered the CURRENT sequence
-            // This is the key fix - check only the current sequence, not all sequences
             const hasPersonallyAnsweredCurrent = 
               data.player_answers && 
               data.player_answers[currentIdx] && 
@@ -124,10 +147,15 @@ const MathQuizMobile = ({ onAnswer, question, playerName }) => {
     return () => {
       socket.off('math_feedback');
       socket.off('math_sequence_change');
-      socket.off('math_quiz_update'); // Clean up the new listener
+      socket.off('math_quiz_update');
     };
   }, [playerName, isEliminated]);
   
+  /**
+   * Handle form submission of math answers
+   * 
+   * @param {React.FormEvent} e - Form submit event
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -143,15 +171,23 @@ const MathQuizMobile = ({ onAnswer, question, playerName }) => {
     onAnswer(answer.trim());
   };
   
+  /**
+   * Handle keyboard Enter key for form submission
+   * 
+   * @param {React.KeyboardEvent} e - Keyboard event
+   */
   const handleKeyDown = (e) => {
-    // Submit the form when Enter key is pressed
     if (e.key === 'Enter') {
       e.preventDefault();
       handleSubmit(e);
     }
   };
 
-  // Add a function to filter non-numeric input
+  /**
+   * Filter input to only allow valid numeric characters
+   * 
+   * @param {React.ChangeEvent} e - Input change event
+   */
   const handleAnswerChange = (e) => {
     const value = e.target.value;
     // Only allow digits, commas, periods, and minus sign
@@ -281,7 +317,6 @@ const MathQuizMobile = ({ onAnswer, question, playerName }) => {
               <Typography variant="h5" color="success.main" align="center">
                 Správná odpověď!
               </Typography>
-              {/* Removed redundant "wait for next example" message here */}
             </Box>
           ) : (
             <>

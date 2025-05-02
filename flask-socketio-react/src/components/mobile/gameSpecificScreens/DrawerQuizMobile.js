@@ -1,5 +1,19 @@
+/**
+ * @fileoverview Drawer Quiz Mobile component for drawing game mode
+ * 
+ * This component provides:
+ * - Canvas-based drawing interface for mobile devices
+ * - Multiple drawing tools (pencil, fill)
+ * - Color selection and stroke size adjustment
+ * - Real-time drawing updates via Socket.IO
+ * - Undo functionality with history tracking
+ * - Touch and mouse input support
+ * - Responsive canvas sizing for various devices
+ * 
+ * @module Components/Mobile/GameSpecificScreens/DrawerQuizMobile
+ */
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Button, Typography, Paper, IconButton, Menu, MenuItem } from '@mui/material';
+import { Box, Typography, IconButton, Menu } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import CreateIcon from '@mui/icons-material/Create';
@@ -9,6 +23,19 @@ import UndoIcon from '@mui/icons-material/Undo';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { getSocket } from '../../../utils/socket';
 
+/**
+ * Drawer Quiz Mobile component for the drawing player's interface
+ * 
+ * Provides a drawing canvas with tools for the player assigned to draw
+ * during the drawing game round, with tools for creating and editing drawings
+ * and real-time synchronization with viewers.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.selectedWord - The word that the player must draw
+ * @param {string} props.playerName - Name of the current player
+ * @returns {JSX.Element} The rendered drawing interface
+ */
 const DrawerQuizMobile = ({ selectedWord, playerName }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -24,7 +51,7 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
   // Drawing tool states
   const [currentTool, setCurrentTool] = useState('pencil');
   const [currentColor, setCurrentColor] = useState('#000000');
-  const [brushSize, setBrushSize] = useState(5);
+  const brushSize = 5; // Default brush size
   const [colorMenuAnchor, setColorMenuAnchor] = useState(null);
   const [canvasHistory, setCanvasHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -36,33 +63,59 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     '#008000', '#800000', '#008080', '#000080', '#808080'
   ];
 
-  // Toggle word visibility
+  /**
+   * Toggle visibility of the word to draw
+   * 
+   * Allows the player to hide/show the word they need to draw
+   * to prevent others from seeing it.
+   * 
+   * @function toggleWordVisibility
+   */
   const toggleWordVisibility = () => {
     setIsWordVisible(prev => !prev);
   };
 
-  // Tool selection handler
+  /**
+   * Change the current drawing tool
+   * 
+   * Updates the drawing context properties based on the selected tool.
+   * 
+   * @function handleToolChange
+   * @param {string} tool - The tool to switch to ('pencil', 'fill')
+   */
   const handleToolChange = (tool) => {
     setCurrentTool(tool);
     
     if (context) {
-      if (tool === 'pencil') {
-        context.globalCompositeOperation = 'source-over';
-      } else if (tool === 'eraser') {
-        context.globalCompositeOperation = 'destination-out';
-      }
+      context.globalCompositeOperation = 'source-over';
     }
   };
 
-  // Color selection handler
+  /**
+   * Open the color selection menu
+   * 
+   * @function handleColorOpen
+   * @param {Object} event - The click event
+   */
   const handleColorOpen = (event) => {
     setColorMenuAnchor(event.currentTarget);
   };
 
+  /**
+   * Close the color selection menu
+   * 
+   * @function handleColorClose
+   */
   const handleColorClose = () => {
     setColorMenuAnchor(null);
   };
 
+  /**
+   * Select a drawing color
+   * 
+   * @function handleColorSelect
+   * @param {string} color - Hex color code
+   */
   const handleColorSelect = (color) => {
     setCurrentColor(color);
     if (context) {
@@ -72,7 +125,14 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     handleColorClose();
   };
 
-  // Improved save to history function
+  /**
+   * Save the current canvas state to history
+   * 
+   * Manages history stack for undo functionality while
+   * preventing excessive memory usage.
+   * 
+   * @function saveToHistory
+   */
   const saveToHistory = () => {
     if (canvasRef.current) {
       try {
@@ -102,7 +162,12 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     }
   };
 
-  // Helper to check if canvas is empty
+  /**
+   * Check if the canvas is empty
+   * 
+   * @function isCanvasEmpty
+   * @returns {boolean} True if canvas has no content
+   */
   const isCanvasEmpty = () => {
     if (!canvasRef.current || !context) return true;
     
@@ -117,7 +182,14 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     return true; // Canvas is empty
   };
 
-  // Improved undo handler
+  /**
+   * Undo the last drawing action
+   * 
+   * Restores the previous state from history and updates
+   * the remote view.
+   * 
+   * @function handleUndo
+   */
   const handleUndo = () => {
     if (!context || historyIndex < 0) return;
     
@@ -155,7 +227,13 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     }
   };
 
-  // Modified Clear canvas handler
+  /**
+   * Clear the entire canvas
+   * 
+   * Resets the canvas to blank and clears history.
+   * 
+   * @function handleClear
+   */
   const handleClear = () => {
     if (context) {
       context.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -166,7 +244,16 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     }
   };
 
-  // Updated flood fill that properly manages history
+  /**
+   * Perform flood fill from a starting point
+   * 
+   * Implements a breadth-first search algorithm to fill connected
+   * areas with the current color.
+   * 
+   * @function floodFill
+   * @param {number} startX - X coordinate to start fill
+   * @param {number} startY - Y coordinate to start fill
+   */
   const floodFill = (startX, startY) => {
     if (!context || !canvasRef.current) return;
     
@@ -181,12 +268,11 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       const startG = data[startPos + 1];
       const startB = data[startPos + 2];
       const startA = data[startPos + 3];
-      
-      const computedStyle = window.getComputedStyle(context.canvas);
       const targetColor = context.fillStyle || currentColor;
       
       let r, g, b;
       
+      // Parse the target color
       const rgbMatch = targetColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
       if (rgbMatch) {
         r = parseInt(rgbMatch[1], 10);
@@ -201,6 +287,7 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       
       const isBlackPixel = startR < 10 && startG < 10 && startB < 10;
       
+      // Check if the starting pixel is already the target color
       if (startR === r && startG === g && startB === b && startA === 255) {
         return;
       }
@@ -210,6 +297,13 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       
       const tolerance = isBlackPixel ? 10 : 30;
       
+      /**
+       * Function to check if a pixel is similar to the target color with some tolerance
+       * 
+       * @function isSimilarColor
+       * @param {number} pos - Position in the image data array
+       * @returns {boolean} True if the pixel color is similar to the target color
+       */
       const isSimilarColor = (pos) => {
         return (
           Math.abs(data[pos] - startR) <= tolerance &&
@@ -221,15 +315,19 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       
       const visited = new Set();
       
+      // Perform flood fill using a stack (iterative approach)
       while (pixelsToCheck.length > 0) {
         const [x, y] = pixelsToCheck.pop();
         
+        // Check if the pixel is within canvas bounds
         if (x < 0 || y < 0 || x >= canvasWidth || y >= canvasHeight) {
           continue;
         }
         
+        // Get the pixel position in the image data array
         const pos = (y * canvasWidth + x) * 4;
         
+        // Check if the pixel has already been visited or is not similar to the target color
         const pixelKey = `${x},${y}`;
         if (visited.has(pixelKey) || !isSimilarColor(pos)) {
           continue;
@@ -237,19 +335,23 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
         
         visited.add(pixelKey);
         
+        // Set the pixel to the target color
         data[pos] = r;
         data[pos + 1] = g;
         data[pos + 2] = b;
         data[pos + 3] = 255;
         
+        // Add neighboring pixels to the stack
         pixelsToCheck.push([x + 1, y]);
         pixelsToCheck.push([x - 1, y]);
         pixelsToCheck.push([x, y + 1]);
         pixelsToCheck.push([x, y - 1]);
       }
       
+      // Update the canvas with the new image data
       context.putImageData(imageData, 0, 0);
       
+      // Save the current state to history
       setTimeout(() => {
         saveToHistory();
         sendDrawingUpdate(true);
@@ -264,6 +366,14 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    /**
+     * Update canvas size and context
+     * 
+     * Sets the canvas size to match the parent element and initializes
+     * the drawing context with the current color and brush size.
+     * 
+     * @function updateCanvasSize
+     */
     const updateCanvasSize = () => {
       const prevWidth = canvas.width;
       const prevHeight = canvas.height;
@@ -271,6 +381,7 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       const containerWidth = canvas.parentElement.clientWidth;
       const containerHeight = window.innerHeight;
       
+      // Set canvas size to match parent element
       if (prevWidth !== containerWidth || prevHeight !== containerHeight) {
         if (context) {
           try {
@@ -284,12 +395,13 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
         canvas.width = containerWidth;
         canvas.height = containerHeight;
         
+        // Set up the drawing context
         const ctx = canvas.getContext('2d');
         ctx.lineWidth = brushSize;
         ctx.lineCap = 'round';
         ctx.strokeStyle = currentColor;
         ctx.fillStyle = currentColor;
-        ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
+        ctx.globalCompositeOperation = 'source-over';
         setContext(ctx);
         setCanvasWidth(containerWidth);
         setCanvasHeight(containerHeight);
@@ -306,6 +418,14 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
 
     updateCanvasSize();
     
+    /**
+     * Handle window resize events
+     * 
+     * Debounces the resize event to prevent excessive updates
+     * to the canvas size and context.
+     * 
+     * @function handleResize
+     */
     const handleResize = () => {
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
@@ -329,9 +449,16 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     };
   }, [canvasImageData, context, currentColor, brushSize, currentTool]);
 
+  /**
+   * Initialize canvas drawing
+   * 
+   * @function startDrawing
+   * @param {Object} e - Mouse event
+   */
   const startDrawing = (e) => {
     if (!context || e.type.includes('touch')) return;
     
+    // Clear any existing throttle timer
     if (throttleTimerRef.current) {
       clearTimeout(throttleTimerRef.current);
       throttleTimerRef.current = null;
@@ -349,7 +476,8 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     const x = Math.floor((e.clientX - rect.left) * scaleX);
     const y = Math.floor((e.clientY - rect.top) * scaleY);
     
-    if (currentTool === 'pencil' || currentTool === 'eraser') {
+    // Depending on the tool, set the context properties
+    if (currentTool === 'pencil') {
       context.beginPath();
       context.arc(x, y, brushSize / 2, 0, Math.PI * 2, true);
       context.fill();
@@ -359,9 +487,16 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       floodFill(x, y);
     }
     
+    // Send drawing update to server
     sendDrawingUpdate(false);
   };
 
+  /**
+   * Continue drawing while mouse is moving
+   * 
+   * @function draw
+   * @param {Object} e - Mouse event
+   */
   const draw = (e) => {
     if (!isDrawing || !context || e.type.includes('touch') || currentTool === 'fill') return;
     
@@ -387,6 +522,11 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     }
   };
 
+  /**
+   * End drawing when mouse is released
+   * 
+   * @function stopDrawing
+   */
   const stopDrawing = () => {
     if (isDrawing) {
       context.closePath();
@@ -405,10 +545,19 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     }
   };
 
+  // Handle touch events for mobile devices
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
+    /**
+     * Handle touch start event
+     * 
+     * Sets up the drawing context and starts drawing on touch devices.
+     * 
+     * @function handleTouchStart
+     * @param {Object} e - Touch event
+     */
     const handleTouchStart = (e) => {
       e.preventDefault();
       if (!context) return;
@@ -430,7 +579,7 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       const x = Math.floor((touch.clientX - rect.left) * scaleX);
       const y = Math.floor((touch.clientY - rect.top) * scaleY);
       
-      if (currentTool === 'pencil' || currentTool === 'eraser') {
+      if (currentTool === 'pencil') {
         context.beginPath();
         context.arc(x, y, brushSize / 2, 0, Math.PI * 2, true);
         context.fill();
@@ -443,6 +592,14 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       sendDrawingUpdate(false);
     };
     
+    /**
+     * Handle touch move event
+     * 
+     * Continues drawing on the canvas while the finger is moving.
+     * 
+     * @function handleTouchMove
+     * @param {Object} e - Touch event
+     */
     const handleTouchMove = (e) => {
       e.preventDefault();
       if (!isDrawing || !context || currentTool === 'fill') return;
@@ -471,6 +628,14 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
       }
     };
     
+    /**
+     * Handle touch end event
+     * 
+     * Ends the drawing session and saves the current state to history.
+     * 
+     * @function handleTouchEnd
+     * @param {Object} e - Touch event
+     */
     const handleTouchEnd = (e) => {
       if (isDrawing) {
         context.closePath();
@@ -500,6 +665,14 @@ const DrawerQuizMobile = ({ selectedWord, playerName }) => {
     };
   }, [context, isDrawing, currentTool, brushSize, canvasWidth, canvasHeight]);
 
+  /**
+   * Send drawing updates to server
+   * 
+   * Transmits canvas image data to the main screen.
+   * 
+   * @function sendDrawingUpdate
+   * @param {boolean} shouldSaveState - Whether to save state in history
+   */
   const sendDrawingUpdate = (shouldSaveState = false) => {
     if (!canvasRef.current) return;
     

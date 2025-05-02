@@ -68,7 +68,10 @@ class UnfinishedQuizService:
                 identifier = autosave_id
             else:
                 # Always create a unique ID for a new quiz
-                identifier = f"new_{int(datetime.now().timestamp())}_{hash(str(quiz_data))}"
+                # Use a more distinctive format to avoid hash collisions
+                timestamp = int(datetime.now().timestamp())
+                unique_hash = abs(hash(str(quiz_data) + str(timestamp)))
+                identifier = f"quiz_{timestamp}_{unique_hash}"
             
             # Basic validation
             if not quiz_data or not quiz_data.get('questions') or not isinstance(quiz_data.get('questions'), list):
@@ -91,16 +94,39 @@ class UnfinishedQuizService:
             
             # Check if this quiz already exists by identifier
             Quiz = Query()
-            existing = local_db['unfinished_quizzes'].search(Quiz.identifier == identifier)
             
-            if existing:
-                # Update existing record
-                local_db['unfinished_quizzes'].update(save_data, Quiz.identifier == identifier)
-            else:
-                # Create new record
-                local_db['unfinished_quizzes'].insert(save_data)
-            
-            return True, identifier
+            try:
+                # First check if our unfinished_quizzes table is accessible
+                if not isinstance(local_db['unfinished_quizzes'], object):
+                    print("ERROR: unfinished_quizzes table is not properly initialized")
+                    return False, None
+                
+                # Use a transaction-like approach to ensure data integrity
+                existing = local_db['unfinished_quizzes'].search(Quiz.identifier == identifier)
+                
+                if existing:
+                    # Update existing record
+                    result = local_db['unfinished_quizzes'].update(save_data, Quiz.identifier == identifier)
+                    print(f"Updated existing quiz draft: {identifier}, result: {result}")
+                else:
+                    # Create new record - use insert instead of upsert to avoid potential overwrites
+                    doc_id = local_db['unfinished_quizzes'].insert(save_data)
+                    print(f"Created new quiz draft with ID: {identifier}, doc_id: {doc_id}")
+                
+                # Force a storage flush to ensure data is written to disk
+                if hasattr(local_db['unfinished_quizzes'].storage, 'flush'):
+                    local_db['unfinished_quizzes'].storage.flush()
+                
+                # Verify the save was successful
+                verification = local_db['unfinished_quizzes'].search(Quiz.identifier == identifier)
+                if not verification:
+                    print(f"WARNING: Failed to verify saved quiz with identifier {identifier}")
+                    return False, None
+                
+                return True, identifier
+            except Exception as inner_e:
+                print(f"Database operation error: {inner_e}")
+                return False, None
         
         except Exception as e:
             print(f"Error saving unfinished quiz: {e}")
@@ -330,13 +356,28 @@ class UnfinishedQuizService:
                             print(f"Error deleting media file {url}: {e}")
             
             # Now delete the quiz from local DB
-            local_db['unfinished_quizzes'].remove(
+            result = local_db['unfinished_quizzes'].remove(
                 (Quiz.identifier == identifier) & 
                 (Quiz.device_id == device_id)
             )
             
+            # Force a flush to disk to ensure the deletion is persisted
+            if hasattr(local_db['unfinished_quizzes'].storage, 'flush'):
+                local_db['unfinished_quizzes'].storage.flush()
+            
+            # Double-check the item was actually removed
+            verification = local_db['unfinished_quizzes'].search(
+                (Quiz.identifier == identifier) & 
+                (Quiz.device_id == device_id)
+            )
+            
+            if verification:
+                print(f"Warning: Quiz {identifier} appears to still exist after deletion")
+                return False
+            
+            print(f"Successfully deleted quiz {identifier}, db reported {result} items removed")
             return True
-        
+            
         except Exception as e:
             print(f"Error deleting unfinished quiz: {e}")
             return False

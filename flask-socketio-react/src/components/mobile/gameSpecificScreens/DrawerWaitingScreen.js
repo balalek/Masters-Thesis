@@ -1,8 +1,29 @@
+/**
+ * @fileoverview Drawer Waiting Screen component for drawing players
+ * 
+ * This component provides:
+ * - Display for the word that the player must draw
+ * - Toggle visibility option to hide the word temporarily
+ * - Waiting state information while other players prepare
+ * 
+ * @module Components/Mobile/GameSpecificScreens/DrawerWaitingScreen
+ */
 import React, { useState } from 'react';
-import { Box, Typography, IconButton, Paper } from '@mui/material';
+import { Box, Typography, IconButton } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
+/**
+ * Drawer Waiting Screen component
+ * 
+ * Displays a waiting screen for the drawing player showing their selected word,
+ * with the ability to toggle visibility of the word to prevent others from seeing it.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.selectedWord - The word that the player will draw
+ * @returns {JSX.Element} The rendered waiting screen
+ */
 const DrawerWaitingScreen = ({ selectedWord }) => {
   const [isWordVisible, setIsWordVisible] = useState(false);
 

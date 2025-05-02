@@ -1,10 +1,34 @@
+/**
+ * @fileoverview Phase Transition Screen component for transitions in guess-a-number games
+ * 
+ * This module provides:
+ * - Visual transition between phases in team guess-a-number quizzes
+ * - Countdown timer for phase transitions
+ * - Display of first team's answer
+ * - Indication of which team will participate in the next phase
+ * 
+ * @module Components/Desktop/QuizTypes/PhaseTransitionScreen
+ */
 import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { getServerTime } from '../../../utils/socket';
 
+/**
+ * Phase Transition Screen component for displaying transitions between game phases
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Current question data
+ * @param {number} props.firstTeamAnswer - First team's numerical answer
+ * @param {string} props.activeTeam - Currently active team ('blue' or 'red')
+ * @param {number} props.transitionEndTime - Server timestamp when transition should end
+ * @param {Function} props.onTransitionComplete - Callback when transition completes
+ * @returns {JSX.Element} The rendered phase transition screen component
+ */
 const PhaseTransitionScreen = ({ question, firstTeamAnswer, activeTeam, transitionEndTime, onTransitionComplete }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);
 
+  // Manage countdown timer and call completion callback
   useEffect(() => {
     if (transitionEndTime) {
       const timer = setInterval(() => {
@@ -43,7 +67,7 @@ const PhaseTransitionScreen = ({ question, firstTeamAnswer, activeTeam, transiti
         Fáze 2
       </Typography>
 
-      {/* Middle section with content - restructured for better timer positioning */}
+      {/* Middle section with content */}
       <Box sx={{ 
         display: 'flex', 
         flexDirection: 'column',
@@ -57,18 +81,17 @@ const PhaseTransitionScreen = ({ question, firstTeamAnswer, activeTeam, transiti
           sx={{ 
             textAlign: 'center',
             maxWidth: '80%',
-            mb: 5 // Add more space below question
+            mb: 5
           }}
         >
           {question?.question}
         </Typography>
         
-        {/* Content arranged to position timer in the middle */}
         <Box sx={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 10 // Add more gap between elements
+          gap: 10
         }}>
           {/* First team answer */}
           <Typography variant="h4">

@@ -1,11 +1,34 @@
+/**
+ * @fileoverview More/Less Vote Mobile component for team voting phase in guess-a-number games
+ * 
+ * This module provides:
+ * - Interface for team members to vote if the correct answer is higher or lower
+ * - Visual feedback for selected option
+ * - Sends vote to the server via callback
+ * 
+ * @module Components/Mobile/GameSpecificScreens/MoreLessVoteMobile
+ */
 import React, { useState } from 'react';
 import { Box, Button, Typography, Radio } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
-const MoreLessVoteMobile = ({ onAnswer, firstTeamAnswer }) => {
+/**
+ * More/Less Vote Mobile component for the second phase of team guess-a-number quiz
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onAnswer - Callback function for submitting the player's vote
+ * @returns {JSX.Element} The rendered more/less vote component
+ */
+const MoreLessVoteMobile = ({ onAnswer }) => {
   const [selected, setSelected] = useState(null);
 
+  /**
+   * Handles the selection of an option (more or less)
+   * 
+   * @param {string} choice - The selected choice ('more' or 'less')
+   */
   const handleSelect = (choice) => {
     setSelected(choice);
     onAnswer(choice);

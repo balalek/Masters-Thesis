@@ -1,14 +1,32 @@
+/**
+ * @fileoverview Drawing Quiz component for displaying drawing game on desktop
+ * 
+ * This module provides:
+ * - Real-time broadcasting of player drawings to the host screen
+ * - Progressive letter revelation for the word being drawn
+ * - Countdown timer synchronized with server time
+ * - Display of guess count and drawing status
+ * - Support for word selection and masked word display
+ * 
+ * @module Components/Desktop/QuizTypes/DrawingQuiz
+ */
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import { getSocket, getServerTime } from '../../../utils/socket';
 import { createInitialMask, shouldRevealLetter } from '../../../utils/letterReveal';
 
+/**
+ * Drawing Quiz component for displaying player drawings on the host screen
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data including chosen drawer and quiz length
+ * @param {number} props.question_end_time - Server timestamp when question will end
+ * @returns {JSX.Element} The rendered drawing quiz component
+ */
 const DrawingQuiz = ({ question, question_end_time }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [drawingSubmissions, setDrawingSubmissions] = useState(0);
-  const [currentDrawingIndex, setCurrentDrawingIndex] = useState(0);
-  const [showDrawing, setShowDrawing] = useState(false);
-  const [displayedDrawings, setDisplayedDrawings] = useState([]);
   const [currentRealTimeDrawing, setCurrentRealTimeDrawing] = useState(null);
   const [isRealTimeDrawing, setIsRealTimeDrawing] = useState(true);
   const [currentDrawer, setCurrentDrawer] = useState(question?.player || null);
@@ -32,12 +50,16 @@ const DrawingQuiz = ({ question, question_end_time }) => {
       const socket = getSocket();
       
       // Request the current word from the server
-      console.log('Requesting current drawing word from server');
       socket.emit('get_current_drawing_word');
       
-      // Add listener for the response
+      /**
+       * Handle the response for the current drawing word
+       * 
+       * @function handleDrawingWordResponse
+       * @param {Object} data - The response data from the server
+       * @param {string} data.word - The word to be drawn
+       */
       const handleDrawingWordResponse = (data) => {
-        console.log('Received drawing word response:', data);
         if (data.word) {
           setSelectedWord(data.word);
           setLetterMask(data.word);
@@ -52,10 +74,9 @@ const DrawingQuiz = ({ question, question_end_time }) => {
     }
   }, [question]);
 
-  // Timer effect
+  // Timer effect with letter reveal logic
   useEffect(() => {
     if (question_end_time) {
-      console.log('DrawingQuiz: Setting up timer with end time:', new Date(question_end_time).toLocaleTimeString());
       
       const timer = setInterval(() => {
         const now = getServerTime();
@@ -64,7 +85,6 @@ const DrawingQuiz = ({ question, question_end_time }) => {
         if (remaining <= 0) {
           clearInterval(timer);
           setTimeRemaining(0);
-          console.log('DrawingQuiz: Time up triggered');
           socket.emit('time_up');  // Emit time_up immediately when timer ends
         } else {
           setTimeRemaining(remaining);
@@ -103,24 +123,15 @@ const DrawingQuiz = ({ question, question_end_time }) => {
     }
   }, [question]);
 
-  // Socket event listener for drawing submissions
+  // Socket event listeners for drawing updates and submissions
   useEffect(() => {
     const socket = getSocket();
-    
-    console.log("Setting up drawing socket listeners");
 
-    // Change from 'drawing_submitted' to 'drawing_answer_submitted' to match server event
     socket.on('drawing_answer_submitted', (data) => {
-      console.log('Received drawing_answer_submitted:', data);
       setDrawingSubmissions(data.correct_count);
     });
 
-    // Listen for drawing display instructions
-    socket.on('display_drawing', (data) => {
-      console.log('Received display_drawing instruction:', data);
-      setDisplayedDrawings(prev => [...prev, data]);
-      setCurrentDrawingIndex(prev => prev + 1);
-      setShowDrawing(true);
+    socket.on('display_drawing', () => {
       // Hide real-time drawing when showing a submitted drawing
       setIsRealTimeDrawing(false);
     });
@@ -140,7 +151,6 @@ const DrawingQuiz = ({ question, question_end_time }) => {
       }
     });
 
-    // Listen for word selection
     socket.on('word_selected', (data) => {
       if (!data.is_drawer) {
         setSelectedWord(data.word);
@@ -149,7 +159,6 @@ const DrawingQuiz = ({ question, question_end_time }) => {
       }
     });
 
-    // Listen for letter reveals
     socket.on('drawing_letter_revealed', (data) => {
       setLetterMask(data.mask);
     });
@@ -164,7 +173,12 @@ const DrawingQuiz = ({ question, question_end_time }) => {
     };
   }, []);
 
-  // Optimize image rendering
+  /**
+   * Render the current drawing image
+   * 
+   * @function renderDrawingImage
+   * @returns {JSX.Element} The rendered drawing or waiting message
+   */
   const renderDrawingImage = () => {
     if (!isRealTimeDrawing || !currentRealTimeDrawing) {
       return (
@@ -190,7 +204,12 @@ const DrawingQuiz = ({ question, question_end_time }) => {
     );
   };
 
-  // Display the masked answer - similar to OpenAnswerQuiz
+  /**
+   * Render the masked answer with revealed letters
+   * 
+   * @function renderMaskedAnswer
+   * @returns {JSX.Element} The rendered masked word display
+   */
   const renderMaskedAnswer = () => {
     if (!letterMask) return null;
     
@@ -214,7 +233,6 @@ const DrawingQuiz = ({ question, question_end_time }) => {
               alignItems: 'center',
               backgroundColor: char === '_' ? 'grey.200' : 'primary.light',
               visibility: char === ' ' ? 'hidden' : 'visible',
-              // Make underscore placeholders slightly bigger
               ...(char === '_' && { 
                 width: '42px',
                 border: '1px dashed grey' 
@@ -294,7 +312,7 @@ const DrawingQuiz = ({ question, question_end_time }) => {
           {renderDrawingImage()}
         </Box>
         
-        {/* Letter revelation area BELOW the canvas - moved outside to be always visible */}
+        {/* Letter revelation area BELOW the canvas */}
         {selectedWord && (
           <Box sx={{ 
             width: '100%', 

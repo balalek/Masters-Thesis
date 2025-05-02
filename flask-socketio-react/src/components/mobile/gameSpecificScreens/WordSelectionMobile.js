@@ -1,14 +1,44 @@
+/**
+ * @fileoverview Word Selection Mobile component for drawing quiz word selection
+ * 
+ * This module provides:
+ * - Interface for drawer players to select words to draw
+ * - Notification system for late word selection
+ * - Word confirmation mechanism
+ * 
+ * @module Components/Mobile/GameSpecificScreens/WordSelectionMobile
+ */
 import React, { useState } from 'react';
-import { Box, Button, Typography, Paper, Stack } from '@mui/material';
-import { getSocket } from '../../../utils/socket';
+import { Box, Button, Typography, Stack } from '@mui/material';
 
-const WordSelectionMobile = ({ words, playerName, onWordSelected, isLate }) => {
+/**
+ * Word Selection Mobile component for drawing quiz word selection
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Array<string>} props.words - Array of words to choose from
+ * @param {Function} props.onWordSelected - Callback function when word is selected
+ * @param {boolean} props.isLate - Whether the selection is happening after the timer started
+ * @returns {JSX.Element} The rendered word selection component
+ */
+const WordSelectionMobile = ({ words, onWordSelected, isLate }) => {
   const [selectedWord, setSelectedWord] = useState(null);
 
+  /**
+   * Handle word selection
+   * 
+   * @function
+   * @param {string} word - Selected word
+   */
   const handleWordSelect = (word) => {
     setSelectedWord(word);
   };
 
+  /**
+   * Handle confirmation of word selection
+   * 
+   * @function
+   */
   const handleConfirmSelection = () => {
     if (!selectedWord) return;
 

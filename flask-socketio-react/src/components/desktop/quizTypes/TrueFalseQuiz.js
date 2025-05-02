@@ -1,12 +1,34 @@
+/**
+ * @fileoverview True/False Quiz component for desktop display of binary choice questions
+ * 
+ * This module provides:
+ * - Display of true/false (binary) questions with distinctive styling
+ * - Real-time countdown timer synchronized with server time
+ * - Answer count indicator showing how many players have submitted answers
+ * - Visual representation of the two options with unique shapes and colors
+ * 
+ * @module Components/Desktop/QuizTypes/TrueFalseQuiz
+ */
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import SquareIcon from '@mui/icons-material/SquareOutlined';
 import CircleIcon from '@mui/icons-material/CircleOutlined';
 import { getServerTime } from '../../../utils/socket';
 
+/**
+ * True/False Quiz component for displaying binary choice questions on the host screen
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data with question text and options
+ * @param {number} props.answersCount - Count of answers submitted so far
+ * @param {number} props.question_end_time - Server timestamp when the question will end
+ * @returns {JSX.Element} The rendered true/false quiz component
+ */
 const TrueFalseQuiz = ({ question, answersCount, question_end_time }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);
 
+  // Manage countdown timer synchronized with server time
   useEffect(() => {
     if (question_end_time) {
       const timer = setInterval(() => {
@@ -105,13 +127,12 @@ const TrueFalseQuiz = ({ question, answersCount, question_end_time }) => {
           sx={{ 
             backgroundColor: '#186CF6', 
             color: 'white', 
-            flex: '1 1 45%', // Changed from flex: '1'
+            flex: '1 1 45%',
             height: '150px', 
             fontSize: '2.5em', 
             justifyContent: 'flex-start', 
             paddingLeft: 2, 
             textTransform: 'none'
-            // Removed maxWidth
           }}
           startIcon={<SquareIcon sx={{ fontSize: '1.5em !important', color: 'white' }} />}
         >
@@ -124,13 +145,12 @@ const TrueFalseQuiz = ({ question, answersCount, question_end_time }) => {
           sx={{ 
             backgroundColor: '#EF4444', 
             color: 'white', 
-            flex: '1 1 45%', // Changed from flex: '1'
+            flex: '1 1 45%',
             height: '150px', 
             fontSize: '2.5em', 
             justifyContent: 'flex-start', 
             paddingLeft: 2, 
             textTransform: 'none'
-            // Removed maxWidth
           }}
           startIcon={<CircleIcon sx={{ fontSize: '1.5em !important', color: 'white' }} />}
         >

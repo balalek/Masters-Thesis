@@ -1,18 +1,34 @@
+/**
+ * @fileoverview Team Map component for displaying team guesses on geographical maps
+ * 
+ * This module provides:
+ * - Visual representation of team member guesses on maps
+ * - Support for multiple map types (Czech Republic and Europe)
+ * - Special indicators for team captain guesses
+ * - Preview functionality for captain's current selection before submission
+ * - Visual distinction between active and inactive teams
+ * 
+ * @module Components/Desktop/QuizTypes/TeamMap
+ */
 import React from 'react';
 import { Box } from '@mui/material';
 import czMapImage from '../../../assets/maps/cz.png';
 import europeMapImage from '../../../assets/maps/europe.png';
 import StarIcon from '@mui/icons-material/Star';
 
+/**
+ * Team Map component for displaying geographical guesses in team mode
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.mapType - Type of map to display ('cz' or 'europe')
+ * @param {Object} props.teamGuesses - Team member guesses organized by team
+ * @param {Object} props.captainGuesses - Captain's final guesses for each team
+ * @param {Object} props.captainPreviews - Captain's current selection preview
+ * @param {string} props.activeTeam - Currently active team ('blue' or 'red')
+ * @returns {JSX.Element} The rendered team map component
+ */
 const TeamMap = ({ mapType = 'cz', teamGuesses = {}, captainGuesses = {}, captainPreviews = {}, activeTeam = 'blue' }) => {
-  // Add some debug logging
-  console.log('TeamMap rendering with:', {
-    mapType,
-    teamGuesses,
-    captainGuesses,
-    captainPreviews,
-    activeTeam
-  });
   
   // Ensure teamGuesses is properly structured to avoid errors
   if (!teamGuesses || typeof teamGuesses !== 'object') {
@@ -28,6 +44,12 @@ const TeamMap = ({ mapType = 'cz', teamGuesses = {}, captainGuesses = {}, captai
     captainGuesses = {};
   }
 
+  /**
+   * Get the appropriate map image based on map type
+   * 
+   * @function getMapImage
+   * @returns {string} URL of the map image to display
+   */
   const getMapImage = () => {
     return mapType === 'cz' ? czMapImage : europeMapImage;
   };
@@ -77,7 +99,7 @@ const TeamMap = ({ mapType = 'cz', teamGuesses = {}, captainGuesses = {}, captai
         )
       )}
       
-      {/* Captain preview dots - show only for active team and use star icon */}
+      {/* Captain preview dots - show only for active team */}
       {Object.entries(captainPreviews).map(([team, preview]) => 
         preview && team === activeTeam && (
           <Box

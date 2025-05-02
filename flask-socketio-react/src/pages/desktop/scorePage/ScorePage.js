@@ -88,7 +88,7 @@ const ScorePage = () => {
   // Countdown effect for the last question
   useEffect(() => {
     if (isLastQuestion) {
-      setCountdown(5);
+      setCountdown(10); // 10s countdown to show final score
       const timer = setInterval(() => {
         setCountdown(prev => {
           if (prev <= 1) {
@@ -204,7 +204,6 @@ const ScorePage = () => {
         return <MathQuizResults 
           sequences={question.sequences || []}
           eliminatedPlayers={question.eliminated_players || []}
-          isTeamMode={scores.is_team_mode}
           playerAnswers={question.player_answers || {}}
         />;
       case 'BLIND_MAP':
@@ -213,7 +212,6 @@ const ScorePage = () => {
           team_guesses={location.state?.team_guesses || question?.team_guesses}
           captain_guesses={location.state?.captain_guesses || question?.captain_guesses}
           player_locations={location.state?.player_locations || question?.player_locations}
-          winning_team={location.state?.winning_team || question?.winning_team}
           is_team_mode={location.state?.is_team_mode || question?.is_team_mode}
         />;
       case 'ABCD':

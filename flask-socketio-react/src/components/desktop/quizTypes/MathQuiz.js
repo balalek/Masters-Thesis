@@ -1,19 +1,35 @@
+/**
+ * @fileoverview Math Quiz component for desktop display of mathematical sequences
+ * 
+ * This module provides:
+ * - Sequential presentation of mathematical equations
+ * - Countdown timer for each equation
+ * - Real-time tracking of player answers and eliminations
+ * - Team mode support with team-specific layouts
+ * - Visual indicators of player statuses (answered, eliminated, thinking)
+ * - Automatic timer advancement when all players answer
+ * 
+ * @module Components/Desktop/QuizTypes/MathQuiz
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Paper, Avatar } from '@mui/material';
 import { useTimer } from 'react-timer-hook';
-import { getSocket, getServerTime } from '../../../utils/socket';
+import { getSocket } from '../../../utils/socket';
 import { renderMathEquation } from '../../../utils/mathRenderer';
 
 /**
- * Component to display a Math Quiz game
+ * Math Quiz component for displaying mathematical sequences on the host screen
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.question - Question data with mathematical sequences and player information
+ * @returns {JSX.Element} The rendered math quiz component
  */
-const MathQuiz = ({ question, question_end_time }) => {
+const MathQuiz = ({ question }) => {
   const [currentSequenceIndex, setCurrentSequenceIndex] = useState(0);
   const [eliminatedPlayers, setEliminatedPlayers] = useState([]);
   const [playerAnswers, setPlayerAnswers] = useState({});
-  const [scores, setScores] = useState({});
   const [isTeamMode, setIsTeamMode] = useState(false);
-  const [teamAnswers, setTeamAnswers] = useState({ blue: [], red: [] });
   const [players, setPlayers] = useState({});
   const [playerStatuses, setPlayerStatuses] = useState({});
   const sequencesRef = useRef([]);
@@ -22,19 +38,14 @@ const MathQuiz = ({ question, question_end_time }) => {
   // Timer hook from react-timer-hook
   const {
     seconds,
-    minutes,
     isRunning,
-    start,
-    pause,
-    restart,
-    totalSeconds
+    restart
   } = useTimer({ 
     expiryTimestamp: new Date(), 
     onExpire: handleTimerExpire,
     autoStart: false
   });
 
-  // Add a state to track the display time for smoother countdown
   const [displaySeconds, setDisplaySeconds] = useState(null);
 
   // Update display seconds when timer changes
@@ -44,9 +55,12 @@ const MathQuiz = ({ question, question_end_time }) => {
     }
   }, [seconds, isRunning]);
 
-  // Handler for when timer expires
+  /**
+   * Handle timer expiration for current sequence
+   * 
+   * @function handleTimerExpire
+   */
   function handleTimerExpire() {
-    console.log("Timer expired for sequence", currentSequenceIndex);
     socket.emit('math_sequence_completed', {
       current_index: currentSequenceIndex,
       next_index: currentSequenceIndex + 1
@@ -76,21 +90,16 @@ const MathQuiz = ({ question, question_end_time }) => {
     setIsTeamMode(!!question?.is_team_mode);
   }, [question, restart]);
 
-  // Handle socket events
+  // Listen for socket events to update state 
   useEffect(() => {
     socket.on('math_quiz_update', (data) => {
       setCurrentSequenceIndex(data.current_sequence || 0);
       setEliminatedPlayers(data.eliminated_players || []);
       setPlayerAnswers(data.player_answers || {});
       setPlayerStatuses(data.player_statuses || {});
-      setScores(data.scores || {});
       
       if (data.players) {
         setPlayers(data.players);
-      }
-      
-      if (isTeamMode) {
-        setTeamAnswers(data.team_answers || { blue: [], red: [] });
       }
 
       // Check if all active players have answered
@@ -104,7 +113,6 @@ const MathQuiz = ({ question, question_end_time }) => {
       
       // Fast-forward timer if all players have answered
       if (activePlayerCount > 0 && answeredCount === activePlayerCount && seconds > 3) {
-        console.log(`Fast-forwarding timer from ${seconds} to 3 seconds`);
         const time = new Date();
         time.setSeconds(time.getSeconds() + 3);
         restart(time);
@@ -125,24 +133,19 @@ const MathQuiz = ({ question, question_end_time }) => {
       }
     });
 
-    // Add listener for fast_forward_timer event
     socket.on('fast_forward_timer', (data) => {
-      console.log(`Received fast_forward_timer event: ${JSON.stringify(data)}`);
       const remainingSeconds = data.remaining_seconds || 3;
       
       // Only update the timer if the current timer is greater than the target seconds
       // This ensures we only go down to 3 seconds, never up to 3 seconds
       if (seconds > remainingSeconds) {
-        console.log(`Fast-forwarding timer from ${seconds} to ${remainingSeconds} seconds`);
         const time = new Date();
         time.setSeconds(time.getSeconds() + remainingSeconds);
         restart(time);
         
         // Update display seconds immediately for visual consistency
         setDisplaySeconds(remainingSeconds);
-      } else {
-        console.log(`Not updating timer as current seconds (${seconds}) ≤ target seconds (${remainingSeconds})`);
-      }
+      } 
     });
 
     return () => {
@@ -152,7 +155,12 @@ const MathQuiz = ({ question, question_end_time }) => {
     };
   }, [socket, restart, seconds, isTeamMode]);
 
-  // Render the current equation
+  /**
+   * Get the current mathematical equation to display
+   * 
+   * @function getCurrentEquation
+   * @returns {string|null} The current equation or null if no equations remain
+   */
   const getCurrentEquation = () => {
     if (!sequencesRef.current.length || currentSequenceIndex >= sequencesRef.current.length) {
       return null;
@@ -162,7 +170,12 @@ const MathQuiz = ({ question, question_end_time }) => {
     return currentSequence ? currentSequence.equation : '';
   };
 
-  // Function to render player cards similar to WordChainQuiz
+  /**
+   * Render player cards for tracking player status
+   * 
+   * @function
+   * @returns {JSX.Element|null} The rendered player cards grid or null if no players
+   */
   const renderPlayerCards = () => {
     const playerNames = Object.keys(players);
     
@@ -190,9 +203,9 @@ const MathQuiz = ({ question, question_end_time }) => {
           <Box 
             sx={{ 
               width: '49.5%',
-              border: '3px solid #186CF6', // Blue team border
+              border: '3px solid #186CF6',
               borderRadius: 3,
-              padding: 1, // Reduced padding
+              padding: 1,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center'
@@ -203,7 +216,7 @@ const MathQuiz = ({ question, question_end_time }) => {
               sx={{ 
                 color: '#186CF6', 
                 fontWeight: 'bold',
-                mb: 1 // Reduced margin
+                mb: 1
               }}
             >
               Modrý tým
@@ -226,9 +239,9 @@ const MathQuiz = ({ question, question_end_time }) => {
           <Box 
             sx={{ 
               width: '49.5%',
-              border: '3px solid #EF4444', // Red team border
+              border: '3px solid #EF4444',
               borderRadius: 3,
-              padding: 1, // Reduced padding
+              padding: 1,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center'
@@ -239,7 +252,7 @@ const MathQuiz = ({ question, question_end_time }) => {
               sx={{ 
                 color: '#EF4444', 
                 fontWeight: 'bold',
-                mb: 1 // Reduced margin
+                mb: 1
               }}
             >
               Červený tým
@@ -261,7 +274,7 @@ const MathQuiz = ({ question, question_end_time }) => {
       );
     }
 
-    // For non-team mode, use the existing layout
+    // For free-for-all mode, display all players in a grid
     return (
       <Box 
         sx={{ 
@@ -290,7 +303,13 @@ const MathQuiz = ({ question, question_end_time }) => {
     );
   };
   
-  // Extract rendering of a single player card to a separate function
+  /**
+   * Render a single player card with status
+   * 
+   * @function
+   * @param {string} playerName - Name of the player
+   * @returns {JSX.Element} The rendered player card
+   */
   const renderPlayerCard = (playerName) => {
     const isEliminated = eliminatedPlayers.includes(playerName);
     const playerColor = players[playerName]?.color || '#ccc';
@@ -382,10 +401,10 @@ const MathQuiz = ({ question, question_end_time }) => {
       flexDirection: 'column',
       height: '100vh',
       p: 3,
-      justifyContent: 'space-between' // Distribute space evenly
+      justifyContent: 'space-between'
     }}>
-      {/* Center content grid - now centered vertically with flex-grow to take space */}
-      <Box sx={{ flex: 1 }} /> {/* Top spacing to push content to center */}
+      {/* Center content grid */}
+      <Box sx={{ flex: 1 }} />
       
       <Box sx={{ 
         display: 'grid',
@@ -394,7 +413,7 @@ const MathQuiz = ({ question, question_end_time }) => {
         gap: 4,
         px: 4,
       }}>
-        {/* Timer bubble with more consistent display */}
+        {/* Timer bubble */}
         <Box sx={{ 
           width: 120,
           height: 120,
@@ -435,7 +454,7 @@ const MathQuiz = ({ question, question_end_time }) => {
           </Typography>
         </Paper>
 
-        {/* Question counter in a bubble - updated format to show X/Y with "úkolů" */}
+        {/* Sequence number as current/total in a bubble */}
         <Box sx={{ 
           width: 120,
           height: 120,
@@ -456,7 +475,7 @@ const MathQuiz = ({ question, question_end_time }) => {
         </Box>
       </Box>
       
-      <Box sx={{ flex: 1 }} /> {/* Middle spacing */}
+      <Box sx={{ flex: 1 }} />
       
       {/* Player cards at the bottom */}
       {renderPlayerCards()}

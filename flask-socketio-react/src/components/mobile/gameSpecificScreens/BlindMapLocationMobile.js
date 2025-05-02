@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Blind Map Location Mobile component for map-based guessing
+ * 
+ * This component provides:
+ * - Interactive map interface for selecting a location
+ * - Real-time feedback and validation via Socket.IO
+ * - Team-based location tracking with visual indicators
+ * - Special captain mode for final location selection in team games
+ * - Submission confirmation and status display
+ * 
+ * @module Components/Mobile/GameSpecificScreens/BlindMapLocationMobile
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Button, Typography, Alert, Paper } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
@@ -5,6 +17,23 @@ import czMapImage from '../../../assets/maps/cz.png';
 import europeMapImage from '../../../assets/maps/europe.png';
 import { getSocket } from '../../../utils/socket';
 
+/**
+ * Blind Map Location Mobile component for selecting locations on maps
+ * 
+ * Allows users to tap on a map to select a location in response to
+ * blind map questions, with special handling for team captains
+ * and visualization of team guesses.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onAnswer - Callback with location coordinates
+ * @param {string} props.cityName - Name of the city to find
+ * @param {string} props.mapType - Map type ('cz' or 'europe')
+ * @param {string} props.questionId - Current question identifier
+ * @param {boolean} props.isCaptain - Whether user is team captain
+ * @param {string} props.teamName - User's team name ('red' or 'blue')
+ * @returns {JSX.Element} The rendered map location selector
+ */
 const BlindMapLocationMobile = ({ onAnswer, cityName, mapType = 'cz', questionId, isCaptain = false, teamName }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [feedback, setFeedback] = useState('');
@@ -14,6 +43,12 @@ const BlindMapLocationMobile = ({ onAnswer, cityName, mapType = 'cz', questionId
   const mapContainerRef = useRef(null);
   const socket = getSocket();
   
+  /**
+   * Sets up Socket.IO event listeners for real-time updates
+   * 
+   * Listens for feedback messages and team location submissions,
+   * updating the UI accordingly.
+   */
   useEffect(() => {
     socket.on('blind_map_feedback', (data) => {
       setFeedback(data.message);
@@ -41,11 +76,25 @@ const BlindMapLocationMobile = ({ onAnswer, cityName, mapType = 'cz', questionId
     };
   }, [socket, teamName]);
   
-  // Helper function to get the current map image
+  /**
+   * Get the appropriate map image based on map type
+   * 
+   * @function getMapImage
+   * @returns {string} URL to the map image asset
+   */
   const getMapImage = () => {
     return mapType === 'cz' ? czMapImage : europeMapImage;
   };
   
+  /**
+   * Handle map tap/click to select a location
+   * 
+   * Calculates normalized coordinates (0-1) from the click position
+   * and sends preview data if user is a captain.
+   * 
+   * @function handleMapClick
+   * @param {React.MouseEvent} e - Click event
+   */
   const handleMapClick = (e) => {
     if (mapContainerRef.current && !submitted) {
       const rect = mapContainerRef.current.getBoundingClientRect();
@@ -54,7 +103,7 @@ const BlindMapLocationMobile = ({ onAnswer, cityName, mapType = 'cz', questionId
       
       setSelectedLocation({ x, y });
       
-      // If captain, emit preview location
+      // If captain, emit preview location even before submission
       if (isCaptain) {
         socket.emit('captain_location_preview', {
           x: x,
@@ -65,6 +114,14 @@ const BlindMapLocationMobile = ({ onAnswer, cityName, mapType = 'cz', questionId
     }
   };
   
+  /**
+   * Submit the selected location as an answer
+   * 
+   * Calls the onAnswer callback with location coordinates when
+   * the user confirms their selection.
+   * 
+   * @function handleSubmit
+   */
   const handleSubmit = () => {
     if (!selectedLocation || submitted) return;
     
@@ -166,7 +223,7 @@ const BlindMapLocationMobile = ({ onAnswer, cityName, mapType = 'cz', questionId
           overflowY: 'auto',
           overflowX: 'auto',
           p: 1,
-          pb: 8, // Add padding at bottom to prevent map content from being hidden behind the fixed button
+          pb: 8, // Prevent map content from being hidden behind the fixed button
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center'
@@ -256,8 +313,8 @@ const BlindMapLocationMobile = ({ onAnswer, cityName, mapType = 'cz', questionId
         left: 0,
         width: '100%',
         p: 2,
-        boxShadow: '0px -2px 4px rgba(0,0,0,0.1)', // Add a small shadow for visual separation
-        zIndex: 1000 // High z-index to ensure it stays on top
+        boxShadow: '0px -2px 4px rgba(0,0,0,0.1)',
+        zIndex: 1000 // Ensure button is above other content
       }}>
         <Button
           variant="contained"

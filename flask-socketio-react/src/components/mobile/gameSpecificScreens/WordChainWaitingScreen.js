@@ -1,6 +1,26 @@
+/**
+ * @fileoverview Word Chain Waiting Screen component for inactive players
+ * 
+ * This module provides:
+ * - Waiting interface for players who are not currently active in word chain games
+ * - Display of current game state (current letter, active player, last word played)
+ * - Visual feedback for game progress
+ * 
+ * @module Components/Mobile/GameSpecificScreens/WordChainWaitingScreen
+ */
 import React from 'react';
 import { Box, Typography, Paper, Chip } from '@mui/material';
 
+/**
+ * Word Chain Waiting Screen component for inactive players
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} props.currentLetter - The current letter that words must start with
+ * @param {string} props.currentPlayer - Name of the currently active player
+ * @param {string} props.lastWord - The last word played in the chain
+ * @returns {JSX.Element} The rendered word chain waiting screen component
+ */
 const WordChainWaitingScreen = ({ currentLetter, currentPlayer, lastWord }) => {
   return (
     <Box sx={{ 

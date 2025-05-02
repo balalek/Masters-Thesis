@@ -19,11 +19,11 @@ SERVER_IP = None
 if __name__ == '__main__':
     port = 5000
     # Comment out the line below to use excecutable application mode
-    socketio.run(app, host='0.0.0.0', port=port)
+    #socketio.run(app, host='0.0.0.0', port=port)
     
     # Desktop mode with GUI window (currently disabled)
     # Uncomment this section to use excecutable application mode
-    """flask_thread = threading.Thread(
+    flask_thread = threading.Thread(
         target=lambda: socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
     )
     flask_thread.daemon = True
@@ -35,4 +35,4 @@ if __name__ == '__main__':
     # Add the IP to the Flask app's configuration so it can be accessed from routes
     app.config['SERVER_IP'] = SERVER_IP
     
-    window.mainloop()"""
+    window.mainloop()

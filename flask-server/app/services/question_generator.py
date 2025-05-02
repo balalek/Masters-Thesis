@@ -365,7 +365,7 @@ def generate_word_chain_questions(num_rounds, round_length, is_team_mode=False):
             
             question = {
                 "type": "WORD_CHAIN",
-                "question": f"{round_num + 1}. kolo: Slovní řetěz\nZačíná hráč {first_player} na písmeno {last_letter}",
+                "question": f"Začíná hráč {first_player} na písmeno {last_letter}",
                 "first_word": first_word,
                 "first_letter": last_letter,
                 "length": round_length,

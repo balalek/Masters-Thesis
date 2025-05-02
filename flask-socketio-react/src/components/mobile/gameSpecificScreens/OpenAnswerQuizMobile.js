@@ -1,8 +1,27 @@
+/**
+ * @fileoverview Open Answer Quiz Mobile component for text-based answer submission
+ * 
+ * This module provides:
+ * - Interface for users to submit free-text answers to open questions
+ * - Real-time feedback on answer validity via Socket.IO
+ * - Auto-focusing input field for rapid answer entry
+ * - Visual feedback for incorrect or invalid submissions
+ * 
+ * @module Components/Mobile/GameSpecificScreens/OpenAnswerQuizMobile
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, TextField, Button, Alert, Paper } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { getSocket } from '../../../utils/socket';
 
+/**
+ * Open Answer Quiz Mobile component for text-based answer submission
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onAnswer - Callback function to submit player's answer
+ * @returns {JSX.Element} The rendered open answer quiz component
+ */
 const OpenAnswerQuizMobile = ({ onAnswer }) => {
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -10,16 +29,15 @@ const OpenAnswerQuizMobile = ({ onAnswer }) => {
   const inputRef = useRef(null);
   const socket = getSocket();
 
-  // Keep input focused
+  // Focus the input field initially and after any feedback
   useEffect(() => {
-    // Focus the input field initially and after any feedback
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, [feedback]);
 
+  // Listen for feedback on incorrect answers
   useEffect(() => {
-    // Listen for feedback on incorrect answers
     socket.on('open_answer_feedback', (data) => {
       setFeedback(data.message);
       setFeedbackSeverity('warning');
@@ -39,6 +57,14 @@ const OpenAnswerQuizMobile = ({ onAnswer }) => {
     };
   }, [socket]);
 
+  /**
+   * Handle form submission of player's text answer
+   * 
+   * Validates non-empty input and passes answer to parent component
+   * 
+   * @function
+   * @param {Event} e - Form submit event
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!answer.trim()) return;
@@ -48,8 +74,15 @@ const OpenAnswerQuizMobile = ({ onAnswer }) => {
     setAnswer('');
   };
 
+  /**
+   * Handle keyboard input in the answer field
+   * 
+   * Enables Enter key submission for faster gameplay
+   * 
+   * @function
+   * @param {KeyboardEvent} e - Keyboard event
+   */
   const handleKeyDown = (e) => {
-    // Submit the form when Enter key is pressed
     if (e.key === 'Enter') {
       e.preventDefault();
       handleSubmit(e);
@@ -104,11 +137,11 @@ const OpenAnswerQuizMobile = ({ onAnswer }) => {
         )}
       </Box>
       
-      {/* Use approx 40% of the screen height - positioned at top */}
+      {/* Use 40% of the screen height to keep keyboard visible - positioned at top */}
       <Box sx={{ 
-        height: '40vh', // Reduced from 50vh to 40vh
+        height: '40vh',
         p: 2,
-        pt: 1, // Reduced top padding
+        pt: 1,
         display: 'flex',
         flexDirection: 'column'
       }}>
@@ -133,7 +166,7 @@ const OpenAnswerQuizMobile = ({ onAnswer }) => {
             onKeyDown={handleKeyDown}
             autoFocus
             autoComplete="off"
-            multiline={false} // Explicitly set to false
+            multiline={false}
             sx={{ 
               flex: 3,
               mb: 2,
@@ -143,7 +176,7 @@ const OpenAnswerQuizMobile = ({ onAnswer }) => {
               },
               '& .MuiInputBase-input': {
                 height: '100% !important',
-                overflow: 'auto', // Allow scrolling if text is long
+                overflow: 'auto',
                 alignItems: 'flex-start',
                 padding: '14px'
               }

@@ -842,8 +842,7 @@ const MobileGamePage = () => {
           if (!selectedWord && question.words && question.words.length > 0) {
             return (
               <WordSelectionMobile 
-                words={question.words} 
-                playerName={playerName}
+                words={question.words}
                 onWordSelected={handleWordSelected}
                 isLate={drawerLate} // Pass the late flag to show a warning
               />
@@ -874,7 +873,6 @@ const MobileGamePage = () => {
       case 'MATH_QUIZ':
         return <MathQuizMobile 
           onAnswer={handleMathAnswer}
-          question={question}
           playerName={playerName}
         />;
       case 'GUESS_A_NUMBER':
@@ -894,7 +892,6 @@ const MobileGamePage = () => {
           // Any player in active team can vote in phase 2
           return <MoreLessVoteMobile 
             onAnswer={handleMoreLessVote}
-            firstTeamAnswer={firstTeamAnswer}
           />;
         } else if (quizPhase === 1 && teamName === activeTeam) {
           // Regular player on active team in phase 1
