@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>app.socketio_events.base_events API documentation</title>
+<meta name="description" content="Base Socket.IO event handlers for the quiz application …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>app.socketio_events.base_events</code></h1>
+</header>
+<section id="section-intro">
+<p>Base Socket.IO event handlers for the quiz application.</p>
+<p>This module provides core Socket.IO event handlers that apply across all question types:</p>
+<ul>
+<li>Room management for directing messages to specific clients</li>
+<li>Connection handling and remote display coordination</li>
+<li>Score calculation and display for both team and individual modes</li>
+<li>Time expiration handling with type-specific routing</li>
+<li>Game state transitions and flow control</li>
+</ul>
+<p>These handlers form the foundation for real-time communication in the application.</p>
+<p>Author: Bc. Martin Baláž</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="app.socketio_events.base_events.handle_connect"><code class="name flex">
+<span>def <span class="ident">handle_connect</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;connect&#39;)
+def handle_connect():
+    &#34;&#34;&#34;
+    Handle new client connections. Automatically triggers when a client connects.
+    
+    Detects if the connection is from the server (localhost) and sets
+    a session flag accordingly.
+    &#34;&#34;&#34;
+    is_server = request.remote_addr == &#39;127.0.0.1&#39;
+    if is_server:
+        session[&#39;server&#39;] = True
+    print(f&#39;Client connected from {request.remote_addr}. Is server: {is_server}&#39;)</code></pre>
+</details>
+<div class="desc"><p>Handle new client connections. Automatically triggers when a client connects.</p>
+<p>Detects if the connection is from the server (localhost) and sets
+a session flag accordingly.</p></div>
+</dd>
+<dt id="app.socketio_events.base_events.handle_disconnect"><code class="name flex">
+<span>def <span class="ident">handle_disconnect</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;disconnect&#39;)
+def handle_disconnect():
+    &#34;&#34;&#34;
+    Handle client disconnection. Automatically triggers when a client disconnects.
+    
+    Logs disconnection but does not try to map the socket to a player name 
+    since we&#39;re not storing socket IDs with players. The player_leaving event
+    should be used instead for explicit player departures.
+    &#34;&#34;&#34;
+    print(f&#39;Client disconnected from {request.remote_addr}&#39;)
+    
+    if &#39;server&#39; in session:
+        del session[&#39;server&#39;]</code></pre>
+</details>
+<div class="desc"><p>Handle client disconnection. Automatically triggers when a client disconnects.</p>
+<p>Logs disconnection but does not try to map the socket to a player name
+since we're not storing socket IDs with players. The player_leaving event
+should be used instead for explicit player departures.</p></div>
+</dd>
+<dt id="app.socketio_events.base_events.handle_is_remote_connected"><code class="name flex">
+<span>def <span class="ident">handle_is_remote_connected</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;is_remote_connected&#39;)
+def handle_is_remote_connected():
+    &#34;&#34;&#34;
+    Ask if a remote display is connected on main screen.
+    
+    Triggers remote status check across all connected clients.
+    
+    Emits:
+        - &#39;is_remote_connected&#39;: Query to check if a remote display is connected
+    &#34;&#34;&#34;
+    socketio.emit(&#39;is_remote_connected&#39;)</code></pre>
+</details>
+<div class="desc"><p>Ask if a remote display is connected on main screen.</p>
+<p>Triggers remote status check across all connected clients.</p>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'is_remote_connected': Query to check if a remote display is connected</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.base_events.handle_join_room"><code class="name flex">
+<span>def <span class="ident">handle_join_room</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;join_room&#39;)
+def handle_join_room(data):
+    &#34;&#34;&#34;
+    Handle player joining a room for private messages.
+    
+    Creates a room with the player&#39;s name to enable direct communication
+    with individual players&#39; devices.
+    
+    Args:
+        data: Dictionary containing player information with &#39;player_name&#39; key
+    &#34;&#34;&#34;
+    player_name = data[&#39;player_name&#39;]
+    join_room(player_name)
+    print(f&#39;Player {player_name} joined room {player_name}&#39;)</code></pre>
+</details>
+<div class="desc"><p>Handle player joining a room for private messages.</p>
+<p>Creates a room with the player's name to enable direct communication
+with individual players' devices.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong></dt>
+<dd>Dictionary containing player information with 'player_name' key</dd>
+</dl></div>
+</dd>
+<dt id="app.socketio_events.base_events.handle_player_leaving"><code class="name flex">
+<span>def <span class="ident">handle_player_leaving</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;player_leaving&#39;)
+def handle_player_leaving(data):
+    &#34;&#34;&#34;
+    Handle a player explicitly notifying the server that they are leaving.
+    
+    This is triggered by the beforeunload event in the browser when a player
+    refreshes or closes the page.
+    
+    Args:
+        data: Dictionary containing player_name
+    &#34;&#34;&#34;
+    player_name = data.get(&#39;player_name&#39;)
+    
+    if player_name and player_name in game_state.players:
+        print(f&#39;Player {player_name} explicitly left the game&#39;)
+        
+        # Store player color before removing
+        player_color = game_state.players[player_name][&#39;color&#39;]
+        
+        # Remove player from game state
+        del game_state.players[player_name]
+        
+        # Remove from teams if in team mode
+        if player_name in game_state.blue_team:
+            game_state.blue_team.remove(player_name)
+        if player_name in game_state.red_team:
+            game_state.red_team.remove(player_name)
+        
+        # Notify clients about the player leaving
+        socketio.emit(&#39;player_left&#39;, {
+            &#39;player_name&#39;: player_name,
+            &#39;color&#39;: player_color
+        })
+        
+        # Make the color available again
+        used_colors = [player[&#39;color&#39;] for player in game_state.players.values()]
+        available_colors = [color for color in AVAILABLE_COLORS if color not in used_colors]
+        
+        socketio.emit(&#39;colors_updated&#39;, {&#34;colors&#34;: available_colors})</code></pre>
+</details>
+<div class="desc"><p>Handle a player explicitly notifying the server that they are leaving.</p>
+<p>This is triggered by the beforeunload event in the browser when a player
+refreshes or closes the page.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong></dt>
+<dd>Dictionary containing player_name</dd>
+</dl></div>
+</dd>
+<dt id="app.socketio_events.base_events.handle_player_name_change"><code class="name flex">
+<span>def <span class="ident">handle_player_name_change</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;player_name_changed&#39;)
+def handle_player_name_change(data):
+    &#34;&#34;&#34;
+    Handle player changing their name and room association.
+    
+    Updates the player&#39;s socket.io room to match their new name for 
+    continued direct communication.
+    
+    Args:
+        data: Dictionary containing old_name and new_name keys
+    &#34;&#34;&#34;
+    old_name = data[&#39;old_name&#39;]
+    new_name = data[&#39;new_name&#39;]
+    
+    # Leave the old room first
+    leave_room(old_name)
+    
+    # Join the new room with the new name
+    join_room(new_name)
+    
+    print(f&#39;Player changed name from {old_name} to {new_name}, left room {old_name}, joined room {new_name}&#39;)</code></pre>
+</details>
+<div class="desc"><p>Handle player changing their name and room association.</p>
+<p>Updates the player's socket.io room to match their new name for
+continued direct communication.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong></dt>
+<dd>Dictionary containing old_name and new_name keys</dd>
+</dl></div>
+</dd>
+<dt id="app.socketio_events.base_events.handle_remote_display_connected"><code class="name flex">
+<span>def <span class="ident">handle_remote_display_connected</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;remote_display_connected&#39;)
+def handle_remote_display_connected():
+    &#34;&#34;&#34;
+    Send notification that a remote display has been connected.
+    
+    Broadcasts to main screen especially, that a remote display is now available.
+    
+    Emits:
+        - &#39;remote_display_connected&#39;: Notification to all clients that remote display is available
+    &#34;&#34;&#34;
+    socketio.emit(&#39;remote_display_connected&#39;)</code></pre>
+</details>
+<div class="desc"><p>Send notification that a remote display has been connected.</p>
+<p>Broadcasts to main screen especially, that a remote display is now available.</p>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'remote_display_connected': Notification to all clients that remote display is available</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.base_events.handle_show_final_score"><code class="name flex">
+<span>def <span class="ident">handle_show_final_score</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;show_final_score&#39;)
+def handle_show_final_score():
+    &#34;&#34;&#34;
+    Display final game scores to all players.
+    
+    Handles both team mode and individual play:
+    
+    - In team mode: Shows team scores with winning team highlighted
+    - In individual mode: Shows personal score and placement for each player
+    
+    Players receive personalized score information via their individual rooms.
+    
+    Emits:
+        - &#39;navigate_to_final_score&#39;: Personalized final score data to each player
+    &#34;&#34;&#34;
+    if game_state.is_team_mode:
+        # For team mode, find winning team and send team results
+        for player_name in game_state.players:
+            team_name = &#39;blue&#39; if player_name in game_state.blue_team else &#39;red&#39;
+            emit(&#39;navigate_to_final_score&#39;, {
+                &#39;playerName&#39;: player_name,
+                &#39;score&#39;: game_state.team_scores[team_name],
+                &#39;team_name&#39;: team_name,
+                &#39;is_team_mode&#39;: True,
+                &#39;team_scores&#39;: game_state.team_scores,
+                &#39;color&#39;: game_state.players[player_name][&#39;color&#39;]
+            }, room=player_name)
+    else:
+        # Free-for-all scoring logic
+        sorted_players = sorted(
+            game_state.players.items(),
+            key=lambda x: x[1][&#39;score&#39;],
+            reverse=True
+        )
+        
+        for index, (player_name, data) in enumerate(sorted_players):
+            emit(&#39;navigate_to_final_score&#39;, {
+                &#39;playerName&#39;: player_name,
+                &#39;score&#39;: data[&#39;score&#39;],
+                &#39;placement&#39;: index + 1,
+                &#39;color&#39;: data[&#39;color&#39;],
+                &#39;is_team_mode&#39;: False
+            }, room=player_name)</code></pre>
+</details>
+<div class="desc"><p>Display final game scores to all players.</p>
+<p>Handles both team mode and individual play:</p>
+<ul>
+<li>In team mode: Shows team scores with winning team highlighted</li>
+<li>In individual mode: Shows personal score and placement for each player</li>
+</ul>
+<p>Players receive personalized score information via their individual rooms.</p>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'navigate_to_final_score': Personalized final score data to each player</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.base_events.handle_time_up"><code class="name flex">
+<span>def <span class="ident">handle_time_up</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;time_up&#39;)
+def handle_time_up():
+    &#34;&#34;&#34;
+    Handle question time expiration.
+    
+    Dynamically routes to the appropriate handler based on the current question type.
+    Each question type has specialized time-up logic:
+    
+    - ABCD/TRUE_FALSE: Show correct answer and statistics
+    - OPEN_ANSWER: Reveal answer and update scores
+    - GUESS_A_NUMBER: Show correct number and proximity scores
+    - DRAWING: End drawing phase and show the answer
+    - WORD_CHAIN: End the team-play mode (bomb explodes) round and show statistics
+    - MATH_QUIZ: Time up is being handled in frontend
+    - BLIND_MAP: End guessing phase and show correct location
+    
+    Gathers current scores before passing to the specialized handler.
+    
+    Emits:
+        - Events via type-specific handler functions
+    &#34;&#34;&#34;
+    current_question = game_state.questions[game_state.current_question]
+    question_type = current_question.get(&#39;type&#39;, &#39;ABCD&#39;)
+    
+    # Get scores data in the appropriate format
+    scores = get_scores_data()
+    
+    # Route to appropriate handler based on question type
+    if question_type == &#39;OPEN_ANSWER&#39;:
+        from .open_answer_events import handle_open_answer_time_up
+        handle_open_answer_time_up(scores)
+    elif question_type == &#39;GUESS_A_NUMBER&#39;:
+        from .guess_number_events import handle_guess_number_time_up
+        handle_guess_number_time_up(scores)
+    elif question_type == &#39;DRAWING&#39;:
+        from .drawing_events import handle_drawing_time_up
+        handle_drawing_time_up(scores)
+    elif question_type == &#39;WORD_CHAIN&#39;:
+        from .word_chain_events import handle_word_chain_time_up
+        handle_word_chain_time_up(scores)
+    elif question_type == &#39;BLIND_MAP&#39;:
+        from .blind_map_events import handle_blind_map_time_up
+        handle_blind_map_time_up(scores)
+    else:
+        # ABCD and TRUE_FALSE questions
+        from .abcd_events import handle_abcd_time_up
+        handle_abcd_time_up(scores)</code></pre>
+</details>
+<div class="desc"><p>Handle question time expiration.</p>
+<p>Dynamically routes to the appropriate handler based on the current question type.
+Each question type has specialized time-up logic:</p>
+<ul>
+<li>ABCD/TRUE_FALSE: Show correct answer and statistics</li>
+<li>OPEN_ANSWER: Reveal answer and update scores</li>
+<li>GUESS_A_NUMBER: Show correct number and proximity scores</li>
+<li>DRAWING: End drawing phase and show the answer</li>
+<li>WORD_CHAIN: End the team-play mode (bomb explodes) round and show statistics</li>
+<li>MATH_QUIZ: Time up is being handled in frontend</li>
+<li>BLIND_MAP: End guessing phase and show correct location</li>
+</ul>
+<p>Gathers current scores before passing to the specialized handler.</p>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>Events via type-specific handler functions</li>
+</ul></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="app.socketio_events" href="index.html">app.socketio_events</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="app.socketio_events.base_events.handle_connect" href="#app.socketio_events.base_events.handle_connect">handle_connect</a></code></li>
+<li><code><a title="app.socketio_events.base_events.handle_disconnect" href="#app.socketio_events.base_events.handle_disconnect">handle_disconnect</a></code></li>
+<li><code><a title="app.socketio_events.base_events.handle_is_remote_connected" href="#app.socketio_events.base_events.handle_is_remote_connected">handle_is_remote_connected</a></code></li>
+<li><code><a title="app.socketio_events.base_events.handle_join_room" href="#app.socketio_events.base_events.handle_join_room">handle_join_room</a></code></li>
+<li><code><a title="app.socketio_events.base_events.handle_player_leaving" href="#app.socketio_events.base_events.handle_player_leaving">handle_player_leaving</a></code></li>
+<li><code><a title="app.socketio_events.base_events.handle_player_name_change" href="#app.socketio_events.base_events.handle_player_name_change">handle_player_name_change</a></code></li>
+<li><code><a title="app.socketio_events.base_events.handle_remote_display_connected" href="#app.socketio_events.base_events.handle_remote_display_connected">handle_remote_display_connected</a></code></li>
+<li><code><a title="app.socketio_events.base_events.handle_show_final_score" href="#app.socketio_events.base_events.handle_show_final_score">handle_show_final_score</a></code></li>
+<li><code><a title="app.socketio_events.base_events.handle_time_up" href="#app.socketio_events.base_events.handle_time_up">handle_time_up</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

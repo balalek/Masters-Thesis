@@ -1,5 +1,6 @@
-flask-socketio-react/node_modules
-flask-socketio-react/build
-flask-server/static
+HomeQuizClient/node_modules
+HomeQuizClient/build
+HomeQuizServer/static
+node_modules
 .env
 .idea

@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>app.models API documentation</title>
+<meta name="description" content="Data models for the quiz application …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>app.models</code></h1>
+</header>
+<section id="section-intro">
+<p>Data models for the quiz application.</p>
+<p>This module defines the core data structures used throughout the application:</p>
+<ul>
+<li>QuestionMetadata: Tracks usage and performance metrics for questions</li>
+<li>Question: Represents quiz questions of various types with type-specific fields</li>
+<li>Quiz: Represents collections of questions with metadata</li>
+</ul>
+<p>These models provide consistent structure for data storage and retrieval,
+with methods to convert between Python objects and MongoDB documents.</p>
+<p>Author: Bc. Martin Baláž</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="app.models.Question"><code class="flex name class">
+<span>class <span class="ident">Question</span></span>
+<span>(</span><span>question: str,<br>type: str,<br>options: List[str] = None,<br>answer: int = None,<br>length: int = 30,<br>category: str = None,<br>part_of: bson.objectid.ObjectId | None = None,<br>created_by: str | None = None,<br>copy_of: bson.objectid.ObjectId | None = None,<br>metadata: <a title="app.models.QuestionMetadata" href="#app.models.QuestionMetadata">QuestionMetadata</a> | None = None,<br>open_answer: str | None = None,<br>media_type: str | None = None,<br>media_url: str | None = None,<br>show_image_gradually: bool = False,<br>number_answer: float | None = None,<br>sequences: List[Dict[str, Any]] | None = None,<br>city_name: str | None = None,<br>anagram: str | None = None,<br>location_x: float | None = None,<br>location_y: float | None = None,<br>map_type: str | None = None,<br>radius_preset: str | None = None,<br>clue1: str | None = None,<br>clue2: str | None = None,<br>clue3: str | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Question:
+    &#34;&#34;&#34;
+    Core question model supporting multiple question types.
+    
+    Represents a quiz question with type-specific fields and behavior.
+    Handles various question formats including:
+
+    - ABCD (multiple choice)
+    - True/False 
+    - Open answers (with optional media)
+    - Numeric guessing
+    - Math equations
+    - Blind map (geography)
+    - Drawing and word chain game formats
+    
+    Each question stores both content and metadata including question content,
+    performance tracking, ownership information, and type-specific configuration.
+    &#34;&#34;&#34;
+    def __init__(
+        self,
+        question: str,
+        type: str,
+        options: List[str] = None,
+        answer: int = None,
+        length: int = QUIZ_VALIDATION[&#34;TIME_LIMIT_DEFAULT&#34;],
+        category: str = None,
+        part_of: Optional[ObjectId] = None,
+        created_by: Optional[str] = None,
+        copy_of: Optional[ObjectId] = None, 
+        metadata: Optional[QuestionMetadata] = None,
+        _id: Optional[ObjectId] = None,
+        # Fields for open answers
+        open_answer: Optional[str] = None,
+        media_type: Optional[str] = None,
+        media_url: Optional[str] = None,
+        show_image_gradually: bool = False,
+        # Field for guess a number
+        number_answer: Optional[float] = None,
+        # Fields for math quiz
+        sequences: Optional[List[Dict[str, Any]]] = None,
+        # Fields for blind map
+        city_name: Optional[str] = None,
+        anagram: Optional[str] = None,
+        location_x: Optional[float] = None,
+        location_y: Optional[float] = None,
+        map_type: Optional[str] = None,
+        radius_preset: Optional[str] = None,
+        clue1: Optional[str] = None,
+        clue2: Optional[str] = None,
+        clue3: Optional[str] = None
+    ):
+        &#34;&#34;&#34;
+        Initialize a Question object with type-specific fields.
+        
+        Args:
+            _id: Unique MongoDB ObjectId
+            question: The question text
+            type: Question type identifier from QUESTION_TYPES
+            options: List of answer options for multiple choice questions -&gt; optional
+            answer: Index of correct answer or correct value -&gt; optional
+            length: Time limit for the question in seconds
+            category: Subject category for the question
+            part_of: Reference to parent quiz
+            created_by: Device identifier of creator
+            copy_of: Reference to original question if this is a copy
+            metadata: Usage and performance statistics
+            
+            # Type-specific parameters:
+            open_answer: Correct text answer for open questions
+            media_type: Type of attached media (&#39;image&#39; or &#39;audio&#39;)
+            media_url: URL to the media resource
+            show_image_gradually: Whether to reveal image progressively
+            number_answer: Correct numeric answer for guess-a-number
+            sequences: List of equation sequences with answers
+            city_name: Name of the city to locate
+            anagram: Scrambled version of city name
+            location_x: X coordinate on the map
+            location_y: Y coordinate on the map
+            map_type: Map identifier (e.g., &#39;cz&#39;, &#39;world&#39;)
+            radius_preset: Difficulty setting for scoring radius
+            clue1: First progressive hint for the location
+            clue2: Second progressive hint for the location
+            clue3: Third progressive hint for the location
+        &#34;&#34;&#34;
+        self._id = _id or ObjectId()
+        self.question = question
+        self.type = type
+        self.options = options
+        self.answer = answer
+        self.open_answer = open_answer
+        self.length = length
+        self.category = category
+        self.part_of = part_of
+        self.created_by = created_by
+        self.copy_of = copy_of
+        self.metadata = metadata or QuestionMetadata()
+        # Media fields
+        self.media_type = media_type
+        self.media_url = media_url
+        self.show_image_gradually = show_image_gradually
+        # Guess a number field
+        self.number_answer = number_answer
+        # Math quiz fields
+        self.sequences = sequences or []
+        # Blind map fields
+        self.city_name = city_name
+        self.anagram = anagram
+        self.location_x = location_x
+        self.location_y = location_y
+        self.map_type = map_type
+        self.radius_preset = radius_preset
+        self.clue1 = clue1
+        self.clue2 = clue2
+        self.clue3 = clue3
+
+    def to_dict(self):
+        &#34;&#34;&#34;
+        Convert the Question object to a dictionary for MongoDB storage.
+        
+        Creates a type-specific representation with only the relevant fields
+        for the question&#39;s type, ensuring efficient storage.
+        
+        Returns:
+            dict: MongoDB-compatible document representation
+        &#34;&#34;&#34;
+        base_dict = {
+            &#34;_id&#34;: self._id,
+            &#34;question&#34;: self.question,
+            &#34;type&#34;: self.type,
+            &#34;length&#34;: self.length,
+            &#34;category&#34;: self.category,
+            &#34;part_of&#34;: self.part_of,
+            &#34;created_by&#34;: self.created_by,
+            &#34;copy_of&#34;: self.copy_of,
+            &#34;metadata&#34;: self.metadata.to_dict()
+        }
+        
+        # Type-specific fields
+        if self.type in [QUESTION_TYPES[&#34;ABCD&#34;], QUESTION_TYPES[&#34;TRUE_FALSE&#34;]]:
+            base_dict.update({
+                &#34;options&#34;: self.options,
+                &#34;answer&#34;: self.answer
+            })
+        elif self.type == QUESTION_TYPES[&#34;OPEN_ANSWER&#34;]:
+            base_dict.update({
+                &#34;open_answer&#34;: self.open_answer,
+                &#34;media_type&#34;: self.media_type,
+                &#34;media_url&#34;: self.media_url,
+                &#34;show_image_gradually&#34;: self.show_image_gradually
+            })
+        elif self.type == QUESTION_TYPES[&#34;GUESS_A_NUMBER&#34;]:
+            base_dict.update({
+                &#34;number_answer&#34;: self.number_answer
+            })
+        elif self.type == QUESTION_TYPES[&#34;MATH_QUIZ&#34;]:
+            base_dict.update({
+                &#34;sequences&#34;: self.sequences
+            })
+        elif self.type == QUESTION_TYPES[&#34;BLIND_MAP&#34;]:
+            base_dict.update({
+                &#34;city_name&#34;: self.city_name,
+                &#34;anagram&#34;: self.anagram,
+                &#34;location_x&#34;: self.location_x,
+                &#34;location_y&#34;: self.location_y,
+                &#34;map_type&#34;: self.map_type,
+                &#34;radius_preset&#34;: self.radius_preset, 
+                &#34;clue1&#34;: self.clue1,
+                &#34;clue2&#34;: self.clue2,
+                &#34;clue3&#34;: self.clue3
+            })
+            
+        return base_dict</code></pre>
+</details>
+<div class="desc"><p>Core question model supporting multiple question types.</p>
+<p>Represents a quiz question with type-specific fields and behavior.
+Handles various question formats including:</p>
+<ul>
+<li>ABCD (multiple choice)</li>
+<li>True/False </li>
+<li>Open answers (with optional media)</li>
+<li>Numeric guessing</li>
+<li>Math equations</li>
+<li>Blind map (geography)</li>
+<li>Drawing and word chain game formats</li>
+</ul>
+<p>Each question stores both content and metadata including question content,
+performance tracking, ownership information, and type-specific configuration.</p>
+<p>Initialize a Question object with type-specific fields.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>_id</code></strong></dt>
+<dd>Unique MongoDB ObjectId</dd>
+<dt><strong><code>question</code></strong></dt>
+<dd>The question text</dd>
+<dt><strong><code>type</code></strong></dt>
+<dd>Question type identifier from QUESTION_TYPES</dd>
+<dt><strong><code>options</code></strong></dt>
+<dd>List of answer options for multiple choice questions -&gt; optional</dd>
+<dt><strong><code>answer</code></strong></dt>
+<dd>Index of correct answer or correct value -&gt; optional</dd>
+<dt><strong><code>length</code></strong></dt>
+<dd>Time limit for the question in seconds</dd>
+<dt><strong><code>category</code></strong></dt>
+<dd>Subject category for the question</dd>
+<dt><strong><code>part_of</code></strong></dt>
+<dd>Reference to parent quiz</dd>
+<dt><strong><code>created_by</code></strong></dt>
+<dd>Device identifier of creator</dd>
+<dt><strong><code>copy_of</code></strong></dt>
+<dd>Reference to original question if this is a copy</dd>
+<dt><strong><code>metadata</code></strong></dt>
+<dd>Usage and performance statistics</dd>
+</dl>
+<h1 id="type-specific-parameters">Type-specific parameters:</h1>
+<dl>
+<dt><strong><code>open_answer</code></strong></dt>
+<dd>Correct text answer for open questions</dd>
+<dt><strong><code>media_type</code></strong></dt>
+<dd>Type of attached media ('image' or 'audio')</dd>
+<dt><strong><code>media_url</code></strong></dt>
+<dd>URL to the media resource</dd>
+<dt><strong><code>show_image_gradually</code></strong></dt>
+<dd>Whether to reveal image progressively</dd>
+<dt><strong><code>number_answer</code></strong></dt>
+<dd>Correct numeric answer for guess-a-number</dd>
+<dt><strong><code>sequences</code></strong></dt>
+<dd>List of equation sequences with answers</dd>
+<dt><strong><code>city_name</code></strong></dt>
+<dd>Name of the city to locate</dd>
+<dt><strong><code>anagram</code></strong></dt>
+<dd>Scrambled version of city name</dd>
+<dt><strong><code>location_x</code></strong></dt>
+<dd>X coordinate on the map</dd>
+<dt><strong><code>location_y</code></strong></dt>
+<dd>Y coordinate on the map</dd>
+<dt><strong><code>map_type</code></strong></dt>
+<dd>Map identifier (e.g., 'cz', 'world')</dd>
+<dt><strong><code>radius_preset</code></strong></dt>
+<dd>Difficulty setting for scoring radius</dd>
+<dt><strong><code>clue1</code></strong></dt>
+<dd>First progressive hint for the location</dd>
+<dt><strong><code>clue2</code></strong></dt>
+<dd>Second progressive hint for the location</dd>
+<dt><strong><code>clue3</code></strong></dt>
+<dd>Third progressive hint for the location</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="app.models.Question.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self):
+    &#34;&#34;&#34;
+    Convert the Question object to a dictionary for MongoDB storage.
+    
+    Creates a type-specific representation with only the relevant fields
+    for the question&#39;s type, ensuring efficient storage.
+    
+    Returns:
+        dict: MongoDB-compatible document representation
+    &#34;&#34;&#34;
+    base_dict = {
+        &#34;_id&#34;: self._id,
+        &#34;question&#34;: self.question,
+        &#34;type&#34;: self.type,
+        &#34;length&#34;: self.length,
+        &#34;category&#34;: self.category,
+        &#34;part_of&#34;: self.part_of,
+        &#34;created_by&#34;: self.created_by,
+        &#34;copy_of&#34;: self.copy_of,
+        &#34;metadata&#34;: self.metadata.to_dict()
+    }
+    
+    # Type-specific fields
+    if self.type in [QUESTION_TYPES[&#34;ABCD&#34;], QUESTION_TYPES[&#34;TRUE_FALSE&#34;]]:
+        base_dict.update({
+            &#34;options&#34;: self.options,
+            &#34;answer&#34;: self.answer
+        })
+    elif self.type == QUESTION_TYPES[&#34;OPEN_ANSWER&#34;]:
+        base_dict.update({
+            &#34;open_answer&#34;: self.open_answer,
+            &#34;media_type&#34;: self.media_type,
+            &#34;media_url&#34;: self.media_url,
+            &#34;show_image_gradually&#34;: self.show_image_gradually
+        })
+    elif self.type == QUESTION_TYPES[&#34;GUESS_A_NUMBER&#34;]:
+        base_dict.update({
+            &#34;number_answer&#34;: self.number_answer
+        })
+    elif self.type == QUESTION_TYPES[&#34;MATH_QUIZ&#34;]:
+        base_dict.update({
+            &#34;sequences&#34;: self.sequences
+        })
+    elif self.type == QUESTION_TYPES[&#34;BLIND_MAP&#34;]:
+        base_dict.update({
+            &#34;city_name&#34;: self.city_name,
+            &#34;anagram&#34;: self.anagram,
+            &#34;location_x&#34;: self.location_x,
+            &#34;location_y&#34;: self.location_y,
+            &#34;map_type&#34;: self.map_type,
+            &#34;radius_preset&#34;: self.radius_preset, 
+            &#34;clue1&#34;: self.clue1,
+            &#34;clue2&#34;: self.clue2,
+            &#34;clue3&#34;: self.clue3
+        })
+        
+    return base_dict</code></pre>
+</details>
+<div class="desc"><p>Convert the Question object to a dictionary for MongoDB storage.</p>
+<p>Creates a type-specific representation with only the relevant fields
+for the question's type, ensuring efficient storage.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>MongoDB-compatible document representation</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+<dt id="app.models.QuestionMetadata"><code class="flex name class">
+<span>class <span class="ident">QuestionMetadata</span></span>
+<span>(</span><span>times_used: int = 0, average_correct_rate: float = 0.0)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class QuestionMetadata:
+    &#34;&#34;&#34;
+    Metadata associated with a quiz question.
+    
+    Tracks usage statistics and performance metrics for questions,
+    allowing for analytics and personalized content.
+    &#34;&#34;&#34;
+    def __init__(self, times_used: int = 0, average_correct_rate: float = 0.0):
+        &#34;&#34;&#34;
+        Initialize question metadata with usage statistics.
+        
+        Args:
+            times_used: Counter for how many times this question has been used in quizzes
+            average_correct_rate: Average percentage of players who answered correctly
+        &#34;&#34;&#34;
+        self.times_used = times_used
+        self.average_correct_rate = average_correct_rate
+
+    def to_dict(self):
+        &#34;&#34;&#34;
+        Convert metadata to a dictionary for MongoDB storage.
+        
+        Returns:
+            dict: MongoDB-compatible document representation with camelCase keys for frontend compatibility
+        &#34;&#34;&#34;
+        return {
+            &#34;timesUsed&#34;: self.times_used,
+            &#34;averageCorrectRate&#34;: self.average_correct_rate
+        }</code></pre>
+</details>
+<div class="desc"><p>Metadata associated with a quiz question.</p>
+<p>Tracks usage statistics and performance metrics for questions,
+allowing for analytics and personalized content.</p>
+<p>Initialize question metadata with usage statistics.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>times_used</code></strong></dt>
+<dd>Counter for how many times this question has been used in quizzes</dd>
+<dt><strong><code>average_correct_rate</code></strong></dt>
+<dd>Average percentage of players who answered correctly</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="app.models.QuestionMetadata.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self):
+    &#34;&#34;&#34;
+    Convert metadata to a dictionary for MongoDB storage.
+    
+    Returns:
+        dict: MongoDB-compatible document representation with camelCase keys for frontend compatibility
+    &#34;&#34;&#34;
+    return {
+        &#34;timesUsed&#34;: self.times_used,
+        &#34;averageCorrectRate&#34;: self.average_correct_rate
+    }</code></pre>
+</details>
+<div class="desc"><p>Convert metadata to a dictionary for MongoDB storage.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>MongoDB-compatible document representation with camelCase keys for frontend compatibility</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+<dt id="app.models.Quiz"><code class="flex name class">
+<span>class <span class="ident">Quiz</span></span>
+<span>(</span><span>name: str,<br>questions: List[dict],<br>type: str,<br>is_public: bool = False,<br>created_by: str | None = None,<br>creation_date: datetime.datetime | None = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Quiz:
+    &#34;&#34;&#34;
+    Quiz collection model representing a complete quiz activity.
+    
+    Groups multiple questions into a playable quiz with metadata
+    about ownership, visibility, and organization.
+    &#34;&#34;&#34;
+    def __init__(
+        self,
+        name: str,
+        questions: List[dict],
+        type: str,
+        is_public: bool = False,
+        created_by: Optional[str] = None,
+        _id: Optional[ObjectId] = None,
+        creation_date: Optional[datetime] = None
+    ):
+        &#34;&#34;&#34;
+        Initialize a Quiz object.
+        
+        Args:
+            _id: Unique MongoDB ObjectId
+            name: Title of the quiz
+            questions: List of question references with ordering information 
+                     (each dict contains {&#39;questionId&#39;: ObjectId, &#39;order&#39;: int})
+            type: Quiz format type
+            is_public: Whether the quiz is publicly available to other users
+            created_by: Device identifier of creator
+            creation_date: Timestamp of quiz creation
+        &#34;&#34;&#34;
+        self._id = _id or ObjectId()
+        self.name = name
+        self.questions = questions
+        self.type = type
+        self.is_public = is_public
+        self.created_by = created_by
+        self.creation_date = creation_date or datetime.now()
+
+    def to_dict(self):
+        &#34;&#34;&#34;
+        Convert the Quiz object to a dictionary for MongoDB storage.
+        
+        Returns:
+            dict: MongoDB-compatible document representation
+        &#34;&#34;&#34;
+        return {
+            &#34;_id&#34;: self._id,
+            &#34;name&#34;: self.name,
+            &#34;questions&#34;: self.questions,
+            &#34;type&#34;: self.type,
+            &#34;is_public&#34;: self.is_public, 
+            &#34;created_by&#34;: self.created_by,
+            &#34;creation_date&#34;: self.creation_date
+        }</code></pre>
+</details>
+<div class="desc"><p>Quiz collection model representing a complete quiz activity.</p>
+<p>Groups multiple questions into a playable quiz with metadata
+about ownership, visibility, and organization.</p>
+<p>Initialize a Quiz object.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>_id</code></strong></dt>
+<dd>Unique MongoDB ObjectId</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>Title of the quiz</dd>
+<dt><strong><code>questions</code></strong></dt>
+<dd>List of question references with ordering information
+(each dict contains {'questionId': ObjectId, 'order': int})</dd>
+<dt><strong><code>type</code></strong></dt>
+<dd>Quiz format type</dd>
+<dt><strong><code>is_public</code></strong></dt>
+<dd>Whether the quiz is publicly available to other users</dd>
+<dt><strong><code>created_by</code></strong></dt>
+<dd>Device identifier of creator</dd>
+<dt><strong><code>creation_date</code></strong></dt>
+<dd>Timestamp of quiz creation</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="app.models.Quiz.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self):
+    &#34;&#34;&#34;
+    Convert the Quiz object to a dictionary for MongoDB storage.
+    
+    Returns:
+        dict: MongoDB-compatible document representation
+    &#34;&#34;&#34;
+    return {
+        &#34;_id&#34;: self._id,
+        &#34;name&#34;: self.name,
+        &#34;questions&#34;: self.questions,
+        &#34;type&#34;: self.type,
+        &#34;is_public&#34;: self.is_public, 
+        &#34;created_by&#34;: self.created_by,
+        &#34;creation_date&#34;: self.creation_date
+    }</code></pre>
+</details>
+<div class="desc"><p>Convert the Quiz object to a dictionary for MongoDB storage.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>MongoDB-compatible document representation</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="app" href="index.html">app</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="app.models.Question" href="#app.models.Question">Question</a></code></h4>
+<ul class="">
+<li><code><a title="app.models.Question.to_dict" href="#app.models.Question.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="app.models.QuestionMetadata" href="#app.models.QuestionMetadata">QuestionMetadata</a></code></h4>
+<ul class="">
+<li><code><a title="app.models.QuestionMetadata.to_dict" href="#app.models.QuestionMetadata.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="app.models.Quiz" href="#app.models.Quiz">Quiz</a></code></h4>
+<ul class="">
+<li><code><a title="app.models.Quiz.to_dict" href="#app.models.Quiz.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

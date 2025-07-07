@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>app.socketio_events.guess_number_events API documentation</title>
+<meta name="description" content="Socket.IO event handlers for Guess a Number gameplay …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>app.socketio_events.guess_number_events</code></h1>
+</header>
+<section id="section-intro">
+<p>Socket.IO event handlers for Guess a Number gameplay.</p>
+<p>This module provides real-time event handling for Guess a Number questions:</p>
+<ul>
+<li>Two-phase team-based gameplay with captain system</li>
+<li>Free-for-all competitive guessing with proximity scoring</li>
+<li>Validation and scoring of numerical guesses</li>
+<li>Team voting mechanics for higher/lower comparisons</li>
+<li>Exactness bonuses and placement-based point allocation</li>
+<li>Tie-breaking mechanisms for team voting</li>
+</ul>
+<p>Guess a Number is a collaborative/competitive estimation game where players
+try to guess numeric values with different mechanics based on game mode.</p>
+<p>Author: Bc. Martin Baláž</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="app.socketio_events.guess_number_events.handle_all_number_guesses_received"><code class="name flex">
+<span>def <span class="ident">handle_all_number_guesses_received</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def handle_all_number_guesses_received():
+    &#34;&#34;&#34;
+    Process all number guesses in free-for-all mode.
+    
+    Sorts player guesses by proximity to the correct answer,
+    calculates points based on placement and accuracy,
+    and sends results to all players.
+    
+    Emits:
+        - Events via send_individual_guess_results() to each player
+        - Event via emit_all_answers_received() with complete results
+    &#34;&#34;&#34;
+    # Get the correct answer
+    current_question = game_state.questions[game_state.current_question]
+    correct_answer = float(current_question.get(&#39;number_answer&#39;, 0))
+    # Sort guesses by proximity to correct answer
+    guesses = game_state.team_player_guesses.get(&#39;all&#39;, [])
+    
+    # Add distance to each guess
+    for guess in guesses:
+        guess[&#39;distance&#39;] = abs(guess[&#39;value&#39;] - correct_answer)
+    
+    # Sort by distance (closest first)
+    sorted_guesses = sorted(guesses, key=lambda x: x[&#39;distance&#39;])
+
+    # Calculate and send individual placement results to players
+    send_individual_guess_results(sorted_guesses, correct_answer)
+    
+    # Prepare question data for results page
+    current_question[&#39;teamMode&#39;] = False
+    current_question[&#39;playerGuesses&#39;] = sorted_guesses
+    
+    # Emit results
+    scores = get_scores_data()
+    emit_all_answers_received(
+        scores=scores,
+        correct_answer=correct_answer,
+        additional_data=current_question
+    )</code></pre>
+</details>
+<div class="desc"><p>Process all number guesses in free-for-all mode.</p>
+<p>Sorts player guesses by proximity to the correct answer,
+calculates points based on placement and accuracy,
+and sends results to all players.</p>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>Events via send_individual_guess_results() to each player</li>
+<li>Event via emit_all_answers_received() with complete results</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.guess_number_events.handle_all_votes_completed"><code class="name flex">
+<span>def <span class="ident">handle_all_votes_completed</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def handle_all_votes_completed():
+    &#34;&#34;&#34;
+    Process the results of the voting phase in team mode.
+    
+    Determines the final vote based on majority or tiebreaker,
+    compares against the correct answer, and awards points to
+    the winning team accordingly.
+    
+    Emits:
+        - Events via send_team_correctness_results() to each player
+        - Event via emit_all_answers_received() with complete results
+    &#34;&#34;&#34;
+    # Get the vote counts
+    more_votes = game_state.answer_counts[0]
+    less_votes = game_state.answer_counts[1]
+    
+    # Get the active team&#39;s captain
+    captain_index = game_state.blue_captain_index if game_state.active_team == &#39;blue&#39; else game_state.red_captain_index
+    captain_name = (game_state.blue_team[captain_index] if game_state.active_team == &#39;blue&#39; and captain_index &lt; len(game_state.blue_team) 
+                  else game_state.red_team[captain_index] if game_state.active_team == &#39;red&#39; and captain_index &lt; len(game_state.red_team)
+                  else None)
+    
+    # Check for a tie
+    if more_votes == less_votes:
+        final_vote = handle_tied_votes(captain_name)
+    else:
+        # No tie, use majority vote
+        final_vote = &#39;more&#39; if more_votes &gt; less_votes else &#39;less&#39;
+    
+    # Get the correct answer
+    current_question = game_state.questions[game_state.current_question]
+    correct_answer = float(current_question.get(&#39;number_answer&#39;, 0))
+    
+    # Check if the vote is correct
+    is_correct = (correct_answer &gt; game_state.first_team_final_answer and final_vote == &#39;more&#39;) or \
+                 (correct_answer &lt; game_state.first_team_final_answer and final_vote == &#39;less&#39;)
+    
+    # Award points to the correct team
+    points = POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER
+    
+    if is_correct:
+        # Second team earns points
+        game_state.team_scores[game_state.active_team] += points
+        winning_team = game_state.active_team
+    else:
+        # First team earns points
+        first_team = &#39;red&#39; if game_state.active_team == &#39;blue&#39; else &#39;blue&#39;
+        game_state.team_scores[first_team] += points
+        winning_team = first_team
+    
+    # Prepare question data for results page
+    current_question[&#39;teamMode&#39;] = True
+    current_question[&#39;firstTeamAnswer&#39;] = game_state.first_team_final_answer
+    current_question[&#39;secondTeamVote&#39;] = final_vote
+    current_question[&#39;playerGuesses&#39;] = game_state.team_player_guesses[&#39;blue&#39;] + game_state.team_player_guesses[&#39;red&#39;]
+    
+    # Emit results
+    scores = get_scores_data()
+    
+    # Send correctness info to each player
+    send_team_correctness_results(winning_team)
+    
+    emit_all_answers_received(
+        scores=scores,
+        correct_answer=correct_answer,
+        additional_data=current_question
+    )</code></pre>
+</details>
+<div class="desc"><p>Process the results of the voting phase in team mode.</p>
+<p>Determines the final vote based on majority or tiebreaker,
+compares against the correct answer, and awards points to
+the winning team accordingly.</p>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>Events via send_team_correctness_results() to each player</li>
+<li>Event via emit_all_answers_received() with complete results</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.guess_number_events.handle_guess_number_time_up"><code class="name flex">
+<span>def <span class="ident">handle_guess_number_time_up</span></span>(<span>scores)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def handle_guess_number_time_up(scores):
+    &#34;&#34;&#34;
+    Handle time expiration for Guess a Number questions.
+    
+    Implements different behaviors based on game mode and current phase:
+
+    - Team mode, phase 1: Uses average team guess as final answer
+    - Team mode, phase 2: Evaluates votes or defaults if no votes
+    - Free-for-all: Ranks all submitted guesses by proximity
+    
+    Args:
+        scores: Current game scores for inclusion in results
+        
+    Emits:
+        - &#39;answer_correctness&#39;: Results to individual players
+        - Event via emit_all_answers_received() with final results
+    &#34;&#34;&#34;
+    current_question = game_state.questions[game_state.current_question]
+    correct_answer = float(current_question.get(&#39;number_answer&#39;, 0))
+    
+    if game_state.is_team_mode:
+        # Ensure active_team is set, default to &#39;blue&#39; if None
+        if game_state.active_team is None:
+            game_state.active_team = &#39;blue&#39;
+            
+        # Ensure we have entries for both teams in the dictionary
+        if &#39;blue&#39; not in game_state.team_player_guesses:
+            game_state.team_player_guesses[&#39;blue&#39;] = []
+        if &#39;red&#39; not in game_state.team_player_guesses:
+            game_state.team_player_guesses[&#39;red&#39;] = []
+        
+        # For team mode, handle based on phase
+        if game_state.number_guess_phase == 1:
+            # If phase 1 timed out, use average of team guesses as final answer
+            active_team_guesses = game_state.team_player_guesses[game_state.active_team]
+            
+            if active_team_guesses:
+                avg_guess = sum(g[&#39;value&#39;] for g in active_team_guesses) / len(active_team_guesses)
+                game_state.first_team_final_answer = avg_guess
+                
+                # Check if the average guess is exactly correct - special case!
+                if abs(avg_guess - correct_answer) &lt; 0.0001:  # Use small epsilon for floating point comparison
+                    # The first team&#39;s average guess was exactly right! Award double points and end the question
+                    double_points = POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER_FIRST_PHASE
+                    game_state.team_scores[game_state.active_team] += double_points
+                    
+                    # Prepare question data for results page
+                    current_question[&#39;teamMode&#39;] = True
+                    current_question[&#39;exactGuess&#39;] = True  # Mark as exact guess for UI
+                    current_question[&#39;firstTeamAnswer&#39;] = avg_guess
+                    current_question[&#39;playerGuesses&#39;] = game_state.team_player_guesses[&#39;blue&#39;] + game_state.team_player_guesses[&#39;red&#39;]
+                    
+                    # Send correctness info to all players
+                    for player in game_state.players:
+                        player_team = &#39;blue&#39; if player in game_state.blue_team else &#39;red&#39;
+                        is_winning_team = player_team == game_state.active_team
+                        
+                        # Get team scores
+                        team_scores = {
+                            &#39;blue&#39;: game_state.team_scores.get(&#39;blue&#39;, 0),
+                            &#39;red&#39;: game_state.team_scores.get(&#39;red&#39;, 0)
+                        }
+                        
+                        emit(&#39;answer_correctness&#39;, {
+                            &#34;correct&#34;: is_winning_team,  # Only the exact-guessing team gets &#34;correct&#34;
+                            &#34;points_earned&#34;: double_points if is_winning_team else 0,
+                            &#34;total_points&#34;: team_scores[player_team],
+                            &#34;is_team_score&#34;: True,
+                            &#34;team_scores&#34;: team_scores,
+                            &#34;exactGuess&#34;: True,  # Special flag for UI
+                            &#34;guessResult&#34;: {
+                                &#34;exactGuess&#34;: True,
+                                &#34;correctAnswer&#34;: correct_answer,
+                                &#34;yourGuess&#34;: avg_guess
+                            }
+                        }, room=player)
+                    
+                    # Emit results and return without proceeding to phase 2
+                    emit_all_answers_received(
+                        scores=scores,
+                        correct_answer=correct_answer,
+                        additional_data=current_question
+                    )
+                    return
+                
+                # If not exact, continue with phase 2 normally
+                # Move to phase 2
+                game_state.number_guess_phase = 2
+                game_state.active_team = &#39;red&#39; if game_state.active_team == &#39;blue&#39; else &#39;blue&#39;
+                update_player_roles_for_phase2()
+                
+                # Calculate absolute timestamps instead of durations
+                current_time = int(time() * 1000)
+                transition_end_time = current_time + PHASE_TRANSITION_TIME
+
+                game_state.answer_counts = [0, 0, 0, 0]
+                game_state.answers_received = 0
+                game_state.voted_players = {}  # Reset voted players for the new phase
+                
+                # Notify the UI about the phase transition - sending absolute timestamp
+                socketio.emit(&#39;phase_transition&#39;, {
+                    &#39;firstTeamAnswer&#39;: avg_guess,
+                    &#39;activeTeam&#39;: game_state.active_team,
+                    &#39;transitionEndTime&#39;: transition_end_time
+                })
+                
+                # Don&#39;t show results yet
+                return
+            else:
+                # No guesses were made, move to next question
+                current_question[&#39;teamMode&#39;] = True
+                current_question[&#39;playerGuesses&#39;] = []
+        else:  # Phase 2
+            # Get the vote counts
+            more_votes = game_state.answer_counts[0]
+            less_votes = game_state.answer_counts[1]
+            
+            # Get the active team&#39;s captain
+            captain_index = game_state.blue_captain_index if game_state.active_team == &#39;blue&#39; else game_state.red_captain_index
+            captain_name = (game_state.blue_team[captain_index] if game_state.active_team == &#39;blue&#39; and captain_index &lt; len(game_state.blue_team) 
+                          else game_state.red_team[captain_index] if game_state.active_team == &#39;red&#39; and captain_index &lt; len(game_state.red_team)
+                          else None)
+            
+            # Check if anyone voted
+            if more_votes == 0 and less_votes == 0:
+                # No one voted, first team wins by default
+                first_team = &#39;red&#39; if game_state.active_team == &#39;blue&#39; else &#39;blue&#39;
+                winning_team = first_team
+                
+                # Award points to first team
+                game_state.team_scores[first_team] += POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER
+                
+                # Send team correctness results
+                send_team_correctness_results(winning_team)
+                
+                # Prepare question data 
+                final_vote = None # Special case
+            else:
+                # Check for a tie
+                if more_votes == less_votes:
+                    final_vote = handle_tied_votes(captain_name)
+                else:
+                    # No tie, use majority vote
+                    final_vote = &#39;more&#39; if more_votes &gt; less_votes else &#39;less&#39;
+                
+                # Determine if vote was correct
+                is_correct = (correct_answer &gt; game_state.first_team_final_answer and final_vote == &#39;more&#39;) or \
+                            (correct_answer &lt; game_state.first_team_final_answer and final_vote == &#39;less&#39;)
+                
+                # Award points
+                points = POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER
+                if is_correct:
+                    game_state.team_scores[game_state.active_team] += points
+                    winning_team = game_state.active_team
+                else:
+                    first_team = &#39;red&#39; if game_state.active_team == &#39;blue&#39; else &#39;blue&#39;
+                    game_state.team_scores[first_team] += points
+                    winning_team = first_team
+                
+                # Send team correctness results
+                send_team_correctness_results(winning_team)
+            
+            # Prepare question data for results
+            current_question[&#39;teamMode&#39;] = True
+            current_question[&#39;firstTeamAnswer&#39;] = game_state.first_team_final_answer
+            current_question[&#39;secondTeamVote&#39;] = final_vote
+            current_question[&#39;playerGuesses&#39;] = game_state.team_player_guesses[&#39;blue&#39;] + game_state.team_player_guesses[&#39;red&#39;]
+    else:  # Free-for-all mode
+        # Prepare guesses for display
+        guesses = game_state.team_player_guesses.get(&#39;all&#39;, [])
+        for guess in guesses:
+            guess[&#39;distance&#39;] = abs(guess[&#39;value&#39;] - correct_answer)
+        
+        sorted_guesses = sorted(guesses, key=lambda x: x[&#39;distance&#39;])
+
+        # Send individual results to players
+        send_individual_guess_results(sorted_guesses, correct_answer)
+        
+        current_question[&#39;teamMode&#39;] = False
+        current_question[&#39;playerGuesses&#39;] = sorted_guesses
+    
+    # Emit the question with updated data regardless of mode
+    emit_all_answers_received(
+        scores=scores,
+        correct_answer=correct_answer,
+        additional_data=current_question
+    )</code></pre>
+</details>
+<div class="desc"><p>Handle time expiration for Guess a Number questions.</p>
+<p>Implements different behaviors based on game mode and current phase:</p>
+<ul>
+<li>Team mode, phase 1: Uses average team guess as final answer</li>
+<li>Team mode, phase 2: Evaluates votes or defaults if no votes</li>
+<li>Free-for-all: Ranks all submitted guesses by proximity</li>
+</ul>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>scores</code></strong></dt>
+<dd>Current game scores for inclusion in results</dd>
+</dl>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'answer_correctness': Results to individual players</li>
+<li>Event via emit_all_answers_received() with final results</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.guess_number_events.handle_tied_votes"><code class="name flex">
+<span>def <span class="ident">handle_tied_votes</span></span>(<span>captain_name)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def handle_tied_votes(captain_name):
+    &#34;&#34;&#34;
+    Handle tied votes in phase 2 of Guess a Number questions.
+    
+    When votes are tied, the captain&#39;s vote is used as a tiebreaker.
+    If the captain didn&#39;t vote, defaults to giving points to the first team.
+    
+    Args:
+        captain_name: Name of the second team&#39;s captain
+            
+    Returns:
+        str: The final vote decision (&#39;more&#39; or &#39;less&#39;)
+    &#34;&#34;&#34;
+    # Get the correct answer and first team answer
+    current_question_data = game_state.questions[game_state.current_question]
+    correct_answer = float(current_question_data.get(&#39;number_answer&#39;, 0))
+    first_team_answer = game_state.first_team_final_answer
+    
+    # In case of a tie, check if captain voted
+    if captain_name and captain_name in game_state.voted_players:
+        # Use captain&#39;s vote to break the tie
+        final_vote = game_state.voted_players[captain_name]
+    else:
+        # If captain didn&#39;t vote or doesn&#39;t exist, give points to first team
+        # Just set final_vote to the opposite of what would be correct
+        if correct_answer &gt; first_team_answer:
+            # Correct would be &#39;more&#39;, so set to &#39;less&#39; to give points to first team
+            final_vote = &#39;less&#39;
+        else:
+            # Correct would be &#39;less&#39;, so set to &#39;more&#39; to give points to first team
+            final_vote = &#39;more&#39;
+    
+    return final_vote</code></pre>
+</details>
+<div class="desc"><p>Handle tied votes in phase 2 of Guess a Number questions.</p>
+<p>When votes are tied, the captain's vote is used as a tiebreaker.
+If the captain didn't vote, defaults to giving points to the first team.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>captain_name</code></strong></dt>
+<dd>Name of the second team's captain</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The final vote decision ('more' or 'less')</dd>
+</dl></div>
+</dd>
+<dt id="app.socketio_events.guess_number_events.send_individual_guess_results"><code class="name flex">
+<span>def <span class="ident">send_individual_guess_results</span></span>(<span>sorted_guesses, correct_answer)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send_individual_guess_results(sorted_guesses, correct_answer): 
+    &#34;&#34;&#34;
+    Send individualized guess results to each player in free-for-all mode.
+    
+    Calculates points based on placement (closest to correct answer)
+    and accuracy of the guess. Awards bonus points for very accurate guesses.
+    
+    Args:
+        sorted_guesses: List of player guesses sorted by proximity to correct answer
+        correct_answer: The actual correct numeric answer
+        
+    Emits:
+        - &#39;answer_correctness&#39;: Personalized result to each player with
+          placement, accuracy, and points earned
+    &#34;&#34;&#34;
+    total_players = len(sorted_guesses)
+    
+    # Build a set of players who answered
+    players_who_answered = {guess[&#39;playerName&#39;] for guess in sorted_guesses}
+    
+    # Base points per position (100 points distributed by rank)
+    base_points_per_player = POINTS_FOR_PLACEMENT // total_players if total_players &gt; 0 else 0
+    
+    # Process the players who answered
+    for index, guess in enumerate(sorted_guesses):
+        player_name = guess[&#39;playerName&#39;]
+        value = guess[&#39;value&#39;]
+        distance = guess[&#39;distance&#39;]
+        
+        # Calculate position (1-based index)
+        placement = index + 1
+        
+        # Calculate points based on position (100, 90, 80, etc. -&gt; this example is only for 10 players)
+        position_points = max(10, POINTS_FOR_PLACEMENT - ((placement - 1) * base_points_per_player))
+        
+        # Calculate normalized difference as percentage
+        normalized_diff = min(distance / max(correct_answer, 0.001), 1.0) * 100
+        
+        # Bonus points based on accuracy
+        bonus_points = 0
+        if distance == 0:  # Exact answer
+            bonus_points = POINTS_FOR_EXACT_ANSWER
+        elif normalized_diff &lt;= 1:  # Within 1%
+            bonus_points = POINTS_FOR_EXACT_ANSWER * 0.75
+        elif normalized_diff &lt;= 5:  # Within 5%
+            bonus_points = POINTS_FOR_EXACT_ANSWER * 0.5
+        elif normalized_diff &lt;= 25:  # Within 25%
+            bonus_points = POINTS_FOR_EXACT_ANSWER * 0.25
+        
+        # Total score for this question
+        score = position_points + bonus_points
+        
+        # Update player&#39;s score
+        game_state.players[player_name][&#39;score&#39;] += score
+        
+        # Calculate accuracy description
+        if distance == 0:
+            accuracy_text = &#34;Přesně!&#34;
+        elif normalized_diff &lt;= 1:
+            accuracy_text = &#34;Velmi přesné!&#34;
+        elif normalized_diff &lt;= 5:
+            accuracy_text = &#34;Velmi blízko!&#34;
+        else:
+            accuracy_percent = max(0, 100 - int(normalized_diff * 2))  # Make percentage more user-friendly
+            accuracy_text = f&#34;{accuracy_percent}%&#34;
+        
+        # Send placement and points to the player
+        emit(&#39;answer_correctness&#39;, {
+            &#34;correct&#34;: True,
+            &#34;points_earned&#34;: score,
+            &#34;total_points&#34;: game_state.players[player_name][&#39;score&#39;],
+            &#34;is_team_score&#34;: False,
+            &#34;guessResult&#34;: {
+                &#34;placement&#34;: placement,
+                &#34;totalPlayers&#34;: total_players,
+                &#34;accuracy&#34;: accuracy_text,
+                &#34;yourGuess&#34;: value,
+                &#34;correctAnswer&#34;: correct_answer
+            }
+        }, room=player_name)
+    
+    # Now handle players who didn&#39;t answer
+    for player_name in game_state.players:
+        if player_name not in players_who_answered:
+            print(f&#34;DEBUG: Player {player_name} didn&#39;t answer - sending too late message&#34;)
+            
+            # Send &#34;too late&#34; message to this player
+            emit(&#39;answer_correctness&#39;, {
+                &#34;correct&#34;: None,  # None triggers the &#34;too late&#34; screen
+                &#34;points_earned&#34;: 0,
+                &#34;total_points&#34;: game_state.players[player_name][&#39;score&#39;],
+                &#34;is_team_score&#34;: False,
+                &#34;guessResult&#34;: {
+                    &#34;placement&#34;: total_players + 1,  # Place them after all other players
+                    &#34;totalPlayers&#34;: total_players,
+                    &#34;accuracy&#34;: &#34;0%&#34;,
+                    &#34;yourGuess&#34;: &#34;-&#34;,
+                    &#34;correctAnswer&#34;: correct_answer
+                }
+            }, room=player_name)</code></pre>
+</details>
+<div class="desc"><p>Send individualized guess results to each player in free-for-all mode.</p>
+<p>Calculates points based on placement (closest to correct answer)
+and accuracy of the guess. Awards bonus points for very accurate guesses.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>sorted_guesses</code></strong></dt>
+<dd>List of player guesses sorted by proximity to correct answer</dd>
+<dt><strong><code>correct_answer</code></strong></dt>
+<dd>The actual correct numeric answer</dd>
+</dl>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'answer_correctness': Personalized result to each player with
+placement, accuracy, and points earned</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.guess_number_events.send_team_correctness_results"><code class="name flex">
+<span>def <span class="ident">send_team_correctness_results</span></span>(<span>winning_team)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send_team_correctness_results(winning_team):
+    &#34;&#34;&#34;
+    Send correctness results to team players after phase 2 voting.
+    
+    Notifies all players of their team&#39;s result (win/loss) and
+    updates point totals for each team.
+    
+    Args:
+        winning_team: The team that won this round (&#39;red&#39; or &#39;blue&#39;)
+        
+    Emits:
+        - &#39;answer_correctness&#39;: Result notification to each player
+          with appropriate team context
+    &#34;&#34;&#34;
+    # For all players in the winning team, send true
+    winning_team_players = game_state.blue_team if winning_team == &#39;blue&#39; else game_state.red_team
+    losing_team_players = game_state.blue_team if winning_team == &#39;red&#39; else game_state.red_team
+    losing_team = &#39;blue&#39; if winning_team == &#39;red&#39; else &#39;red&#39;
+    
+    # Get team scores
+    team_scores = {
+        &#39;blue&#39;: game_state.team_scores.get(&#39;blue&#39;, 0),
+        &#39;red&#39;: game_state.team_scores.get(&#39;red&#39;, 0)
+    }
+    
+    # Points earned in this round
+    points = POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER
+    
+    # Send correctness to winning team
+    for player_name in winning_team_players:
+        emit(&#39;answer_correctness&#39;, {
+            &#34;correct&#34;: True,
+            &#34;points_earned&#34;: points,
+            &#34;total_points&#34;: team_scores[winning_team],
+            &#34;is_team_score&#34;: True,
+            &#34;team_scores&#34;: team_scores
+        }, room=player_name)
+    
+    # Send correctness to losing team
+    for player_name in losing_team_players:
+        emit(&#39;answer_correctness&#39;, {
+            &#34;correct&#34;: False,
+            &#34;points_earned&#34;: 0,
+            &#34;total_points&#34;: team_scores[losing_team],
+            &#34;is_team_score&#34;: True, 
+            &#34;team_scores&#34;: team_scores
+        }, room=player_name)</code></pre>
+</details>
+<div class="desc"><p>Send correctness results to team players after phase 2 voting.</p>
+<p>Notifies all players of their team's result (win/loss) and
+updates point totals for each team.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>winning_team</code></strong></dt>
+<dd>The team that won this round ('red' or 'blue')</dd>
+</dl>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'answer_correctness': Result notification to each player
+with appropriate team context</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.guess_number_events.submit_captain_choice"><code class="name flex">
+<span>def <span class="ident">submit_captain_choice</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;submit_captain_choice&#39;)
+def submit_captain_choice(data):
+    &#34;&#34;&#34;
+    Handle team captain&#39;s final answer submission in phase 1.
+    
+    Verifies the submitter is the team captain, processes their final answer,
+    and transitions to phase 2 if needed. Handles the special case of an exact
+    match, which awards bonus points and ends the question immediately.
+    
+    Args:
+        data (dict):
+
+            - player_name: Name of the captain submitting the choice
+            - team: The team of the captain (&#39;red&#39; or &#39;blue&#39;)
+            - final_answer: The final numeric value chosen by the captain
+    
+    Emits:
+        - &#39;guess_feedback&#39;: Error message if non-captain tries to submit
+        - &#39;answer_correctness&#39;: Result notification if exact match is achieved
+        - &#39;phase_transition&#39;: Phase transition info for all players
+    &#34;&#34;&#34;
+    player_name = data[&#39;player_name&#39;]
+    team = data[&#39;team&#39;]
+    final_answer = data[&#39;final_answer&#39;]
+    
+    # Get the correct captain name for the team using the stored index
+    if team == &#39;blue&#39;:
+        captain_index = game_state.blue_captain_index
+        team_captain = game_state.blue_team[captain_index] if len(game_state.blue_team) &gt; captain_index else None
+    else:
+        captain_index = game_state.red_captain_index
+        team_captain = game_state.red_team[captain_index] if len(game_state.red_team) &gt; captain_index else None
+    
+    # Verify this is the captain
+    if team_captain != player_name:
+        emit(&#39;guess_feedback&#39;, {
+            &#34;message&#34;: &#34;Pouze kapitán může vybrat finální odpověď&#34;, 
+            &#34;severity&#34;: &#34;error&#34;
+        }, room=player_name)
+        return
+    
+    # Store the captain&#39;s choice
+    game_state.first_team_final_answer = final_answer
+    
+    # Get the correct answer
+    current_question = game_state.questions[game_state.current_question]
+    correct_answer = float(current_question.get(&#39;number_answer&#39;, 0))
+    
+    # Check if the answer is exactly correct - special case!
+    if abs(final_answer - correct_answer) &lt; 0.0001:  # Use small epsilon for floating point comparison
+        # The first team guessed exactly right! Award double points and end the question
+        double_points = POINTS_FOR_CORRECT_ANSWER_GUESS_A_NUMBER_FIRST_PHASE
+        game_state.team_scores[team] += double_points
+        
+        # Prepare question data for results page
+        current_question[&#39;teamMode&#39;] = True
+        current_question[&#39;exactGuess&#39;] = True  # Mark as exact guess for UI
+        current_question[&#39;firstTeamAnswer&#39;] = final_answer
+        current_question[&#39;playerGuesses&#39;] = game_state.team_player_guesses[&#39;blue&#39;] + game_state.team_player_guesses[&#39;red&#39;]
+        
+        # Send correctness info to all players
+        for player in game_state.players:
+            player_team = &#39;blue&#39; if player in game_state.blue_team else &#39;red&#39;
+            is_winning_team = player_team == team
+            
+            # Get team scores
+            team_scores = {
+                &#39;blue&#39;: game_state.team_scores.get(&#39;blue&#39;, 0),
+                &#39;red&#39;: game_state.team_scores.get(&#39;red&#39;, 0)
+            }
+            
+            emit(&#39;answer_correctness&#39;, {
+                &#34;correct&#34;: is_winning_team,  # Only the exact-guessing team gets &#34;correct&#34;
+                &#34;points_earned&#34;: double_points if is_winning_team else 0,
+                &#34;total_points&#34;: team_scores[player_team],
+                &#34;is_team_score&#34;: True,
+                &#34;team_scores&#34;: team_scores,
+                &#34;exactGuess&#34;: True,  # Special flag for UI
+                &#34;guessResult&#34;: {
+                    &#34;exactGuess&#34;: True,
+                    &#34;correctAnswer&#34;: correct_answer,
+                    &#34;yourGuess&#34;: final_answer
+                }
+            }, room=player)
+        
+        # Reset answers_received to prevent it from carrying over to the next question
+        game_state.answers_received = 0
+        
+        # Emit results and end the question
+        scores = get_scores_data()
+        emit_all_answers_received(
+            scores=scores,
+            correct_answer=correct_answer,
+            additional_data=current_question
+        )
+        return
+    
+    # If we&#39;re here, it wasn&#39;t an exact match - continue with regular phase 2
+    
+    # Calculate absolute timestamps instead of durations
+    current_time = int(time() * 1000)
+    transition_end_time = current_time + PHASE_TRANSITION_TIME
+    
+    # Move to phase 2
+    game_state.number_guess_phase = 2
+    
+    # Switch active team
+    game_state.active_team = &#39;red&#39; if game_state.active_team == &#39;blue&#39; else &#39;blue&#39;
+    
+    # Reset the answer counts for the second phase (more/less votes)
+    game_state.answer_counts = [0, 0, 0, 0]
+    
+    # Initialize voted_players as a dictionary to track votes properly
+    game_state.voted_players = {}
+    
+    # Reset answers_received for phase 2
+    game_state.answers_received = 0
+    
+    # Notify the UI about the phase transition - sending absolute timestamp
+    socketio.emit(&#39;phase_transition&#39;, {
+        &#39;firstTeamAnswer&#39;: final_answer,
+        &#39;activeTeam&#39;: game_state.active_team,
+        &#39;transitionEndTime&#39;: transition_end_time
+    })
+    
+    # Update all players with their roles for phase 2
+    update_player_roles_for_phase2()</code></pre>
+</details>
+<div class="desc"><p>Handle team captain's final answer submission in phase 1.</p>
+<p>Verifies the submitter is the team captain, processes their final answer,
+and transitions to phase 2 if needed. Handles the special case of an exact
+match, which awards bonus points and ends the question immediately.</p>
+<h2 id="args">Args</h2>
+<p>data (dict):</p>
+<pre><code>- player_name: Name of the captain submitting the choice
+- team: The team of the captain ('red' or 'blue')
+- final_answer: The final numeric value chosen by the captain
+</code></pre>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'guess_feedback': Error message if non-captain tries to submit</li>
+<li>'answer_correctness': Result notification if exact match is achieved</li>
+<li>'phase_transition': Phase transition info for all players</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.guess_number_events.submit_more_less_vote"><code class="name flex">
+<span>def <span class="ident">submit_more_less_vote</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;submit_more_less_vote&#39;)
+def submit_more_less_vote(data):
+    &#34;&#34;&#34;
+    Handle player votes in phase 2 (more/less comparison).
+    
+    Records votes from the active team&#39;s players on whether the correct answer
+    is more or less than the first team&#39;s guess. Tracks and updates vote counts
+    and handles cases where players change their votes.
+    
+    Args:
+        data (dict):
+
+            - player_name: Name of the player voting
+            - team: Team of the player (&#39;red&#39; or &#39;blue&#39;)
+            - vote: The player&#39;s vote (&#39;more&#39; or &#39;less&#39;)
+    
+    Emits:
+        - &#39;guess_feedback&#39;: Feedback if player from wrong team tries to vote
+        - &#39;second_team_vote&#39;: Updated vote counts to all clients
+        - &#39;guess_submitted&#39;: Notification that a vote was received
+    &#34;&#34;&#34;
+    player_name = data[&#39;player_name&#39;]
+    team = data[&#39;team&#39;]
+    vote = data[&#39;vote&#39;]  # &#39;more&#39; or &#39;less&#39;
+    
+    # Only players from the active team in phase 2 can vote
+    if game_state.number_guess_phase != 2:
+        return
+    
+    if team != game_state.active_team:
+        emit(&#39;guess_feedback&#39;, {
+            &#34;message&#34;: &#34;Nyní je na řadě druhý tým&#34;, 
+            &#34;severity&#34;: &#34;warning&#34;
+        }, room=player_name)
+        return
+    
+    # Record the vote - use answer_counts instead of second_team_votes
+    # answer_counts[0] = more votes, answer_counts[1] = less votes
+    vote_index = 0 if vote == &#39;more&#39; else 1
+    
+    # Check if the player has voted before
+    if player_name in game_state.voted_players:
+        # Get their previous vote
+        previous_vote = game_state.voted_players[player_name]
+        previous_index = 0 if previous_vote == &#39;more&#39; else 1
+        
+        # Only update if the vote changed
+        if previous_vote != vote:
+            # Decrement previous vote count
+            game_state.answer_counts[previous_index] -= 1
+            
+            # Increment new vote count
+            game_state.answer_counts[vote_index] += 1
+    else:
+        # New vote
+        game_state.voted_players[player_name] = vote
+        # Increment the guesses counter for UI
+        game_state.answers_received += 1
+        socketio.emit(&#39;guess_submitted&#39;)
+        # Increment the vote count
+        game_state.answer_counts[vote_index] += 1
+    
+    # Always update the player&#39;s vote choice
+    game_state.voted_players[player_name] = vote
+    
+    # Update the vote counts - convert to dictionary format for the UI
+    socketio.emit(&#39;second_team_vote&#39;, {
+        &#39;votes&#39;: {
+            &#39;more&#39;: game_state.answer_counts[0],
+            &#39;less&#39;: game_state.answer_counts[1]
+        }
+    })
+
+    # Check if all players in active team have voted
+    if game_state.answers_received &gt;= len(game_state.blue_team if game_state.active_team == &#39;blue&#39; else game_state.red_team):
+        # All players have voted, handle the results
+        handle_all_votes_completed()</code></pre>
+</details>
+<div class="desc"><p>Handle player votes in phase 2 (more/less comparison).</p>
+<p>Records votes from the active team's players on whether the correct answer
+is more or less than the first team's guess. Tracks and updates vote counts
+and handles cases where players change their votes.</p>
+<h2 id="args">Args</h2>
+<p>data (dict):</p>
+<pre><code>- player_name: Name of the player voting
+- team: Team of the player ('red' or 'blue')
+- vote: The player's vote ('more' or 'less')
+</code></pre>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'guess_feedback': Feedback if player from wrong team tries to vote</li>
+<li>'second_team_vote': Updated vote counts to all clients</li>
+<li>'guess_submitted': Notification that a vote was received</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.guess_number_events.submit_number_guess"><code class="name flex">
+<span>def <span class="ident">submit_number_guess</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@socketio.on(&#39;submit_number_guess&#39;)
+def submit_number_guess(data):
+    &#34;&#34;&#34;
+    Handle player submission of a number guess.
+    
+    Processes different behaviors based on game mode:
+
+    - In team mode: Collects guesses from active team members in phase 1
+    - In individual mode: Records each player&#39;s guess for ranking
+    
+    Args:
+        data (dict): 
+
+            - player_name: Name of the player submitting the guess
+            - value: The numeric value guessed by the player
+    
+    Emits:
+        - &#39;error&#39;: If game not started
+        - &#39;guess_feedback&#39;: Feedback message to the player about their guess
+        - &#39;team_guess_submitted&#39;: Notification that a team member submitted a guess
+        - &#39;team_guesses_update&#39;: Updated list of team guesses to the team captain
+        - &#39;guess_submitted&#39;: Notification of submission to update UI counters
+    &#34;&#34;&#34;
+    player_name = data[&#39;player_name&#39;]
+    value = data[&#39;value&#39;]
+    current_question = game_state.current_question
+    
+    if current_question is None:
+        emit(&#39;error&#39;, {&#34;error&#34;: &#34;Game not started&#34;})
+        return
+    
+    # Check if we&#39;re in team mode
+    if game_state.is_team_mode:
+        # Store the player&#39;s guess for the team
+        team = &#39;blue&#39; if player_name in game_state.blue_team else &#39;red&#39;
+        
+        # Only accept guesses from the active team in phase 1
+        if game_state.number_guess_phase == 1 and team != game_state.active_team:
+            emit(&#39;guess_feedback&#39;, {
+                &#34;message&#34;: &#34;Nyní hádá druhý tým&#34;, 
+                &#34;severity&#34;: &#34;warning&#34;
+            }, room=player_name)
+            return
+            
+        # Only accept votes from the non-active team in phase 2
+        if game_state.number_guess_phase == 2 and team == game_state.active_team:
+            emit(&#39;guess_feedback&#39;, {
+                &#34;message&#34;: &#34;Už jste tipovali v první fázi&#34;, 
+                &#34;severity&#34;: &#34;warning&#34;
+            }, room=player_name)
+            return
+        
+        # Process the guess for phase 1
+        if game_state.number_guess_phase == 1:
+            player_guess = {
+                &#39;playerName&#39;: player_name,
+                &#39;value&#39;: value
+            }
+            
+            # Add to the team&#39;s guesses
+            if team not in game_state.team_player_guesses:
+                game_state.team_player_guesses[team] = []
+            game_state.team_player_guesses[team].append(player_guess)
+            
+            # Get the team captain index
+            captain_index = game_state.blue_captain_index if team == &#39;blue&#39; else game_state.red_captain_index
+            
+            # Get the captain name using the index
+            if team == &#39;blue&#39; and len(game_state.blue_team) &gt; captain_index:
+                captain_name = game_state.blue_team[captain_index]
+            elif team == &#39;red&#39; and len(game_state.red_team) &gt; captain_index:
+                captain_name = game_state.red_team[captain_index]
+            else:
+                # Fallback to first player if index is invalid
+                captain_name = game_state.blue_team[0] if team == &#39;blue&#39; else game_state.red_team[0]
+            
+            # Send the guess to the main screen
+            socketio.emit(&#39;team_guess_submitted&#39;, {
+                &#39;playerGuess&#39;: player_guess
+            })
+            
+            # Send the updated list to the team captain
+            emit(&#39;team_guesses_update&#39;, {
+                &#39;teamName&#39;: team,
+                &#39;guesses&#39;: game_state.team_player_guesses[team]
+            }, room=captain_name)
+            
+            # Provide feedback to the player
+            emit(&#39;guess_feedback&#39;, {
+                &#34;message&#34;: &#34;Tvůj tip byl zaznamenán a odeslán kapitánovi&#34;, 
+                &#34;severity&#34;: &#34;success&#34;
+            }, room=player_name)
+            
+            # Increment the guesses counter
+            game_state.answers_received += 1
+            socketio.emit(&#39;guess_submitted&#39;)
+    else:
+        # Free-for-all mode
+        # Check if the player already answered
+        if &#39;all&#39; not in game_state.team_player_guesses:
+            game_state.team_player_guesses[&#39;all&#39;] = []
+            
+        if player_name in [g[&#39;playerName&#39;] for g in game_state.team_player_guesses.get(&#39;all&#39;, [])]:
+            emit(&#39;guess_feedback&#39;, {
+                &#34;message&#34;: &#34;Už jsi odeslal/a svůj tip&#34;, 
+                &#34;severity&#34;: &#34;warning&#34;
+            }, room=player_name)
+            return
+            
+        # Add the guess to the list
+        player_guess = {
+            &#39;playerName&#39;: player_name,
+            &#39;value&#39;: value,
+            &#39;playerColor&#39;: game_state.players[player_name][&#39;color&#39;]
+        }
+        
+        game_state.team_player_guesses[&#39;all&#39;].append(player_guess)
+        
+        # Increment the guesses counter and show &#34;waiting&#34; state
+        game_state.answers_received += 1
+        socketio.emit(&#39;guess_submitted&#39;)
+        
+        # Check if all players have answered
+        if game_state.answers_received &gt;= len(game_state.players):
+            handle_all_number_guesses_received()</code></pre>
+</details>
+<div class="desc"><p>Handle player submission of a number guess.</p>
+<p>Processes different behaviors based on game mode:</p>
+<ul>
+<li>In team mode: Collects guesses from active team members in phase 1</li>
+<li>In individual mode: Records each player's guess for ranking</li>
+</ul>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>dict</code></dt>
+<dd>
+<ul>
+<li>player_name: Name of the player submitting the guess</li>
+<li>value: The numeric value guessed by the player</li>
+</ul>
+</dd>
+</dl>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'error': If game not started</li>
+<li>'guess_feedback': Feedback message to the player about their guess</li>
+<li>'team_guess_submitted': Notification that a team member submitted a guess</li>
+<li>'team_guesses_update': Updated list of team guesses to the team captain</li>
+<li>'guess_submitted': Notification of submission to update UI counters</li>
+</ul></div>
+</dd>
+<dt id="app.socketio_events.guess_number_events.update_player_roles_for_phase2"><code class="name flex">
+<span>def <span class="ident">update_player_roles_for_phase2</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_player_roles_for_phase2():
+    &#34;&#34;&#34;
+    Update player roles for phase 2 of Guess a Number.
+    
+    Notifies all players about the transition to phase 2 and provides
+    the first team&#39;s final answer for context.
+    
+    Emits:
+        - &#39;player_role_update&#39;: Phase and answer information to each player
+    &#34;&#34;&#34;
+    for player_name in game_state.players:
+        # Send role update to player - the team and role information 
+        # is already known, we just need to update the phase and add the answer
+        emit(&#39;player_role_update&#39;, {
+            &#39;quizPhase&#39;: 2,
+            &#39;firstTeamAnswer&#39;: game_state.first_team_final_answer
+        }, room=player_name)</code></pre>
+</details>
+<div class="desc"><p>Update player roles for phase 2 of Guess a Number.</p>
+<p>Notifies all players about the transition to phase 2 and provides
+the first team's final answer for context.</p>
+<h2 id="emits">Emits</h2>
+<ul>
+<li>'player_role_update': Phase and answer information to each player</li>
+</ul></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="app.socketio_events" href="index.html">app.socketio_events</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="app.socketio_events.guess_number_events.handle_all_number_guesses_received" href="#app.socketio_events.guess_number_events.handle_all_number_guesses_received">handle_all_number_guesses_received</a></code></li>
+<li><code><a title="app.socketio_events.guess_number_events.handle_all_votes_completed" href="#app.socketio_events.guess_number_events.handle_all_votes_completed">handle_all_votes_completed</a></code></li>
+<li><code><a title="app.socketio_events.guess_number_events.handle_guess_number_time_up" href="#app.socketio_events.guess_number_events.handle_guess_number_time_up">handle_guess_number_time_up</a></code></li>
+<li><code><a title="app.socketio_events.guess_number_events.handle_tied_votes" href="#app.socketio_events.guess_number_events.handle_tied_votes">handle_tied_votes</a></code></li>
+<li><code><a title="app.socketio_events.guess_number_events.send_individual_guess_results" href="#app.socketio_events.guess_number_events.send_individual_guess_results">send_individual_guess_results</a></code></li>
+<li><code><a title="app.socketio_events.guess_number_events.send_team_correctness_results" href="#app.socketio_events.guess_number_events.send_team_correctness_results">send_team_correctness_results</a></code></li>
+<li><code><a title="app.socketio_events.guess_number_events.submit_captain_choice" href="#app.socketio_events.guess_number_events.submit_captain_choice">submit_captain_choice</a></code></li>
+<li><code><a title="app.socketio_events.guess_number_events.submit_more_less_vote" href="#app.socketio_events.guess_number_events.submit_more_less_vote">submit_more_less_vote</a></code></li>
+<li><code><a title="app.socketio_events.guess_number_events.submit_number_guess" href="#app.socketio_events.guess_number_events.submit_number_guess">submit_number_guess</a></code></li>
+<li><code><a title="app.socketio_events.guess_number_events.update_player_roles_for_phase2" href="#app.socketio_events.guess_number_events.update_player_roles_for_phase2">update_player_roles_for_phase2</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

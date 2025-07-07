@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>app.services.question_handlers.abcd_handler API documentation</title>
+<meta name="description" content="Handler for ABCD (multiple choice) questions in the quiz application …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>app.services.question_handlers.abcd_handler</code></h1>
+</header>
+<section id="section-intro">
+<p>Handler for ABCD (multiple choice) questions in the quiz application.</p>
+<p>Provides validation, formatting, and processing logic specific to
+multiple choice question types.</p>
+<p>Author: Bc. Martin Baláž</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="app.services.question_handlers.abcd_handler.AbcdQuestionHandler"><code class="flex name class">
+<span>class <span class="ident">AbcdQuestionHandler</span></span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AbcdQuestionHandler(BaseQuestionHandler):
+    &#34;&#34;&#34;
+    Handler for ABCD (multiple choice) questions.
+    
+    Handles validation and formatting of multiple choice questions
+    where users select one correct answer from several options.
+    
+    Supports both &#39;answers&#39;/&#39;correctAnswer&#39; and &#39;options&#39;/&#39;answer&#39; field naming
+    conventions for compatibility with different frontend implementations.
+    &#34;&#34;&#34;
+    
+    def __init__(self):
+        &#34;&#34;&#34;
+        Initialize the ABCD question handler.
+        
+        Sets the question type to ABCD from constants and inherits base
+        validation functionality from the parent class.
+        &#34;&#34;&#34;
+        super().__init__(QUESTION_TYPES[&#34;ABCD&#34;])
+    
+    def validate(self, question_data: Dict[str, Any]) -&gt; bool:
+        &#34;&#34;&#34;
+        Validate that a question meets ABCD format requirements.
+        
+        Performs base validation first, then checks ABCD-specific requirements:
+        
+        - Must have more than one option/answer
+        - Must specify which option/answer is correct
+        
+        Args:
+            question_data: Dictionary containing question data
+            
+        Returns:
+            bool: True if the question is valid, False otherwise
+        &#34;&#34;&#34;
+        if not super().validate(question_data):
+            return False
+        
+        # ABCD specific validation
+        options = question_data.get(&#39;answers&#39;, question_data.get(&#39;options&#39;, []))
+        return (len(options) &gt; 1 and 
+                (&#39;correctAnswer&#39; in question_data or &#39;answer&#39; in question_data))
+    
+    def add_type_specific_fields(self, question_data: Dict[str, Any]) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;
+        Add or transform fields specific to ABCD questions.
+        
+        Standardizes field names to &#39;options&#39; and &#39;answer&#39; regardless of 
+        which naming convention was used in the input.
+        
+        Args:
+            question_data: Dictionary containing raw question data
+            
+        Returns:
+            dict: Dictionary with standardized ABCD fields
+        &#34;&#34;&#34;
+        return {
+            &#34;options&#34;: question_data.get(&#34;answers&#34;, question_data.get(&#34;options&#34;)),
+            &#34;answer&#34;: question_data.get(&#34;correctAnswer&#34;, question_data.get(&#34;answer&#34;))
+        }
+    
+    def format_for_frontend(self, question: Dict[str, Any], quiz_name: str = &#34;Unknown Quiz&#34;) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;
+        Format an ABCD question for frontend display.
+        
+        Transforms the database storage format into the format expected by the frontend,
+        including creating an array of answer objects with &#39;text&#39; and &#39;isCorrect&#39; properties.
+        
+        Args:
+            question: Dictionary containing question data from database
+            quiz_name: Name of the quiz containing this question
+            
+        Returns:
+            dict: Question formatted for frontend display with answers array
+        &#34;&#34;&#34;
+        question_data = super().format_for_frontend(question, quiz_name)
+        
+        if &#39;options&#39; in question and question.get(&#39;answer&#39;) is not None:
+            question_data[&#39;answers&#39;] = [
+                {&#39;text&#39;: option, &#39;isCorrect&#39;: idx == question[&#39;answer&#39;]}
+                for idx, option in enumerate(question[&#39;options&#39;])
+            ]
+        else:
+            # Fallback for malformed questions
+            question_data[&#39;answers&#39;] = [
+                {&#39;text&#39;: &#39;Missing options&#39;, &#39;isCorrect&#39;: True}
+            ]
+            
+        return question_data</code></pre>
+</details>
+<div class="desc"><p>Handler for ABCD (multiple choice) questions.</p>
+<p>Handles validation and formatting of multiple choice questions
+where users select one correct answer from several options.</p>
+<p>Supports both 'answers'/'correctAnswer' and 'options'/'answer' field naming
+conventions for compatibility with different frontend implementations.</p>
+<p>Initialize the ABCD question handler.</p>
+<p>Sets the question type to ABCD from constants and inherits base
+validation functionality from the parent class.</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="app.services.question_handlers.base_handler.BaseQuestionHandler" href="base_handler.html#app.services.question_handlers.base_handler.BaseQuestionHandler">BaseQuestionHandler</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="app.services.question_handlers.abcd_handler.AbcdQuestionHandler.add_type_specific_fields"><code class="name flex">
+<span>def <span class="ident">add_type_specific_fields</span></span>(<span>self, question_data: Dict[str, Any]) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_type_specific_fields(self, question_data: Dict[str, Any]) -&gt; Dict[str, Any]:
+    &#34;&#34;&#34;
+    Add or transform fields specific to ABCD questions.
+    
+    Standardizes field names to &#39;options&#39; and &#39;answer&#39; regardless of 
+    which naming convention was used in the input.
+    
+    Args:
+        question_data: Dictionary containing raw question data
+        
+    Returns:
+        dict: Dictionary with standardized ABCD fields
+    &#34;&#34;&#34;
+    return {
+        &#34;options&#34;: question_data.get(&#34;answers&#34;, question_data.get(&#34;options&#34;)),
+        &#34;answer&#34;: question_data.get(&#34;correctAnswer&#34;, question_data.get(&#34;answer&#34;))
+    }</code></pre>
+</details>
+<div class="desc"><p>Add or transform fields specific to ABCD questions.</p>
+<p>Standardizes field names to 'options' and 'answer' regardless of
+which naming convention was used in the input.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>question_data</code></strong></dt>
+<dd>Dictionary containing raw question data</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>Dictionary with standardized ABCD fields</dd>
+</dl></div>
+</dd>
+<dt id="app.services.question_handlers.abcd_handler.AbcdQuestionHandler.format_for_frontend"><code class="name flex">
+<span>def <span class="ident">format_for_frontend</span></span>(<span>self, question: Dict[str, Any], quiz_name: str = 'Unknown Quiz') ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def format_for_frontend(self, question: Dict[str, Any], quiz_name: str = &#34;Unknown Quiz&#34;) -&gt; Dict[str, Any]:
+    &#34;&#34;&#34;
+    Format an ABCD question for frontend display.
+    
+    Transforms the database storage format into the format expected by the frontend,
+    including creating an array of answer objects with &#39;text&#39; and &#39;isCorrect&#39; properties.
+    
+    Args:
+        question: Dictionary containing question data from database
+        quiz_name: Name of the quiz containing this question
+        
+    Returns:
+        dict: Question formatted for frontend display with answers array
+    &#34;&#34;&#34;
+    question_data = super().format_for_frontend(question, quiz_name)
+    
+    if &#39;options&#39; in question and question.get(&#39;answer&#39;) is not None:
+        question_data[&#39;answers&#39;] = [
+            {&#39;text&#39;: option, &#39;isCorrect&#39;: idx == question[&#39;answer&#39;]}
+            for idx, option in enumerate(question[&#39;options&#39;])
+        ]
+    else:
+        # Fallback for malformed questions
+        question_data[&#39;answers&#39;] = [
+            {&#39;text&#39;: &#39;Missing options&#39;, &#39;isCorrect&#39;: True}
+        ]
+        
+    return question_data</code></pre>
+</details>
+<div class="desc"><p>Format an ABCD question for frontend display.</p>
+<p>Transforms the database storage format into the format expected by the frontend,
+including creating an array of answer objects with 'text' and 'isCorrect' properties.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>question</code></strong></dt>
+<dd>Dictionary containing question data from database</dd>
+<dt><strong><code>quiz_name</code></strong></dt>
+<dd>Name of the quiz containing this question</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>Question formatted for frontend display with answers array</dd>
+</dl></div>
+</dd>
+<dt id="app.services.question_handlers.abcd_handler.AbcdQuestionHandler.validate"><code class="name flex">
+<span>def <span class="ident">validate</span></span>(<span>self, question_data: Dict[str, Any]) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate(self, question_data: Dict[str, Any]) -&gt; bool:
+    &#34;&#34;&#34;
+    Validate that a question meets ABCD format requirements.
+    
+    Performs base validation first, then checks ABCD-specific requirements:
+    
+    - Must have more than one option/answer
+    - Must specify which option/answer is correct
+    
+    Args:
+        question_data: Dictionary containing question data
+        
+    Returns:
+        bool: True if the question is valid, False otherwise
+    &#34;&#34;&#34;
+    if not super().validate(question_data):
+        return False
+    
+    # ABCD specific validation
+    options = question_data.get(&#39;answers&#39;, question_data.get(&#39;options&#39;, []))
+    return (len(options) &gt; 1 and 
+            (&#39;correctAnswer&#39; in question_data or &#39;answer&#39; in question_data))</code></pre>
+</details>
+<div class="desc"><p>Validate that a question meets ABCD format requirements.</p>
+<p>Performs base validation first, then checks ABCD-specific requirements:</p>
+<ul>
+<li>Must have more than one option/answer</li>
+<li>Must specify which option/answer is correct</li>
+</ul>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>question_data</code></strong></dt>
+<dd>Dictionary containing question data</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>True if the question is valid, False otherwise</dd>
+</dl></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="app.services.question_handlers.base_handler.BaseQuestionHandler" href="base_handler.html#app.services.question_handlers.base_handler.BaseQuestionHandler">BaseQuestionHandler</a></b></code>:
+<ul class="hlist">
+<li><code><a title="app.services.question_handlers.base_handler.BaseQuestionHandler.create_question_dict" href="base_handler.html#app.services.question_handlers.base_handler.BaseQuestionHandler.create_question_dict">create_question_dict</a></code></li>
+<li><code><a title="app.services.question_handlers.base_handler.BaseQuestionHandler.handle_copy_references" href="base_handler.html#app.services.question_handlers.base_handler.BaseQuestionHandler.handle_copy_references">handle_copy_references</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="app.services.question_handlers" href="index.html">app.services.question_handlers</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="app.services.question_handlers.abcd_handler.AbcdQuestionHandler" href="#app.services.question_handlers.abcd_handler.AbcdQuestionHandler">AbcdQuestionHandler</a></code></h4>
+<ul class="">
+<li><code><a title="app.services.question_handlers.abcd_handler.AbcdQuestionHandler.add_type_specific_fields" href="#app.services.question_handlers.abcd_handler.AbcdQuestionHandler.add_type_specific_fields">add_type_specific_fields</a></code></li>
+<li><code><a title="app.services.question_handlers.abcd_handler.AbcdQuestionHandler.format_for_frontend" href="#app.services.question_handlers.abcd_handler.AbcdQuestionHandler.format_for_frontend">format_for_frontend</a></code></li>
+<li><code><a title="app.services.question_handlers.abcd_handler.AbcdQuestionHandler.validate" href="#app.services.question_handlers.abcd_handler.AbcdQuestionHandler.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

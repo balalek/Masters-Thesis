@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>app.routes.quiz_management_routes API documentation</title>
+<meta name="description" content="Quiz management routes for the quiz application.
+Handles CRUD operations for quizzes and questions, including
+creation, retrieval, updating, deletion, …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>app.routes.quiz_management_routes</code></h1>
+</header>
+<section id="section-intro">
+<p>Quiz management routes for the quiz application.
+Handles CRUD operations for quizzes and questions, including
+creation, retrieval, updating, deletion, and validation.</p>
+<p>Author: Bc. Martin Baláž</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="app.routes.quiz_management_routes.check_question"><code class="name flex">
+<span>def <span class="ident">check_question</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@quiz_management_routes.route(&#39;/check_question&#39;, methods=[&#39;POST&#39;])
+def check_question():
+    &#34;&#34;&#34;
+    Validate an ABCD question before it&#39;s saved to the database.
+    TODO: Implement validations for other question types. 
+          Now it&#39;s being validated only in the frontend, which is good for now.
+    
+    Validates:
+
+    - Question text length
+    - Answer text lengths
+    - Time limit range
+    - Category validity
+    
+    Request body (JSON):
+
+        questions: Array containing a single question object to validate
+    
+    Returns:
+        200 JSON: Message confirming question validity
+        400 JSON: Error with specific validation failure reason
+    &#34;&#34;&#34;
+    data = request.json
+    question = data.get(&#39;questions&#39;, [{}])[0]  # Get the first (and only) question
+    
+    # Question text validation
+    if len(question[&#39;question&#39;]) &gt; QUIZ_VALIDATION[&#39;QUESTION_MAX_LENGTH&#39;]:
+        return jsonify({
+            &#34;error&#34;: f&#34;Otázka nesmí být delší než {QUIZ_VALIDATION[&#39;QUESTION_MAX_LENGTH&#39;]} znaků&#34;
+        }), 400
+
+    # Answers validation
+    for answer in question[&#39;answers&#39;]:
+        if len(answer) &gt; QUIZ_VALIDATION[&#39;ANSWER_MAX_LENGTH&#39;]:
+            return jsonify({
+                &#34;error&#34;: f&#34;Odpověď nesmí být delší než {QUIZ_VALIDATION[&#39;ANSWER_MAX_LENGTH&#39;]} znaků&#34;
+            }), 400
+
+    # Time limit validation
+    if not (QUIZ_VALIDATION[&#39;TIME_LIMIT_MIN&#39;] &lt;= question[&#39;timeLimit&#39;] &lt;= QUIZ_VALIDATION[&#39;TIME_LIMIT_MAX&#39;]):
+        return jsonify({
+            &#34;error&#34;: f&#34;Časový limit musí být mezi {QUIZ_VALIDATION[&#39;TIME_LIMIT_MIN&#39;]}-{QUIZ_VALIDATION[&#39;TIME_LIMIT_MAX&#39;]} vteřinami&#34;
+        }), 400
+
+    # Category validation
+    if question[&#39;category&#39;] not in QUIZ_CATEGORIES:
+        return jsonify({
+            &#34;error&#34;: &#34;Neplatná kategorie&#34;
+        }), 400
+        
+    return jsonify({&#34;message&#34;: &#34;Question is valid&#34;}), 200</code></pre>
+</details>
+<div class="desc"><p>Validate an ABCD question before it's saved to the database.
+TODO: Implement validations for other question types.
+Now it's being validated only in the frontend, which is good for now.</p>
+<p>Validates:</p>
+<ul>
+<li>Question text length</li>
+<li>Answer text lengths</li>
+<li>Time limit range</li>
+<li>Category validity</li>
+</ul>
+<p>Request body (JSON):</p>
+<pre><code>questions: Array containing a single question object to validate
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>200 JSON</code></dt>
+<dd>Message confirming question validity</dd>
+<dt><code>400 JSON</code></dt>
+<dd>Error with specific validation failure reason</dd>
+</dl></div>
+</dd>
+<dt id="app.routes.quiz_management_routes.copy_quiz"><code class="name flex">
+<span>def <span class="ident">copy_quiz</span></span>(<span>quiz_id)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@quiz_management_routes.route(&#39;/quiz/&lt;quiz_id&gt;/copy&#39;, methods=[&#39;POST&#39;])
+def copy_quiz(quiz_id):
+    &#34;&#34;&#34;
+    Create a copy of an existing quiz.
+    
+    The copy is associated with the current device ID.
+    Used to duplicate public quizzes or to create variants of existing quizzes.
+    
+    Path parameters:
+
+        quiz_id: MongoDB ObjectId of the quiz to copy
+    
+    Returns:
+        200 JSON: Success message with new quiz ID
+        400 JSON: Error if the quiz can&#39;t be copied
+        500 JSON: Error for server-side failures
+    &#34;&#34;&#34;
+    try:
+        device_id = get_device_id()
+        new_quiz_id = QuizService.copy_quiz(quiz_id, device_id)
+
+        return jsonify({
+            &#34;message&#34;: &#34;Kvíz byl úspěšně zkopírován&#34;,
+            &#34;quizId&#34;: str(new_quiz_id),
+            &#34;success&#34;: True
+        }), 200
+    
+    except ValueError as e:
+        return jsonify({&#34;error&#34;: str(e)}), 400
+    
+    except Exception as e:
+        return jsonify({&#34;error&#34;: f&#34;Došlo k chybě při kopírování kvízu: {str(e)}&#34;}), 500</code></pre>
+</details>
+<div class="desc"><p>Create a copy of an existing quiz.</p>
+<p>The copy is associated with the current device ID.
+Used to duplicate public quizzes or to create variants of existing quizzes.</p>
+<p>Path parameters:</p>
+<pre><code>quiz_id: MongoDB ObjectId of the quiz to copy
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>200 JSON</code></dt>
+<dd>Success message with new quiz ID</dd>
+<dt><code>400 JSON</code></dt>
+<dd>Error if the quiz can't be copied</dd>
+<dt><code>500 JSON</code></dt>
+<dd>Error for server-side failures</dd>
+</dl></div>
+</dd>
+<dt id="app.routes.quiz_management_routes.create_quiz"><code class="name flex">
+<span>def <span class="ident">create_quiz</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@quiz_management_routes.route(&#39;/create_quiz&#39;, methods=[&#39;POST&#39;])
+def create_quiz():
+    &#34;&#34;&#34;
+    Create a new quiz with the specified name, questions, and type.
+    
+    The new quiz is associated with the device ID of the creator.
+    
+    Request body (JSON):
+
+        name: Quiz name
+        questions: Array of question objects
+        type: Quiz type identifier
+    
+    Returns:
+        201 JSON: Success message with the new quiz ID
+        400 JSON: Error for invalid input (missing name, no questions, etc.)
+        500 JSON: Error for server-side failures
+    &#34;&#34;&#34;
+    data = request.json
+    quiz_name = data.get(&#39;name&#39;)
+    questions = data.get(&#39;questions&#39;, [])
+    quiz_type = data.get(&#39;type&#39;)
+    device_id = get_device_id()
+    
+    if not quiz_name:
+        return jsonify({&#34;error&#34;: &#34;Zadejte název kvízu&#34;}), 400
+    
+    if len(quiz_name) &gt; QUIZ_VALIDATION[&#39;QUIZ_NAME_MAX_LENGTH&#39;]:
+        return jsonify({&#34;error&#34;: f&#34;Název kvízu nesmí být delší než {QUIZ_VALIDATION[&#39;QUIZ_NAME_MAX_LENGTH&#39;]} znaků&#34;}), 400
+    
+    if not questions:
+        return jsonify({&#34;error&#34;: &#34;Vytvořte alespoň jednu otázku&#34;}), 400
+
+    try:
+        quiz_id = QuizService.create_quiz(quiz_name, questions, quiz_type, device_id)
+        return jsonify({
+            &#34;message&#34;: &#34;Kvíz byl úspěšně vytvořen&#34;,
+            &#34;quizId&#34;: str(quiz_id)
+        }), 201
+    
+    except ValueError as e:
+        return jsonify({&#34;error&#34;: str(e)}), 400
+    
+    except Exception as e:
+        return jsonify({&#34;error&#34;: f&#34;Došlo k chybě při vytváření kvízu: {str(e)}&#34;}), 500</code></pre>
+</details>
+<div class="desc"><p>Create a new quiz with the specified name, questions, and type.</p>
+<p>The new quiz is associated with the device ID of the creator.</p>
+<p>Request body (JSON):</p>
+<pre><code>name: Quiz name
+questions: Array of question objects
+type: Quiz type identifier
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>201 JSON</code></dt>
+<dd>Success message with the new quiz ID</dd>
+<dt><code>400 JSON</code></dt>
+<dd>Error for invalid input (missing name, no questions, etc.)</dd>
+<dt><code>500 JSON</code></dt>
+<dd>Error for server-side failures</dd>
+</dl></div>
+</dd>
+<dt id="app.routes.quiz_management_routes.delete_quiz"><code class="name flex">
+<span>def <span class="ident">delete_quiz</span></span>(<span>quiz_id)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@quiz_management_routes.route(&#39;/quiz/&lt;quiz_id&gt;&#39;, methods=[&#39;DELETE&#39;])
+def delete_quiz(quiz_id):
+    &#34;&#34;&#34;
+    Delete a quiz and its associated questions.
+    
+    Only the creator of a quiz (identified by device ID) can delete it.
+    
+    Path parameters:
+
+        quiz_id: MongoDB ObjectId of the quiz to delete
+    
+    Returns:
+        200 JSON: Success message confirming deletion
+        403 JSON: Error if user doesn&#39;t have permission
+        500 JSON: Error for server-side failures
+    &#34;&#34;&#34;
+    try:
+        device_id = get_device_id()
+        QuizService.delete_quiz(quiz_id, device_id)
+
+        return jsonify({&#34;message&#34;: &#34;Kvíz byl úspěšně smazán&#34;}), 200
+    
+    except ValueError as e:
+        return jsonify({&#34;error&#34;: str(e)}), 403
+    
+    except Exception as e:
+        return jsonify({&#34;error&#34;: f&#34;Došlo k chybě při mazání kvízu: {str(e)}&#34;}), 500</code></pre>
+</details>
+<div class="desc"><p>Delete a quiz and its associated questions.</p>
+<p>Only the creator of a quiz (identified by device ID) can delete it.</p>
+<p>Path parameters:</p>
+<pre><code>quiz_id: MongoDB ObjectId of the quiz to delete
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>200 JSON</code></dt>
+<dd>Success message confirming deletion</dd>
+<dt><code>403 JSON</code></dt>
+<dd>Error if user doesn't have permission</dd>
+<dt><code>500 JSON</code></dt>
+<dd>Error for server-side failures</dd>
+</dl></div>
+</dd>
+<dt id="app.routes.quiz_management_routes.get_existing_questions"><code class="name flex">
+<span>def <span class="ident">get_existing_questions</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@quiz_management_routes.route(&#39;/get_existing_questions&#39;, methods=[&#39;GET&#39;])
+def get_existing_questions():
+    &#34;&#34;&#34;
+    Retrieve existing questions with filtering options.
+    
+    Used for question reuse across quizzes and searching the question library.
+    
+    Query parameters:
+
+        type: Filter by source (&#39;mine&#39; or &#39;others&#39;)
+        questionType: Filter by question type 
+        search: Text search query
+        page: Page number for pagination (starting from 1)
+    
+    Returns:
+        200 JSON: Object with matching questions, hasMore flag, and total count
+        500 JSON: Error for server-side failures
+    &#34;&#34;&#34;
+    try:
+        device_id = get_device_id()
+        filter_type = request.args.get(&#39;type&#39;, &#39;others&#39;)
+        question_type = request.args.get(&#39;questionType&#39;, &#39;all&#39;)
+        search_query = request.args.get(&#39;search&#39;, &#39;&#39;)
+        page = int(request.args.get(&#39;page&#39;, 1))
+        per_page = 10 # Number of items per page
+        
+        result = QuizService.get_existing_questions(
+            device_id=device_id,
+            filter_type=filter_type,
+            question_type=question_type,
+            search_query=search_query,
+            page=page,
+            per_page=per_page
+        )
+        
+        return jsonify({
+            &#34;questions&#34;: result[&#34;questions&#34;],
+            &#34;hasMore&#34;: len(result[&#34;questions&#34;]) == per_page,
+            &#34;totalCount&#34;: result[&#34;total_count&#34;]
+        }), 200
+    
+    except Exception as e:
+        return jsonify({&#34;error&#34;: str(e), &#34;questions&#34;: []}), 500</code></pre>
+</details>
+<div class="desc"><p>Retrieve existing questions with filtering options.</p>
+<p>Used for question reuse across quizzes and searching the question library.</p>
+<p>Query parameters:</p>
+<pre><code>type: Filter by source ('mine' or 'others')
+questionType: Filter by question type 
+search: Text search query
+page: Page number for pagination (starting from 1)
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>200 JSON</code></dt>
+<dd>Object with matching questions, hasMore flag, and total count</dd>
+<dt><code>500 JSON</code></dt>
+<dd>Error for server-side failures</dd>
+</dl></div>
+</dd>
+<dt id="app.routes.quiz_management_routes.get_quiz"><code class="name flex">
+<span>def <span class="ident">get_quiz</span></span>(<span>quiz_id)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@quiz_management_routes.route(&#39;/quiz/&lt;quiz_id&gt;&#39;, methods=[&#39;GET&#39;])
+def get_quiz(quiz_id):
+    &#34;&#34;&#34;
+    Retrieve a specific quiz by its ID.
+    
+    Used to get full quiz details including all questions.
+    
+    Path parameters:
+
+        quiz_id: MongoDB ObjectId of the quiz to retrieve
+    
+    Returns:
+        200 JSON: Complete quiz object with all fields
+        404 JSON: Error if quiz not found
+        500 JSON: Error for server-side failures
+    &#34;&#34;&#34;
+    try:
+        quiz = QuizService.get_quiz(quiz_id)
+
+        if not quiz:
+            return jsonify({&#34;error&#34;: &#34;Kvíz nebyl nalezen&#34;}), 404
+        
+        return jsonify(quiz), 200
+    
+    except Exception as e:
+        return jsonify({&#34;error&#34;: str(e)}), 500</code></pre>
+</details>
+<div class="desc"><p>Retrieve a specific quiz by its ID.</p>
+<p>Used to get full quiz details including all questions.</p>
+<p>Path parameters:</p>
+<pre><code>quiz_id: MongoDB ObjectId of the quiz to retrieve
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>200 JSON</code></dt>
+<dd>Complete quiz object with all fields</dd>
+<dt><code>404 JSON</code></dt>
+<dd>Error if quiz not found</dd>
+<dt><code>500 JSON</code></dt>
+<dd>Error for server-side failures</dd>
+</dl></div>
+</dd>
+<dt id="app.routes.quiz_management_routes.get_quizzes"><code class="name flex">
+<span>def <span class="ident">get_quizzes</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@quiz_management_routes.route(&#39;/quizzes&#39;, methods=[&#39;GET&#39;])
+def get_quizzes():
+    &#34;&#34;&#34;
+    Retrieve quizzes with filtering and pagination.
+    
+    Lists quizzes created by the user or public quizzes from other users.
+    
+    Query parameters:
+    
+        page: Page number for pagination (starting from 1)
+        per_page: Number of items per page
+        filter: Filter by ownership (&#39;mine&#39; or &#39;public&#39;)
+        search: Text search query
+        type: Filter by quiz type
+    
+    Returns:
+        200 JSON: Object with matching quizzes, total count, and hasMore flag
+        500 JSON: Error for server-side failures with empty result set
+    &#34;&#34;&#34;
+    try:
+        device_id = get_device_id()
+        page = int(request.args.get(&#39;page&#39;, 1))
+        per_page = int(request.args.get(&#39;per_page&#39;, 10))
+        filter_type = request.args.get(&#39;filter&#39;, &#39;mine&#39;)  # &#39;mine&#39; or &#39;public&#39;
+        search_query = request.args.get(&#39;search&#39;, &#39;&#39;)
+        quiz_type = request.args.get(&#39;type&#39;, &#39;all&#39;)
+        
+        result = QuizService.get_quizzes(
+            device_id=device_id,
+            filter_type=filter_type,
+            quiz_type=quiz_type,
+            search_query=search_query,
+            page=page,
+            per_page=per_page
+        )
+        
+        return jsonify({
+            &#34;quizzes&#34;: result[&#34;quizzes&#34;],
+            &#34;total&#34;: result[&#34;total&#34;],
+            &#34;hasMore&#34;: result[&#34;has_more&#34;] # This will be set to false if there are no more quizzes to paginate
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            &#34;error&#34;: str(e),
+            &#34;quizzes&#34;: [],
+            &#34;total&#34;: 0,
+            &#34;hasMore&#34;: False 
+        }), 500</code></pre>
+</details>
+<div class="desc"><p>Retrieve quizzes with filtering and pagination.</p>
+<p>Lists quizzes created by the user or public quizzes from other users.</p>
+<p>Query parameters:</p>
+<pre><code>page: Page number for pagination (starting from 1)
+per_page: Number of items per page
+filter: Filter by ownership ('mine' or 'public')
+search: Text search query
+type: Filter by quiz type
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>200 JSON</code></dt>
+<dd>Object with matching quizzes, total count, and hasMore flag</dd>
+<dt><code>500 JSON</code></dt>
+<dd>Error for server-side failures with empty result set</dd>
+</dl></div>
+</dd>
+<dt id="app.routes.quiz_management_routes.toggle_share_quiz"><code class="name flex">
+<span>def <span class="ident">toggle_share_quiz</span></span>(<span>quiz_id)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@quiz_management_routes.route(&#39;/quiz/&lt;quiz_id&gt;/toggle-share&#39;, methods=[&#39;POST&#39;])
+def toggle_share_quiz(quiz_id):
+    &#34;&#34;&#34;
+    Toggle the public/private status of a quiz.
+
+    Only the creator of a quiz (identified by device ID) can toggle its status.
+    
+    Path parameters:
+
+        quiz_id: MongoDB ObjectId of the quiz to modify
+    
+    Returns:
+        200 JSON: Updated publicity status
+        403 JSON: Error if user doesn&#39;t have permission
+        500 JSON: Error for server-side failures
+    &#34;&#34;&#34;
+    try:
+        device_id = get_device_id()
+        result = QuizService.toggle_quiz_publicity(quiz_id, device_id)
+
+        return jsonify(result), 200
+    
+    except ValueError as e:
+        return jsonify({&#34;error&#34;: str(e)}), 403
+    
+    except Exception as e:
+        return jsonify({&#34;error&#34;: str(e)}), 500</code></pre>
+</details>
+<div class="desc"><p>Toggle the public/private status of a quiz.</p>
+<p>Only the creator of a quiz (identified by device ID) can toggle its status.</p>
+<p>Path parameters:</p>
+<pre><code>quiz_id: MongoDB ObjectId of the quiz to modify
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>200 JSON</code></dt>
+<dd>Updated publicity status</dd>
+<dt><code>403 JSON</code></dt>
+<dd>Error if user doesn't have permission</dd>
+<dt><code>500 JSON</code></dt>
+<dd>Error for server-side failures</dd>
+</dl></div>
+</dd>
+<dt id="app.routes.quiz_management_routes.update_quiz"><code class="name flex">
+<span>def <span class="ident">update_quiz</span></span>(<span>quiz_id)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@quiz_management_routes.route(&#39;/quiz/&lt;quiz_id&gt;/update&#39;, methods=[&#39;PUT&#39;])
+def update_quiz(quiz_id):
+    &#34;&#34;&#34;
+    Update an existing quiz with new name, questions, or type.
+    
+    Only the creator of a quiz (identified by device ID) can update it.
+    Handles tracking of deleted questions to clean up associated media.
+    
+    Path parameters:
+
+        quiz_id: MongoDB ObjectId of the quiz to update
+    
+    Request body (JSON):
+
+        name: Updated quiz name
+        questions: Updated array of question objects
+        deletedQuestions: Array of question IDs that were removed
+        type: Updated quiz type identifier
+    
+    Returns:
+        200 JSON: Success message with updated quiz ID
+        400 JSON: Error for invalid input or permission issues
+        500 JSON: Error for server-side failures
+    &#34;&#34;&#34;
+    try:
+        data = request.json
+        quiz_name = data.get(&#39;name&#39;)
+        questions = data.get(&#39;questions&#39;, [])
+        deleted_questions = data.get(&#39;deletedQuestions&#39;, [])
+        quiz_type = data.get(&#39;type&#39;)
+        device_id = get_device_id()
+        
+        if not quiz_name:
+            return jsonify({&#34;error&#34;: &#34;Zadejte název kvízu&#34;}), 400
+        
+        if len(quiz_name) &gt; QUIZ_VALIDATION[&#39;QUIZ_NAME_MAX_LENGTH&#39;]:
+            return jsonify({&#34;error&#34;: f&#34;Název kvízu nesmí být delší než {QUIZ_VALIDATION[&#39;QUIZ_NAME_MAX_LENGTH&#39;]} znaků&#34;}), 400
+        
+        if not questions:
+            return jsonify({&#34;error&#34;: &#34;Vytvořte alespoň jednu otázku&#34;}), 400
+
+        result = QuizService.update_quiz(
+            quiz_id, 
+            quiz_name, 
+            questions, 
+            device_id,
+            deleted_questions,
+            quiz_type
+        )
+
+        return jsonify({
+            &#34;message&#34;: &#34;Kvíz byl úspěšně aktualizován&#34;,
+            &#34;quizId&#34;: str(result)
+        }), 200
+    
+    except ValueError as e:
+        return jsonify({&#34;error&#34;: str(e)}), 400
+    
+    except Exception as e:
+        return jsonify({&#34;error&#34;: f&#34;Došlo k chybě při aktualizaci kvízu: {str(e)}&#34;}), 500</code></pre>
+</details>
+<div class="desc"><p>Update an existing quiz with new name, questions, or type.</p>
+<p>Only the creator of a quiz (identified by device ID) can update it.
+Handles tracking of deleted questions to clean up associated media.</p>
+<p>Path parameters:</p>
+<pre><code>quiz_id: MongoDB ObjectId of the quiz to update
+</code></pre>
+<p>Request body (JSON):</p>
+<pre><code>name: Updated quiz name
+questions: Updated array of question objects
+deletedQuestions: Array of question IDs that were removed
+type: Updated quiz type identifier
+</code></pre>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>200 JSON</code></dt>
+<dd>Success message with updated quiz ID</dd>
+<dt><code>400 JSON</code></dt>
+<dd>Error for invalid input or permission issues</dd>
+<dt><code>500 JSON</code></dt>
+<dd>Error for server-side failures</dd>
+</dl></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="app.routes" href="index.html">app.routes</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="app.routes.quiz_management_routes.check_question" href="#app.routes.quiz_management_routes.check_question">check_question</a></code></li>
+<li><code><a title="app.routes.quiz_management_routes.copy_quiz" href="#app.routes.quiz_management_routes.copy_quiz">copy_quiz</a></code></li>
+<li><code><a title="app.routes.quiz_management_routes.create_quiz" href="#app.routes.quiz_management_routes.create_quiz">create_quiz</a></code></li>
+<li><code><a title="app.routes.quiz_management_routes.delete_quiz" href="#app.routes.quiz_management_routes.delete_quiz">delete_quiz</a></code></li>
+<li><code><a title="app.routes.quiz_management_routes.get_existing_questions" href="#app.routes.quiz_management_routes.get_existing_questions">get_existing_questions</a></code></li>
+<li><code><a title="app.routes.quiz_management_routes.get_quiz" href="#app.routes.quiz_management_routes.get_quiz">get_quiz</a></code></li>
+<li><code><a title="app.routes.quiz_management_routes.get_quizzes" href="#app.routes.quiz_management_routes.get_quizzes">get_quizzes</a></code></li>
+<li><code><a title="app.routes.quiz_management_routes.toggle_share_quiz" href="#app.routes.quiz_management_routes.toggle_share_quiz">toggle_share_quiz</a></code></li>
+<li><code><a title="app.routes.quiz_management_routes.update_quiz" href="#app.routes.quiz_management_routes.update_quiz">update_quiz</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>
