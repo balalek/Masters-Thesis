@@ -4,3 +4,4 @@ HomeQuizServer/static
 node_modules
 .env
 .idea
+.vscode
